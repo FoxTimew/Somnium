@@ -1,16 +1,15 @@
 <!--
 Décrit les frontières, les possessions et les échanges prévus pour Somnium.
-Ce document est soumis à validation avant toute implémentation de la phase 0.
+Document validé ; distingue les contrats du MVP des capacités déjà implémentées.
 -->
 # Architecture de Somnium
 
-Statut : **proposition à valider**, 20 octobre 2026.
+Statut : **accepté**, 20 octobre 2026, avec les arbitrages D1 à D5 ci-dessous.
 
-Ce dépôt commence par un jalon documentaire. Aucun module, build, test ni rendu
-n'est encore implémenté. La validation de ce document et des
+La phase 0 est autorisée. La phase 1, la fusion finale et le tag `phase-0`
+restent soumis à une validation distincte. Voir les
 [ADR-0001](adr/0001-stack-dependances-licences.md) et
-[ADR-0002](adr/0002-conventions.md) autorisera l'implémentation de la phase 0,
-sans autoriser la phase 1 ni une fusion dans `main`.
+[ADR-0002](adr/0002-conventions.md).
 
 ## 1. Objectif et périmètre
 
@@ -27,27 +26,28 @@ Les conventions mathématiques, de mémoire, d'erreurs et de style sont décrite
 dans l'ADR-0002. Leur traduction en constantes aura une seule autorité :
 `engine/core/include/somnium/core/conventions.hpp`.
 
-## 2. Points soumis à décision avant le code
+## 2. Arbitrages acceptés
 
-Les recommandations suivantes ne sont **pas des dérogations acquises**.
-Les contradictions et leurs sources sont détaillées dans l'ADR-0001.
+| Référence | Décision |
+| --- | --- |
+| D1 | Toute dépendance sans release est épinglée par SHA complet, jamais par branche ; cette règle inclut stb et shadercross. |
+| D2 | Les backends officiels sont compilés dans `somnium_platform_imgui` et `somnium_gpu_imgui`, cibles séparées activées uniquement par `SOMNIUM_ENABLE_DEBUG_UI=ON` et liées par `debug_ui`. Les sources de platform/gpu ne contiennent aucun include ImGui ni condition UI. SDL_Event reste dans platform (collecte et intégration privée) et input (traduction). Aucun type SDL public. |
+| D3 | Le MVP charge le MSL produit hors ligne par shadercross. Le travail du driver est autorisé ; aucun compilateur HLSL dans le moteur. Le `.metallib` est reporté au cuiseur de phase 4 ; l'ADR-0003 le consignera comme prérequis de shipping macOS. |
+| D4 | Pas de zones de durée GPU Tracy. Zones CPU, hooks mémoire, compteurs de draw calls/soumissions/uploads et marqueurs SDL visibles dans RenderDoc/PIX/Xcode. Critère de phase 2 amendé. |
+| D5 | Test de rendu hors écran, relecture et comparaison à une référence avec tolérance. CI : Vulkan/lavapipe Linux, D3D12/WARP Windows si sélection supportée (à vérifier dans SDL épinglé), Metal macOS si device disponible. Sans device : job explicitement « non validé » et preuve locale avec capture et journal de validation joints à la PR. |
 
-| Référence | Point à trancher | Proposition |
-| --- | --- | --- |
-| D1 | `stb` n'a aucun tag, alors que seuls les tags de release sont autorisés hors shadercross. | Autoriser aussi un SHA complet pour `stb`, sans branche flottante. |
-| D2 | Le backend officiel ImGui GPU inclut `SDL_gpu.h` ; celui de plateforme reçoit `SDL_Event`. La collecte par `platform` doit elle aussi voir ces événements. | Compiler les adaptateurs officiels dans les implémentations privées de `gpu` et `platform`, conditionnellement à l'UI. Autoriser `SDL_Event` dans ces seuls adaptateurs et dans `input`. `debug_ui` conserve l'UI et l'inspecteur, sans pointeurs SDL. |
-| D3 | Le format MSL est du source compilé par SDL au chargement. | Conserver la sortie MSL de shadercross, puis produire un `.metallib` au build sur macOS. Le moteur charge exclusivement les formats préparés pour sa plateforme. |
-| D4 | SDL GPU 3.4.18 ne fournit pas de requêtes de timestamps utilisables pour les zones GPU Tracy. | Garder Tracy CPU et mémoire, les marqueurs de debug GPU et les compteurs de commandes ; reporter les véritables durées GPU. Cela modifie explicitement le critère de sortie de phase 2. |
-| D5 | La disponibilité des GPU nécessaires n'est pas établie sur les runners GitHub Actions. | Garder la matrice de compilation et tests ; exiger, pour les phases graphiques, des runners disposant effectivement de Vulkan, D3D12 et Metal. Leur fourniture reste à convenir ; un test ignoré ne valide pas un backend. |
+Les contrats de lecture dans `core`, réalisé par `platform` et injecté par
+`runtime`, et de gameplay dans `runtime`, réalisé par `game` et assemblé dans
+`sandbox`, sont acceptés. Les valeurs initiales de boucle sont acceptées.
 
-Les précisions d'architecture ci-dessous sont également proposées à validation :
-lecture de données injectée pour préserver le graphe, adaptateurs privés SDL,
-transfert assets CPU vers renderer dans `runtime`, et gameplay statique appelé
-par un contrat de `runtime`. Aucune de ces interfaces n'est encore codée.
+`SOMNIUM_ENABLE_DEBUG_UI` est ON dans debug, release et profiling. Le preset
+`shipping` le met à OFF. La licence doit être permissive sans copyleft pour le
+code incorporé au moteur et à ses outils ; compilateurs et SDK de plateforme
+sont hors de cette règle, y compris DXC utilisé comme outil.
 
 ## 3. Modules et visibilité CMake
 
-Chaque module moteur aura une cible statique `somnium_<module>` et un alias
+Chaque module moteur ayant des sources réelles aura une cible statique `somnium_<module>` et un alias
 `somnium::<module>`. Ses en-têtes publics résident dans
 `engine/<module>/include/somnium/<module>/`, ses implémentations dans `src/`,
 ses tests doctest dans `tests/`.
@@ -66,7 +66,9 @@ l'ADR-0001.
 | `assets` | Ressources CPU immuables, loaders, handles et états | `core` | aucune |
 | `scene` | World/EnTT, composants, transforms, hiérarchie et JSON | `core`, `assets` | aucune |
 | `input` | Traduction des événements en actions et axes | `core` | `platform` |
-| `debug_ui` | Contexte ImGui, statistiques, inspecteur et édition | `core` | `platform`, `gpu`, `scene`, `input` |
+| `debug_ui` | Contexte ImGui, statistiques, inspecteur et édition | `core` | `platform_imgui`, `gpu_imgui`, `scene`, `input` |
+| `platform_imgui` | Backend officiel SDL3 et coopération privée | aucune | `platform` |
+| `gpu_imgui` | Backend officiel SDL GPU et coopération privée | aucune | `gpu` |
 | `runtime` | Engine, orchestration, simulation, extraction et correspondance assets/rendu | `core`, `scene`, `input` | `platform`, `gpu`, `renderer`, `assets`, `debug_ui` si activé |
 
 `game/` produit une bibliothèque statique `somnium_game`, consommant `runtime`.
@@ -89,8 +91,10 @@ flowchart TD
     scene --> core
     input --> platform
     input --> core
-    debug_ui --> platform
-    debug_ui --> gpu
+    debug_ui --> platform_imgui
+    debug_ui --> gpu_imgui
+    platform_imgui --> platform
+    gpu_imgui --> gpu
     debug_ui --> scene
     debug_ui --> input
     debug_ui --> core
@@ -132,8 +136,8 @@ Les références de scène et d'inputs sont empruntées pour l'appel. L'état mo
 la registry et les ressources restent possédés par `Engine`.
 
 En phase 0, `Engine` possède uniquement ce qu'il utilise : plateforme, fenêtre,
-horloge et état de boucle. Les modules futurs peuvent avoir des cibles de build
-sans instances factices ni fonctions vides.
+horloge et état de boucle. Tous les modules ont leurs répertoires et leur
+CMakeLists ; aucune cible sans sources réelles ni fonction factice n’est créée.
 
 À partir des phases suivantes, la création respecte les dépendances. À l'arrêt :
 le gameplay cesse d'être appelé, les travaux GPU sont achevés, l'UI et ses
@@ -235,24 +239,24 @@ directement les coefficients de matrices monde ne convient pas aux pivots de
 portes. Un nouvel objet, une téléportation ou un changement de parent réinitialise
 son historique ; un objet détruit est exclu de l'extraction.
 
-## 6. Événements et intégration ImGui proposée
+## 6. Événements et intégration ImGui
 
-Sous réserve de D2, `platform` collecte les événements SDL sur le thread requis.
-Il traite le cycle de vie de la fenêtre, transmet les événements à l'adaptateur
-officiel ImGui de plateforme et au traducteur privé d'`input`. Les consommateurs
-publics reçoivent des états Somnium ; aucun `SDL_Event` ne traverse `runtime`,
-`scene`, `renderer` ou `game`.
+`platform` collecte les événements SDL sur le thread requis et traite le cycle
+de vie de la fenêtre. Sa coopération privée permet à `input` de traduire les
+événements et à l’intégration de plateforme ImGui de les recevoir. Aucun
+`SDL_Event` ne traverse une interface publique, `runtime`, `scene`, `renderer`,
+`gpu` ou `game`.
 
-Le backend officiel `imgui_impl_sdl3` est compilé dans l'intégration privée
-`platform`; `imgui_impl_sdlgpu3` dans l'intégration privée `gpu`. Les deux utilisent
-la même bibliothèque tierce ImGui. Ils ne dépendent pas de `somnium_debug_ui`.
-Les en-têtes privés de coopération exposent uniquement les emprunts nécessaires
-au contexte et aux draw data ImGui, sans pointeurs SDL.
+Les cibles séparées `somnium_platform_imgui` et `somnium_gpu_imgui` compilent
+respectivement les backends officiels `imgui_impl_sdl3` et `imgui_impl_sdlgpu3`.
+Elles ont accès aux en-têtes privés de coopération de `platform` et `gpu` et
+sont liées par `debug_ui`. Les sources de `platform` et `gpu` ne contiennent
+aucun include ImGui ni `#if` lié à l’UI. Les cibles d’intégration n’existent
+que si `SOMNIUM_ENABLE_DEBUG_UI=ON` ; leurs dépendances ne créent aucun cycle.
 
-`debug_ui` possède le contexte, construit les widgets et l'inspecteur, et utilise
-ces intégrations. Les accès à la fenêtre native sont privés à la coopération
-`platform`/`gpu`, sans accesseur natif public. Les intégrations et le module UI
-sont absents du build shipping.
+`debug_ui` possède le contexte, construit l’inspecteur et utilise les façades
+d’intégration sans type SDL. Les pointeurs natifs demeurent dans la coopération
+privée. Aucune initialisation d’UI ou de device GPU n’a lieu en phase 0.
 
 Les événements sont toujours traités pour les relâchements, pertes de focus et
 connexions de manette. La capture UI filtre ensuite les actions de gameplay,
@@ -282,7 +286,7 @@ de gameplay utiles existent. Aucune DrawList ni opération GPU factice n'est
 appelée. La cadence externe est régulée par une attente de plateforme pour
 éviter une boucle active sans rendu.
 
-Valeurs de départ proposées : pas fixe `1/60 s`, delta entrant plafonné à
+Valeurs initiales acceptées : pas fixe `1/60 s`, delta entrant plafonné à
 `250 ms`, maximum de huit pas par itération. Après ce maximum, les pas entiers
 excédentaires sont abandonnés et comptés, en conservant le reste fractionnaire.
 Cette perte de temps de simulation est visible dans les diagnostics. Aucun
@@ -306,10 +310,10 @@ sans changer le contenu des packets.
 
 | Phase | Capacités ajoutées | Preuves exigées |
 | --- | --- | --- |
-| Jalon documentaire actuel | Architecture, stack et conventions proposées | Approbation explicite des trois documents et arbitrage des points bloquants |
+| Jalon documentaire | Architecture, stack et conventions | Accepté avec D1 à D5 |
 | 0 | CMake/CPM, conventions codées, core, platform, boucle runtime, game et sandbox | Build sans warning, tests Result/handles/accumulateur, fenêtre locale et fermeture, matrice CI et sanitizers Linux verts |
 | 1 | GPU, chaîne de shaders hors ligne, triangle, UI | Backends réellement exécutés, validation GPU, tests de ressources et shaders, ADR-0003/0004 |
-| 2 | Assets CPU, rendu de mesh texturé, caméra via input | Modèle de référence, orientation et textures correctes, Tracy selon D4, ADR-0005 |
+| 2 | Assets CPU, rendu de mesh texturé, caméra via input | Modèle de référence, orientation et textures correctes, Tracy CPU/mémoire, compteurs et marqueurs GPU selon D4, ADR-0005 |
 | 3 | World, hiérarchie, JSON, extraction, interpolation, mapping complet, gameplay de référence | Tests de hiérarchie/round-trip/extraction/interpolation, personnage bloqué par les murs, portes à pivot et inspecteur, ADR-0006/0007 |
 
 Chaque module implémenté dispose de sa cible de tests doctest sous `tests/`.
@@ -320,21 +324,16 @@ valider un backend non exécuté.
 
 La CI future couvre configure, build, CTest et clang-format sur les trois OS,
 plus ASan/UBSan sur Linux. Les presets sont `debug`, `release`, `profiling`
-et `asan-ubsan` sur Linux/macOS. Le README sera livré avec l'implémentation
+, `shipping` sans UI et `asan-ubsan` sur Linux/macOS. Le README sera livré avec l'implémentation
 de phase 0 et donnera les commandes effectivement testées, y compris les
 prérequis shadercross/DXC/SPIRV-Cross.
 
-Le dépôt est initialement sans commit et sans branche distante. La branche de
-travail est `phase/0-fondations` ; un rebase sur `main` est donc actuellement
-impossible faute de commit de base. Aucun `main` artificiel ni tag de phase
-n'est créé pour ce jalon. Le premier rattachement à `main`, absent à l'origine,
-devra être convenu lors de la validation de phase ; un merge `--no-ff` a besoin
-d'une branche de destination existante.
-
-Les documents sont poussés pour revue avant le code. À ce stade il n'existe pas
-de workflow CI : aucun statut vert n'est revendiqué. Après chaque étape de code,
-le résultat de CI est lu avant de poursuivre. La phase reste ouverte jusqu'à
-ses preuves de sortie et sa validation explicite.
+Le socle initial de `main` contient les trois documents acceptés, un README,
+`.gitignore` et `.gitattributes` avec Git LFS. Il conserve le commit documentaire
+antérieur. `phase/0-fondations` est avancée sur ce socle avant toute implémentation.
+Les étapes cohérentes sont commitées et poussées, puis leur CI consultée.
+Le merge `--no-ff` dans `main` et le tag `phase-0` attendent la validation de fin
+de phase. Aucune phase suivante ne commence implicitement.
 
 ## 9. Extensions réservées
 

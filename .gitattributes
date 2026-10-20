@@ -1,0 +1,15 @@
+# Normalize source text and store binary source assets in Git LFS.
+# Shader build products are ignored rather than tracked by LFS.
+* text=auto eol=lf
+*.bat text eol=crlf
+assets/**/*.glb filter=lfs diff=lfs merge=lfs -text
+assets/**/*.bin filter=lfs diff=lfs merge=lfs -text
+assets/**/*.png filter=lfs diff=lfs merge=lfs -text
+assets/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+assets/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+assets/**/*.tga filter=lfs diff=lfs merge=lfs -text
+assets/**/*.dds filter=lfs diff=lfs merge=lfs -text
+assets/**/*.ktx2 filter=lfs diff=lfs merge=lfs -text
+assets/**/*.wav filter=lfs diff=lfs merge=lfs -text
+assets/**/*.ogg filter=lfs diff=lfs merge=lfs -text
+assets/**/*.ttf filter=lfs diff=lfs merge=lfs -text

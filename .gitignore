@@ -1,0 +1,30 @@
+# Excludes generated builds, local tooling and caches.
+# Source assets remain tracked; binary sources use Git LFS.
+/build/
+/out/
+/.cache/
+/.tools/
+/CPM_SOURCE_CACHE/
+/CMakeUserPresets.json
+/.vs/
+/.idea/
+/.vscode/
+*.user
+*.suo
+*.pdb
+*.ilk
+*.obj
+*.o
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+*.spv
+*.dxil
+*.metallib
+*.tracy
+__pycache__/
+.DS_Store
+Thumbs.db

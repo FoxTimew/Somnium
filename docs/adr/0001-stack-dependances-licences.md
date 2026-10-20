@@ -1,226 +1,101 @@
 <!--
-Consigne la stack imposée, les versions candidates vérifiées et leurs limites.
-Les arbitrages signalés restent soumis à validation avant le code moteur.
+Consigne la stack et les arbitrages validés pour le moteur.
+Les détails d'intégration restent derrière les frontières de modules.
 -->
 # ADR-0001 — Stack, dépendances et licences
 
-Date : 20 octobre 2026. Statut : **proposé, non accepté**.
+Date : 20 octobre 2026. Statut : **accepté**.
 
 ## Contexte
 
-Somnium est un moteur de jeu C++20 destiné à évoluer plusieurs années.
-Le MVP doit fonctionner sur Windows, Linux et macOS avec une chaîne de build
-reproductible et des frontières compatibles avec un futur portage console.
-Le cahier des charges impose les technologies ; cet ADR enregistre leur emploi,
-leurs versions candidates et les incompatibilités identifiées avant le code.
+Somnium utilise une stack C++20 portable et reproductible, avec SDL GPU comme
+seule API graphique. Les incompatibilités de la revue initiale ont été arbitrées
+explicitement par le propriétaire du projet.
 
-Les sources distantes ont été consultées pour cette revue. Les API de SDL,
-shadercross, EnTT et cgltf devront ensuite être relues dans le cache CPM de la
-révision effectivement épinglée avant d'écrire les appels. Les liens ci-dessous
-ne constituent pas une preuve de compilation ni un audit exhaustif de licences.
+## Décision
 
-## Décision proposée
+C++20 sans modules de langage, exceptions ni RTTI dans les cibles moteur ;
+CMake ≥ 3.28, bibliothèques statiques, CPM et `CPM_SOURCE_CACHE`. Warnings
+`-Wall -Wextra -Wpedantic` ou `/W4`, traités en erreurs en CI. Les includes tiers
+sont `SYSTEM`. Les tests et outils hors ligne peuvent utiliser exceptions/RTTI.
+`JSON_NOEXCEPTION` et `SPDLOG_NO_EXCEPTIONS` sont définis de façon cohérente.
 
-### Langage et construction
+Les versions retenues sont les suivantes ; les appels SDL, shadercross, EnTT
+(notamment cette nouvelle version majeure) et cgltf sont écrits uniquement après
+lecture de leurs en-têtes dans le cache CPM.
 
-- C++20 sans modules de langage ; C pour les dépendances qui le nécessitent.
-- Cibles Somnium statiques, sans exceptions et sans RTTI dans le moteur.
-  Options GCC/Clang `-fno-exceptions -fno-rtti` ; côté MSVC, `/GR-`,
-  désactivation effective de l'unwinding C++ et `_HAS_EXCEPTIONS=0`, vérifiées
-  dans les commandes de compilation.
-- `JSON_NOEXCEPTION` et `SPDLOG_NO_EXCEPTIONS` définis de manière cohérente
-  dans les unités qui utilisent ces dépendances. Les erreurs d'entrée JSON
-  sont détectées avant les conversions susceptibles d'abandonner le processus.
-- CMake ≥ 3.28, presets versionnés et CPM.cmake. Pas de `find_package` silencieux
-  substituant une autre version aux dépendances gérées par CPM.
-- `CPM_SOURCE_CACHE` configurable, hors des fichiers versionnés. Aucun dossier
-  personnel ni chemin OS n'est fixé dans le dépôt.
-- Options et includes portés par les cibles. Includes tiers `SYSTEM`, sans
-  imposer les warnings Somnium aux sources tierces. Pour Somnium :
-  `-Wall -Wextra -Wpedantic`, `/W4`, et `-Werror` ou `/WX` en CI.
-- Les tests et outils hors ligne peuvent utiliser exceptions et RTTI. Ils ne
-  sont pas autorisés à faire traverser une exception dans le moteur.
-
-Les presets prévus sont `debug`, `release`, `profiling` (RelWithDebInfo, Tracy)
-et `asan-ubsan` (Linux/macOS). Shipping exclut `debug_ui` et ses adaptateurs ;
-le preset release sera le contrôle de cette exclusion.
-
-### Inventaire initial
-
-Les tags sont des candidats exacts relevés sur les releases officielles.
-Leur compatibilité collective reste à démontrer après approbation ; toute
-modification ultérieure sera justifiée. SDL 3.4.18 est la dernière release
-stable 3.x indiquée par l'amont à la date de cette revue.
-
-| Dépendance | Référence candidate | Licence amont à conserver | Usage |
+| Dépendance | Référence retenue | Licence amont à conserver | Usage |
 | --- | --- | --- | --- |
 | [CPM.cmake](https://github.com/cpm-cmake/CPM.cmake/releases/tag/v0.43.2) | `v0.43.2` | MIT | Acquisition et cache CMake |
 | [SDL3](https://github.com/libsdl-org/SDL/releases/tag/release-3.4.18) | `release-3.4.18` | zlib | Plateforme, inputs, SDL GPU |
 | [GLM](https://github.com/g-truc/glm/releases/tag/1.0.3) | `1.0.3` | Option MIT | Types et calculs mathématiques |
 | [EnTT](https://github.com/skypjack/entt/releases/tag/v4.0.0) | `v4.0.0` | MIT | Registry et identités d'entités directement utilisées |
 | [cgltf](https://github.com/jkuhlmann/cgltf/releases/tag/v1.15) | `v1.15` | MIT | glTF 2.0 |
-| [stb](https://github.com/nothings/stb/tree/a7d4c2175630e1ea5b6f8dd00ab96fed0b97b96d) | `a7d4c2175630e1ea5b6f8dd00ab96fed0b97b96d`, soumis à D1 | Option MIT | `stb_image`, PNG/JPEG |
+| [stb](https://github.com/nothings/stb/tree/a7d4c2175630e1ea5b6f8dd00ab96fed0b97b96d) | `a7d4c2175630e1ea5b6f8dd00ab96fed0b97b96d`, D1 accepté | Option MIT | `stb_image`, PNG/JPEG |
 | [nlohmann/json](https://github.com/nlohmann/json/releases/tag/v3.12.0) | `v3.12.0` | MIT | Scènes et mapping versionnés |
 | [spdlog](https://github.com/gabime/spdlog/releases/tag/v1.17.0) | `v1.17.0` | MIT ; notices du fmt embarqué à conserver | Implémentation privée de `Log` |
-| [Tracy](https://github.com/wolfpld/tracy/releases/tag/v0.14.1) | `v0.14.1` | BSD-3-Clause ; notices des sources embarquées à auditer | CPU et mémoire ; GPU soumis à D4 |
+| [Tracy](https://github.com/wolfpld/tracy/releases/tag/v0.14.1) | `v0.14.1` | BSD-3-Clause ; notices des sources embarquées à auditer | CPU et mémoire ; marqueurs GPU selon D4 |
 | [Dear ImGui](https://github.com/ocornut/imgui/releases/tag/v1.93.0) | `v1.93.0` | MIT | UI de debug et backends officiels |
 | [tl::expected](https://github.com/TartanLlama/expected/releases/tag/v1.3.1) | `v1.3.1` | CC0-1.0, dédicace au domaine public | `Result<T>` |
 | [doctest](https://github.com/doctest/doctest/releases/tag/v2.5.3) | `v2.5.3` | MIT | Tests par module via CTest |
 | [SDL_shadercross](https://github.com/libsdl-org/SDL_shadercross/tree/1ff05bec573988a98ef9e0260b4da44f512b8367) | `1ff05bec573988a98ef9e0260b4da44f512b8367` | zlib | CLI de build, jamais lié au moteur pour compiler à l'exécution |
 
-Les SHA ont été relevés via `git ls-remote` ; aucune branche flottante ne sera
-utilisée dans CPM. Shadercross n'a pas de release publiée, cas expressément
-autorisé par le cahier des charges. `stb` nécessite une autorisation distincte.
+Une dépendance sans release est épinglée par SHA complet, jamais par branche
+(D1). Les bibliothèques header-only sont vérifiées par compilation de leurs
+contrats ; cgltf/stb ont une seule unité d’implémentation. Les modules sans
+sources réelles ont un répertoire et un CMakeLists, sans cible ni fonction factice.
 
-Les bibliothèques header-only sont validées par des unités de compilation qui
-exercent leurs contrats, sans prétendre qu'elles produisent toutes une archive.
-Les implémentations de cgltf et stb sont compilées une seule fois dans la cible
-tierce appropriée. Les modules encore inactifs ne reçoivent pas de fonctions
-factices uniquement pour satisfaire le linker.
+D2 : les backends officiels sont compilés dans `somnium_platform_imgui` et
+`somnium_gpu_imgui`, cibles d’intégration séparées, liées par `debug_ui`, ayant
+accès aux en-têtes privés de coopération et construites seulement avec
+`SOMNIUM_ENABLE_DEBUG_UI=ON`. Aucun include ImGui ou condition UI dans les
+sources de `platform`/`gpu`. `SDL_Event` reste dans platform et input ; aucun
+type SDL dans les interfaces publiques.
 
-### Chaîne de shaders et dépendances transitives
+D3 : les HLSL Shader Model 6 sont transformés au build par le CLI shadercross
+en SPIR-V, DXIL et MSL. Le moteur charge le MSL ; la compilation effectuée par
+le driver est autorisée. Aucun compilateur HLSL dans le moteur. Le `.metallib`
+est reporté au cuiseur de phase 4 et sera inscrit dans l’ADR-0003 comme prérequis
+de shipping macOS. Aucun shader compilé n’est commité. DXC et SPIRV-Cross sont
+les dépendances du CLI ; leurs versions et notices sont verrouillées au build.
+Aucun chemin DXBC/vkd3d n’est ajouté.
 
-Les sources sont HLSL Shader Model 6. La génération SPIR-V, DXIL et MSL est
-effectuée au build par le CLI shadercross et des commandes CMake incrémentales.
-Les artefacts sont placés sous le répertoire de build et ne sont pas commités.
-Le moteur ne distribue ni n'appelle le compilateur shadercross.
+D4 : pas de zones de durée GPU Tracy. Sont retenus les zones CPU, hooks mémoire,
+compteurs de draw calls/soumissions/uploads et marqueurs SDL pour
+RenderDoc/PIX/Xcode. Le critère de sortie de phase 2 est amendé ; une durée CPU
+de soumission n’est jamais présentée comme une durée GPU.
 
-Le CLI nécessite DXC et SPIRV-Cross. La release DXC
-[`v1.9.2609`](https://github.com/microsoft/DirectXShaderCompiler/releases/tag/v1.9.2609)
-est identifiée comme candidate. Son
-[fichier de licences](https://github.com/microsoft/DirectXShaderCompiler/blob/v1.9.2609/LICENSE.TXT)
-regroupe plusieurs composants ; l'inventaire doit couvrir les licences réellement
-embarquées, pas seulement le label du dépôt.
+D5 : un test hors écran rend dans une texture, relit les pixels et compare à
+une image de référence avec tolérance. CI : lavapipe/Vulkan sous Linux ;
+WARP/D3D12 sous Windows si SDL épinglé permet de choisir cet adaptateur ; Metal
+sous macOS si un device existe. Sinon, le job indique « non validé » et une
+capture locale avec journal de validation est jointe à la PR de phase 1.
 
-SPIRV-Cross est sous Apache-2.0. Son tag exact et les éventuelles dépendances
-transitives de construction devront être arrêtés avec l'installation vérifiée
-du CLI. Le verrouillage reste donc **incomplet pour les outils transitifs** à
-ce jalon documentaire. Aucune sélection de la branche principale ni du contenu
-flottant d'un SDK n'est autorisée en attendant.
+Les presets debug, release et profiling activent l’UI par défaut ; shipping
+met `SOMNIUM_ENABLE_DEBUG_UI=OFF`. Profiling utilise RelWithDebInfo et Tracy.
+Le preset asan-ubsan cible Linux/macOS.
 
-Le [CMake de shadercross à la révision candidate](https://github.com/libsdl-org/SDL_shadercross/blob/1ff05bec573988a98ef9e0260b4da44f512b8367/CMakeLists.txt)
-permet de sélectionner DXC, la construction du CLI et les dépendances vendored.
-Ses sous-modules incluent également des composants hors besoin MVP : ils ne
-seront pas récupérés ou activés aveuglément. DXBC n'est pas requis ; aucune
-dépendance vkd3d ne sera ajoutée pour ce chemin.
+La règle de licence couvre le code lié ou incorporé à Somnium et ses outils :
+toute licence permissive sans copyleft, dont zlib, MIT, BSD, Apache-2.0, NCSA,
+BSL-1.0 et CC0/domaine public. Les compilateurs et SDK de plateforme (MSVC,
+Windows SDK, Xcode, outils Metal et DXC utilisé comme outil) sont hors périmètre.
+Les notices et licences transitives réellement incorporées sont conservées.
 
-Les licences admises pour les dépendances du projet sont zlib, MIT, BSD,
-Apache-2.0 et domaine public. Aucune dépendance GPL/LGPL n'est ajoutée,
-y compris aux outils construits pour le projet. Les notices transitives et les
-options Tracy de backtrace/profilage système font partie de cette vérification.
-La présence d'une dépendance installée sur la machine n'autorise pas sa liaison.
+## Alternatives
 
-Les compilateurs et SDK de plateforme, notamment les outils Metal proposés en
-D3, ont leurs propres conditions. Leur périmètre doit être distingué des
-bibliothèques incorporées au moteur ; si la liste de licences est censée interdire
-aussi les SDK propriétaires de plateforme, le choix Windows/macOS doit être
-réarbitré avant installation.
-
-### Frontières des bibliothèques
-
-- GLM est autorisé dans les contrats mathématiques, EnTT dans `scene` et les
-  consommateurs de la registry, `tl::expected` derrière l'alias public `Result`.
-- Les includes spdlog sont confinés à l'implémentation de `Log`. La façade
-  n'expose ni logger spdlog ni type fmt ; elle garde catégories et niveaux.
-- cgltf et stb sont privés à la production des données CPU. Aucun type de ces
-  parseurs ne figure dans les composants ou les draw packets.
-- nlohmann/json est privé aux sérialiseurs et loaders de configuration.
-- SDL GPU est privé à `gpu`. La coopération de plateforme et d'inputs est
-  explicitée en D2 et dans l'architecture.
-- Tracy n'est visible dans le code Somnium qu'au travers de macros
-  `SOMNIUM_PROFILE_*`. Hors profiling, elles n'évaluent pas leurs arguments.
-- ImGui est réservé aux builds non shipping. Les allocateurs et états internes
-  des dépendances ne justifient pas de créer des singletons moteur.
-
-## Incompatibilités à arbitrer
-
-### D1 — Épinglage de stb
-
-Constat : `git ls-remote --tags` ne renvoie aucun tag pour le dépôt officiel
-[stb](https://github.com/nothings/stb/tags). Un numéro inscrit dans `stb_image.h`
-ne constitue pas un tag Git de release.
-
-**Recommandation :** étendre à stb l'exception de SHA complet déjà prévue pour
-shadercross. Alternative : choisir une autre bibliothèque à releases, ce qui
-changerait la décision imposant stb. Aucun miroir à tag inventé n'est proposé.
-
-### D2 — Backends ImGui et encapsulation SDL
-
-Constat : le backend officiel
-[`imgui_impl_sdlgpu3.h`](https://github.com/ocornut/imgui/blob/v1.93.0/backends/imgui_impl_sdlgpu3.h)
-inclut `SDL_gpu.h` et reçoit des objets SDL GPU. Le backend
-[`imgui_impl_sdl3.h`](https://github.com/ocornut/imgui/blob/v1.93.0/backends/imgui_impl_sdl3.h)
-reçoit un `SDL_Event`. La phrase « rien d'autre que input ne voit SDL_Event »
-entre aussi en conflit avec la collecte imposée dans `platform`.
-
-**Recommandation :** intégrations privées dans `gpu` et `platform`, UI dans
-`debug_ui`, types SDL absents des interfaces publiques. Les backends officiels
-restent inchangés. Alternative : autoriser les types SDL dans `debug_ui`, ce qui
-élargirait davantage la frontière GPU ; alternative écartée par défaut.
-
-### D3 — MSL et compilation hors ligne
-
-Constat : dans le
-[backend Metal de SDL 3.4.18](https://github.com/libsdl-org/SDL/blob/release-3.4.18/src/gpu/metal/SDL_gpu_metal.m),
-le chargement MSL passe par `newLibraryWithSource`; METALLIB passe par
-`newLibraryWithData`. MSL n'est donc pas un binaire déjà compilé.
-
-**Recommandation :** garder les trois sorties shadercross, et ajouter sur macOS
-la compilation MSL vers `.metallib` par les outils Metal avant lancement.
-L'ADR-0003 détaillera les artefacts et commandes après lecture des outils
-épinglés. Alternative : autoriser explicitement la compilation MSL par le driver
-au chargement, ce qui relâcherait l'exigence actuelle.
-
-### D4 — Mesures de temps GPU Tracy
-
-Constat : l'[API publique GPU de SDL 3.4.18](https://github.com/libsdl-org/SDL/blob/release-3.4.18/include/SDL3/SDL_gpu.h)
-ne fournit pas d'API de timestamps GPU. Les
-[adaptateurs GPU livrés par Tracy 0.14.1](https://github.com/wolfpld/tracy/tree/v0.14.1/public/tracy)
-sont liés aux API graphiques natives ; aucun adaptateur SDL GPU n'y est fourni.
-
-**Recommandation :** report explicite des zones de durée GPU ; conserver zones
-CPU, hooks mémoire, marqueurs GPU SDL et compteurs de soumissions/draw calls.
-Un chronomètre CPU entourant une soumission n'est pas une durée GPU.
-Alternative : autoriser des appels natifs ou une modification de SDL, ce qui
-contredirait l'isolation et la stack figées. Aucune de ces alternatives n'est
-implémentée ni considérée comme acceptée.
-
-### D5 — Preuve de rendu en CI
-
-La compilation d'un backend et les tests CPU ne prouvent pas qu'un triangle a
-été rendu. L'accès effectif à un device et à une session adaptée doit être établi
-pour chaque runner avant de revendiquer Vulkan, D3D12 ou Metal validé.
-
-**Recommandation :** réserver les validations graphiques de phase 1 à des runners
-équipés ; fournir captures et logs de validation GPU comme artefacts. À défaut,
-demander une modification explicite du critère de sortie. Ce point n'empêche
-pas la matrice sans GPU de phase 0.
-
-## Alternatives écartées par le cahier des charges
-
-- C++20 modules, moteur partagé dès le MVP et scripting : coût sans besoin du jeu.
-- OpenGL ou appels Vulkan/D3D12/Metal directs : autre frontière graphique.
-- SDL_Renderer : ne répond pas au choix SDL GPU.
-- RHI générique : abstraction supplémentaire non requise.
-- Wrapper ECS universel : EnTT doit rester directement utilisable.
-- OBJ/Assimp, physique tierce et autres formats d'assets : hors périmètre.
-- Compilation HLSL au runtime, dépendances sur branches et binaires de shaders
-  versionnés : incompatibles avec la reproductibilité demandée.
+Écartés : SDL_Renderer, appels natifs Vulkan/D3D12/Metal, RHI générique,
+wrapper ECS, scripting, Assimp/OBJ et compilation HLSL au runtime. La compilation
+MSL vers metallib est différée ; les durées GPU ne sont pas simulées par des
+mesures CPU. Les dépendances sans tag ne sont pas remplacées par un miroir à
+tag artificiel.
 
 ## Conséquences
 
-La structure sépare les données CPU, leur interprétation en scène et les
-ressources de rendu. Les builds de production peuvent exclure l'UI et le
-profilage sans changer les composants.
+La scène conserve des handles d’assets CPU et le renderer consomme une DrawList
+indépendante de World. Les intégrations UI peuvent être retirées sans modifier
+platform/gpu. Le contrat de lecture est défini dans core, réalisé par platform,
+injecté par runtime ; le contrat gameplay suit runtime → game → sandbox.
+Le socle main contient les documents acceptés, README, règles Git/LFS ; la
+phase 0 est développée depuis ce socle sans fusion ni tag avant validation.
 
-Les bibliothèques standard peuvent encore échouer par manque de mémoire :
-désactiver les exceptions n'en fait pas des opérations récupérables. La
-proposition de traitement fatal est précisée dans l'ADR-0002.
-
-La stack ne sera considérée verrouillée et utilisable qu'après résolution de D1
-à D4, audit des composants effectivement construits, puis compilation et tests
-des versions retenues. D5 doit être réglé avant la sortie de phase 1.
-
-Le jalon actuel ne revendique aucune compatibilité binaire, aucune CI verte,
-aucune capture Tracy et aucune validation GPU. L'acceptation de cet ADR ne
-remplace pas ces preuves.
+Preuves : compilation croisée, tests, sanitizers et fenêtre locale à établir en phase 0 ; sélection WARP, comparaison hors écran et captures GPU à établir en phase 1.

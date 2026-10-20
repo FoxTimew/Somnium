@@ -4,7 +4,7 @@ Le futur conventions.hpp en sera la traduction unique dans le code.
 -->
 # ADR-0002 — Conventions de données, maths et exécution
 
-Date : 20 octobre 2026. Statut : **proposé, non accepté**.
+Date : 20 octobre 2026. Statut : **accepté**.
 
 ## Contexte
 
@@ -13,11 +13,11 @@ traversent tous les modules. Une incohérence obligerait à convertir les assets
 revoir les shaders ou réécrire les interfaces.
 
 Les exigences du cahier des charges sont reprises ci-dessous. Les valeurs de
-détail proposées ne sont pas des implémentations existantes. Le futur fichier
+détail sont acceptées ; leur implémentation fait partie de la phase 0. Le futur fichier
 `engine/core/include/somnium/core/conventions.hpp` contiendra leurs constantes
 et commentaires de référence ; les autres modules les utiliseront.
 
-## Décision proposée
+## Décision
 
 ### Repère, unités et matrices
 
@@ -108,7 +108,7 @@ signature et les résultats sont marqués pour ne pas être ignorés.
 | Fichier absent, JSON invalide, asset non conforme, shader manquant | `Result<T>` ou état `Failed` documenté d'une demande d'asset acceptée |
 | Invariant de programme, mauvais handle interne | `SOMNIUM_ASSERT`, fatal en debug |
 | Invariant qui doit rester vérifié en production | `SOMNIUM_VERIFY`, fatal dans tous les builds |
-| Manque de mémoire d'un conteneur standard | Politique proposée : fatal, sans promesse de récupération |
+| Manque de mémoire d'un conteneur standard | Politique acceptée : fatal, sans promesse de récupération |
 | Erreur pendant la destruction | Aucun throw ; opération explicite préalable si récupération nécessaire, diagnostic de nettoyage sinon |
 
 `SOMNIUM_ASSERT` est retiré en release et n'évalue pas son expression :
@@ -127,7 +127,7 @@ version précèdent toute conversion.
 ### Handles et possession
 
 `Handle<Tag>` représente exactement un index 32 bits et une génération 32 bits,
-sans dépendance à la taille d'un pointeur. Proposition de sentinelles :
+sans dépendance à la taille d'un pointeur. Sentinelles retenues :
 index maximal réservé à l'invalidité et génération zéro réservée ; première
 génération utilisable égale à un. Des assertions de taille vérifieront le contrat.
 Ce format est une représentation mémoire, pas un format de sauvegarde.
@@ -169,13 +169,13 @@ correspond systématiquement à une allocation.
 Le périmètre initial des mesures mémoire doit être annoncé. Il ne couvre pas
 automatiquement toutes les allocations de la STL, de SDL ou d'un driver.
 L'instrumentation globale de `new/delete` n'est pas introduite implicitement.
-Les durées GPU attendent l'arbitrage D4 de l'ADR-0001 ; les durées CPU
+Les durées GPU sont exclues selon D4 de l'ADR-0001 ; les durées CPU
 d'enregistrement ne seront jamais étiquetées comme durées GPU.
 
 ### Temps, inputs et threading
 
 Le temps monotone est mesuré indépendamment de l'heure civile. Le pas fixe
-initial proposé est `1/60 s`, avec un delta entrant limité à `250 ms` et huit
+initial est `1/60 s`, avec un delta entrant limité à `250 ms` et huit
 pas maximum par itération. Les pas excédentaires sont comptabilisés puis
 abandonnés en conservant le reste fractionnaire. Les paramètres ont des noms
 et une définition unique dans les conventions.
@@ -250,6 +250,13 @@ La vérification visuelle des conventions SDL est une obligation de phase 1,
 suivie du modèle glTF de référence en phase 2. Aucune observation de cette
 revue documentaire ne doit être présentée comme un test graphique réussi.
 
-Les points D1 à D5 restent renvoyés à l'ADR-0001. Les détails de schéma JSON,
-de bindings shaders et de mapping input seront arrêtés dans les ADR de leur
-phase, avant le code concerné.
+Les arbitrages D1 à D5 de l’ADR-0001 sont acceptés : SHA complet pour toute
+dépendance sans release ; intégrations ImGui séparées de platform/gpu ; MSL
+produit hors ligne puis chargé par SDL sans compilateur HLSL dans le moteur ;
+Tracy CPU/mémoire, compteurs et marqueurs GPU sans durées GPU ; preuve de rendu
+hors écran avec tolérance et preuve locale explicite si device CI indisponible.
+Le preset release garde l’UI, shipping l’exclut. Les licences permissives sans
+copyleft sont admises ; les compilateurs/SDK de plateforme sont hors de cette règle.
+Le socle initial main et la branche de phase suivent la procédure Git autorisée.
+
+Preuves : tests Result/handles/accumulateur et exécution sans fuite en phase 0 ; conventions GPU en phase 1 ; hiérarchie, persistance et interpolation aux phases concernées.
