@@ -131,7 +131,7 @@ python tools/check_architecture.py .
 ```
 
 [GitHub Actions](https://github.com/FoxTimew/Somnium/actions) compile et teste
-Windows/Linux/macOS en debug et shipping, avec un job Linux ASan/UBSan.
+Windows/Linux/macOS en debug, shipping et profiling, avec un job Linux ASan/UBSan.
 Les dépendances directes entre modules et leur visibilité sont contrôlées
 au configure ; CTest vérifie également les frontières d'includes.
 Les logs CTest sont conservés comme artefacts. Les tests de dépendances vérifient

@@ -327,8 +327,8 @@ Le test de fenêtre borné en CI ne remplace pas le contrôle visuel local ;
 l'exécution ASan doit couvrir les chemins réellement exercés, sans prétendre
 valider un backend non exécuté.
 
-La CI couvre configure, build, CTest et clang-format sur les trois OS en debug
-et shipping, plus ASan/UBSan sur Linux. La fenêtre Linux est testée sur X11
+La CI couvre configure, build, CTest et clang-format sur les trois OS en debug,
+shipping et profiling, plus ASan/UBSan sur Linux. La fenêtre Linux est testée sur X11
 avec Xvfb ; Wayland n'est pas exercé par ces jobs. Les presets sont `debug`,
 `release`, `profiling`, `shipping` sans UI et `asan-ubsan` sur Linux/macOS.
 Le README décrit les commandes de build et les prérequis

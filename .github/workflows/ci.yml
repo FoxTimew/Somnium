@@ -58,6 +58,16 @@ jobs:
       - name: Tests shipping desktop
         if: runner.os != 'Linux'
         run: ctest --preset shipping
+      - name: Configure profiling
+        run: cmake --preset profiling -DSOMNIUM_WARNINGS_AS_ERRORS=ON -DSDL_WAYLAND=OFF
+      - name: Build profiling
+        run: cmake --build --preset profiling --parallel 3
+      - name: Tests profiling Linux
+        if: runner.os == 'Linux'
+        run: xvfb-run -a ctest --preset profiling
+      - name: Tests profiling desktop
+        if: runner.os != 'Linux'
+        run: ctest --preset profiling
       - uses: actions/upload-artifact@v4
         if: always()
         with:

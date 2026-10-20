@@ -47,3 +47,11 @@ somnium_check_links(somnium_runtime "somnium_core;somnium_scene;somnium_input"
     "somnium_platform;somnium_gpu;somnium_renderer;somnium_assets;somnium_debug_ui")
 somnium_check_links(somnium_game "somnium_runtime" "")
 somnium_check_links(sandbox "" "somnium_game;somnium_runtime")
+
+if(NOT SOMNIUM_ENABLE_DEBUG_UI)
+    foreach(target somnium_imgui somnium_platform_imgui somnium_gpu_imgui somnium_debug_ui)
+        if(TARGET ${target})
+            message(FATAL_ERROR "UI target present with SOMNIUM_ENABLE_DEBUG_UI=OFF: ${target}")
+        endif()
+    endforeach()
+endif()
