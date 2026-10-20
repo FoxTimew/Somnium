@@ -15,9 +15,17 @@ CPMAddPackage(NAME EnTT GITHUB_REPOSITORY skypjack/entt GIT_TAG v4.0.0
     SYSTEM YES OPTIONS "ENTT_BUILD_TESTING OFF")
 CPMAddPackage(NAME json GITHUB_REPOSITORY nlohmann/json GIT_TAG v3.12.0
     SYSTEM YES OPTIONS "JSON_BuildTests OFF" "JSON_Install OFF" "JSON_SystemInclude ON")
+set(somnium_dependency_cxx_flags "${CMAKE_CXX_FLAGS}")
+if(MSVC)
+    # spdlog also disables exceptions internally with SPDLOG_NO_EXCEPTIONS.
+    # Give just its subdirectory a default without the conflicting /EHsc.
+    string(REGEX REPLACE "(^| )[/-]EHsc( |$)" " " CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+endif()
 CPMAddPackage(NAME spdlog GITHUB_REPOSITORY gabime/spdlog GIT_TAG v1.17.0
     SYSTEM YES OPTIONS "SPDLOG_BUILD_SHARED OFF" "SPDLOG_BUILD_EXAMPLE OFF"
     "SPDLOG_BUILD_TESTS OFF" "SPDLOG_NO_EXCEPTIONS ON" "SPDLOG_INSTALL OFF")
+set(CMAKE_CXX_FLAGS "${somnium_dependency_cxx_flags}")
+unset(somnium_dependency_cxx_flags)
 CPMAddPackage(NAME tracy GITHUB_REPOSITORY wolfpld/tracy GIT_TAG v0.14.1
     SYSTEM YES OPTIONS "TRACY_ENABLE ${SOMNIUM_ENABLE_PROFILING}" "TRACY_STATIC ON"
     "TRACY_ONLY_LOCALHOST ON" "TRACY_NO_BROADCAST ON" "TRACY_NO_SYSTEM_TRACING ON"
