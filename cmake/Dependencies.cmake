@@ -23,6 +23,11 @@ CPMAddPackage(NAME tracy GITHUB_REPOSITORY wolfpld/tracy GIT_TAG v0.14.1
     "TRACY_ONLY_LOCALHOST ON" "TRACY_NO_BROADCAST ON" "TRACY_NO_SYSTEM_TRACING ON"
     "TRACY_NO_SAMPLING ON" "TRACY_NO_CALLSTACK ON" "TRACY_DEBUGINFOD OFF"
     "TRACY_LIBUNWIND_BACKTRACE OFF")
+if(APPLE)
+    # Tracy's pinned sources use sprintf; Apple marks that libc API deprecated.
+    # Keep the waiver private to the upstream client, never Somnium consumers.
+    target_compile_options(TracyClient PRIVATE -Wno-deprecated-declarations)
+endif()
 CPMAddPackage(NAME expected GITHUB_REPOSITORY TartanLlama/expected GIT_TAG v1.3.1
     SYSTEM YES OPTIONS "EXPECTED_BUILD_TESTS OFF" "EXPECTED_BUILD_PACKAGE OFF")
 CPMAddPackage(NAME doctest GITHUB_REPOSITORY doctest/doctest GIT_TAG v2.5.3
