@@ -1,0 +1,43 @@
+// Exposes engine startup and execution through SDL-free value contracts.
+// The implementation owns subsystem lifetimes and calls borrowed gameplay.
+#pragma once
+
+#include <somnium/core/result.hpp>
+#include <somnium/runtime/gameplay.hpp>
+
+#include <cstdint>
+#include <memory>
+#include <string_view>
+
+namespace somnium::runtime {
+struct EngineConfig {
+    std::string_view title = "Somnium - Phase 0";
+    int width = 1280;
+    int height = 720;
+    std::string_view resourceRoot;
+};
+struct RunOptions {
+    std::uint64_t frameLimit =
+        0; // Zero means interactive; bounded runs enqueue the normal quit event.
+};
+struct RunStats {
+    std::uint64_t frames = 0;
+    std::uint64_t fixedSteps = 0;
+    double droppedSeconds = 0.0;
+    double interpolationAlpha = 0.0;
+};
+
+class Engine final {
+  public:
+    [[nodiscard]] static Result<std::unique_ptr<Engine>> create(const EngineConfig& config = {});
+    ~Engine();
+    Engine(const Engine&) = delete;
+    Engine& operator=(const Engine&) = delete;
+    [[nodiscard]] Result<RunStats> run(Gameplay& game, RunOptions options = {});
+
+  private:
+    struct Impl;
+    explicit Engine(std::unique_ptr<Impl> impl);
+    std::unique_ptr<Impl> m_impl;
+};
+} // namespace somnium::runtime

@@ -1,0 +1,10 @@
+# Defines the source format shared by local tools and CI.
+# Keep declarations readable and avoid formatting third-party caches.
+BasedOnStyle: LLVM
+IndentWidth: 4
+ColumnLimit: 100
+BreakBeforeBraces: Attach
+PointerAlignment: Left
+SortIncludes: CaseSensitive
+AllowShortFunctionsOnASingleLine: Empty
+NamespaceIndentation: None
