@@ -6,8 +6,9 @@ Document validé ; distingue les contrats du MVP des capacités déjà implémen
 
 Statut : **accepté**, 20 octobre 2026, avec les arbitrages D1 à D5 ci-dessous.
 
-La phase 0 est autorisée. La phase 1, la fusion finale et le tag `phase-0`
-restent soumis à une validation distincte. Voir les
+La phase 0 est validée. Sa fusion `--no-ff` et le tag `phase-0` sont autorisés
+après les corrections de revue et une nouvelle CI verte ; la branche suivante
+est `phase/1-gpu-shaders`. Voir les
 [ADR-0001](adr/0001-stack-dependances-licences.md) et
 [ADR-0002](adr/0002-conventions.md).
 
@@ -116,9 +117,10 @@ Il n'existe notamment aucun arc `renderer -> scene`, `scene -> renderer`,
 pas un registre global de services.
 
 Les includes ne sont pas ajoutés globalement à CMake. Les dépendances tierces
-sont déclarées `SYSTEM`. Un contrôle de graphe et d'includes en CI complétera
-`target_link_libraries` : la visibilité CMake seule n'empêche pas un include
-relatif illicite ni la fuite d'un include transitif. Les en-têtes privés de
+sont déclarées `SYSTEM`. `cmake/Architecture.cmake` rejette les liens directs
+interdits et les dépendances privées exposées publiquement lors du configure.
+Le contrôle d'includes `tools/check_architecture.py` vérifie en CI les frontières
+natives et les dépendances entre en-têtes Somnium. Les en-têtes privés de
 coopération ne sont pas installés. `SDL.h`, qui peut inclure d'autres
 sous-systèmes, n'est pas utilisé comme raccourci pour contourner ces frontières.
 
@@ -136,7 +138,8 @@ Les références de scène et d'inputs sont empruntées pour l'appel. L'état mo
 la registry et les ressources restent possédés par `Engine`.
 
 En phase 0, `Engine` possède uniquement ce qu'il utilise : plateforme, fenêtre,
-horloge et état de boucle. Tous les modules ont leurs répertoires et leur
+lecteur de ressources, horloge et état de boucle. Tous les modules ont leurs
+répertoires et leur
 CMakeLists ; aucune cible sans sources réelles ni fonction factice n’est créée.
 
 À partir des phases suivantes, la création respecte les dépendances. À l'arrêt :
@@ -257,6 +260,9 @@ que si `SOMNIUM_ENABLE_DEBUG_UI=ON` ; leurs dépendances ne créent aucun cycle.
 `debug_ui` possède le contexte, construit l’inspecteur et utilise les façades
 d’intégration sans type SDL. Les pointeurs natifs demeurent dans la coopération
 privée. Aucune initialisation d’UI ou de device GPU n’a lieu en phase 0.
+À cette phase, seules les sources officielles sont compilées dans les deux
+cibles d'intégration ; les façades de coopération et la cible `debug_ui` seront
+créées avec leurs sources réelles en phase 1.
 
 Les événements sont toujours traités pour les relâchements, pertes de focus et
 connexions de manette. La capture UI filtre ensuite les actions de gameplay,
@@ -322,18 +328,60 @@ Le test de fenêtre borné en CI ne remplace pas le contrôle visuel local ;
 l'exécution ASan doit couvrir les chemins réellement exercés, sans prétendre
 valider un backend non exécuté.
 
-La CI future couvre configure, build, CTest et clang-format sur les trois OS,
-plus ASan/UBSan sur Linux. Les presets sont `debug`, `release`, `profiling`
-, `shipping` sans UI et `asan-ubsan` sur Linux/macOS. Le README sera livré avec l'implémentation
-de phase 0 et donnera les commandes effectivement testées, y compris les
-prérequis shadercross/DXC/SPIRV-Cross.
+La CI couvre configure, build, CTest et clang-format sur les trois OS en debug,
+shipping et profiling, plus ASan/UBSan sur Linux. La fenêtre Linux est testée sur X11
+avec Xvfb ; Wayland n'est pas exercé par ces jobs. Les presets sont `debug`,
+`release`, `profiling`, `shipping` sans UI et `asan-ubsan` sur Linux/macOS.
+Le README décrit les commandes de build et les prérequis
+shadercross/DXC/SPIRV-Cross. Le CLI de shaders lié à DXC et sa validation
+appartiennent à la phase 1 ; phase 0 compile l'archive shadercross hors moteur.
 
 Le socle initial de `main` contient les trois documents acceptés, un README,
 `.gitignore` et `.gitattributes` avec Git LFS. Il conserve le commit documentaire
 antérieur. `phase/0-fondations` est avancée sur ce socle avant toute implémentation.
 Les étapes cohérentes sont commitées et poussées, puis leur CI consultée.
-Le merge `--no-ff` dans `main` et le tag `phase-0` attendent la validation de fin
-de phase. Aucune phase suivante ne commence implicitement.
+La validation de fin de phase 0 autorise le rebase sur `main`, puis le merge
+`--no-ff` et le tag `phase-0` après une nouvelle CI verte. La branche
+`phase/1-gpu-shaders` part du commit de fusion. Les validations des phases
+suivantes restent distinctes.
+
+### Phase 1 — périmètre et compléments de revue
+
+Le périmètre reste le device et la swapchain, les commandes et ressources GPU
+en RAII derrière des handles, un triangle coloré et l'overlay ImGui (FPS,
+temps de frame, compteurs GPU). `somnium_add_shaders()` produit SPIR-V, DXIL
+et MSL hors ligne depuis HLSL, avec dépendances incrémentales et conventions
+de binding dans un en-tête HLSL commun. Les tests couvrent les binaires de
+shaders et le cycle de vie des ressources.
+
+Les compléments demandés à la validation de phase 0 sont :
+
+- Retirer l'attente artificielle d'`Engine::run` dès qu'une swapchain existe.
+- Ajouter à `Log` le filtrage par niveau et catégorie et une surcharge
+  formatée par `std::format`, sans exposer spdlog.
+- Boucler dans `FileReader::read` sur `SDL_ReadIO` jusqu'à complétion ou erreur.
+- Épingler chaque action GitHub par SHA de commit complet, ajouter un job
+  clang-tidy et documenter la couverture release par shipping ou ajouter
+  explicitement release à la matrice.
+- À l'arrivée du CLI lié à DXC, décider si la compilation de vérification
+  `somnium_shadercross` reste systématique ou passe derrière une option.
+- Conserver dans le résumé de phase le message exact du blocage Windows du
+  test core release et sa cause probable côté contrôle d'application.
+  Le README consigne déjà ce résultat local non validé.
+
+La sortie exige le test automatisé hors écran avec relecture et comparaison
+à une image de référence avec tolérance, selon D5 : lavapipe/Vulkan Linux,
+WARP/D3D12 Windows si sa sélection est supportée par l'en-tête SDL épinglé,
+Metal macOS si un device est disponible. Un backend sans device en CI est
+explicitement « non validé » ; sa preuve locale comprend capture et journal
+des couches de validation joints à la PR.
+
+Les conventions NDC/UV/culling sont vérifiées dans `SDL_gpu.h` épinglé et
+consignées dans l'ADR-0002. Les ADR-0003 (chaîne de shaders, dont le prérequis
+`.metallib` pour le shipping macOS en phase 4) et ADR-0004 (frame et
+synchronisation GPU) tiennent chacun sur une page : Contexte, Décision,
+Alternatives, Conséquences, puis une seule ligne « Preuves » listant ce qui
+reste à démontrer.
 
 ## 9. Extensions réservées
 

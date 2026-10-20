@@ -259,4 +259,4 @@ Le preset release garde l’UI, shipping l’exclut. Les licences permissives sa
 copyleft sont admises ; les compilateurs/SDK de plateforme sont hors de cette règle.
 Le socle initial main et la branche de phase suivent la procédure Git autorisée.
 
-Preuves : tests Result/handles/accumulateur et exécution sans fuite en phase 0 ; conventions GPU en phase 1 ; hiérarchie, persistance et interpolation aux phases concernées.
+Preuves : conventions NDC/UV/culling et rendu GPU en phase 1 ; hiérarchie, persistance et interpolation aux phases concernées.

@@ -1,0 +1,3 @@
+# Provides deterministic bytes for the platform reader tests.
+# This fixture is text so it does not require a binary asset.
+Somnium

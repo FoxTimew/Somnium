@@ -1,0 +1,7 @@
+// Compiles only the PNG/JPEG decoders required by the MVP.
+// File access is disabled so future loaders use the injected byte reader.
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_ONLY_PNG
+#define STBI_ONLY_JPEG
+#define STBI_NO_STDIO
+#include <stb_image.h>
