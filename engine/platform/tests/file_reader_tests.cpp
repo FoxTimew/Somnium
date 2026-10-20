@@ -21,7 +21,7 @@ TEST_CASE("Logical paths reject native and parent traversal forms") {
     auto reader = somnium::platform::FileReader::create(SOMNIUM_TEST_DATA_DIR);
     REQUIRE(reader);
     for (const auto* path : {"", "../secret", "x/../secret", "/absolute", "C:/native", "x\\y",
-                             "./sample.txt", "x//y"}) {
+                             "./sample.txt", "x//y", "sample.txt/"}) {
         auto result = reader->read(path);
         REQUIRE_FALSE(result);
         CHECK(result.error().code == somnium::ErrorCode::InvalidArgument);

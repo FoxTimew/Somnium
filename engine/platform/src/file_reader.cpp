@@ -23,7 +23,7 @@ struct CloseStream {
 };
 
 bool validLogicalPath(std::string_view path) {
-    if (path.empty() || path.front() == '/' ||
+    if (path.empty() || path.front() == '/' || path.back() == '/' ||
         path.find_first_of("\\:") != std::string_view::npos ||
         path.find('\0') != std::string_view::npos) {
         return false;

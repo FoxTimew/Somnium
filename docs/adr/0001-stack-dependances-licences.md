@@ -39,6 +39,7 @@ lecture de leurs en-têtes dans le cache CPM.
 | [tl::expected](https://github.com/TartanLlama/expected/releases/tag/v1.3.1) | `v1.3.1` | CC0-1.0, dédicace au domaine public | `Result<T>` |
 | [doctest](https://github.com/doctest/doctest/releases/tag/v2.5.3) | `v2.5.3` | MIT | Tests par module via CTest |
 | [SDL_shadercross](https://github.com/libsdl-org/SDL_shadercross/tree/1ff05bec573988a98ef9e0260b4da44f512b8367) | `1ff05bec573988a98ef9e0260b4da44f512b8367` | zlib | CLI de build, jamais lié au moteur pour compiler à l'exécution |
+| [SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross/tree/vulkan-sdk-1.4.363.0) | `vulkan-sdk-1.4.363.0` | Apache-2.0 ; en-tête SPIR-V MIT | Dépendance de shadercross, hors moteur |
 
 Une dépendance sans release est épinglée par SHA complet, jamais par branche
 (D1). Les bibliothèques header-only sont vérifiées par compilation de leurs

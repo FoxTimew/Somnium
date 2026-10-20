@@ -5,7 +5,7 @@ Later shader and rendering work remains scoped to its approved phase.
 # Somnium
 
 Moteur de jeu 3D C++20, développé par phases sur Windows, Linux et macOS.
-La phase 0 est en cours : outillage, fondations et fenêtre vide, sans device GPU.
+La phase 0 fournit l'outillage, les fondations et une fenêtre vide, sans device GPU.
 
 - [Architecture](docs/ARCHITECTURE.md)
 - [Stack et dépendances](docs/adr/0001-stack-dependances-licences.md)
@@ -86,10 +86,16 @@ n'évaluent pas leurs arguments. Pas de mesure de durée GPU au MVP.
 Sous Linux :
 
 ```sh
-cmake --preset asan-ubsan -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+cmake --preset asan-ubsan -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DSDL_WAYLAND=OFF -DSDL_X11_SHARED=OFF
 cmake --build --preset asan-ubsan --parallel
 ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 UBSAN_OPTIONS=halt_on_error=1 xvfb-run -a ctest --preset asan-ubsan
 ```
+
+Le test Linux utilise X11 sous Xvfb. Dans ce build sanitizer, SDL lie X11
+normalement au lieu de le charger par `dlopen` : son déchargement ferait
+disparaître les racines des caches globaux Xlib avant le passage de LSan.
+La détection de fuites reste active, sans suppression. Wayland n'est pas couvert
+par cette exécution ; les autres configurations locales peuvent l'activer.
 
 ## Outils de shaders — préparation de la phase 1
 
@@ -126,6 +132,8 @@ python tools/check_architecture.py .
 
 [GitHub Actions](https://github.com/FoxTimew/Somnium/actions) compile et teste
 Windows/Linux/macOS en debug et shipping, avec un job Linux ASan/UBSan.
+Les dépendances directes entre modules et leur visibilité sont contrôlées
+au configure ; CTest vérifie également les frontières d'includes.
 Les logs CTest sont conservés comme artefacts. Les tests de dépendances vérifient
 notamment JSON sans exceptions, cgltf/stb sur entrée invalide, EnTT direct et
 projection GLM. Les tests de modules vérifient erreurs, handles, lecture et

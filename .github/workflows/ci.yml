@@ -80,7 +80,9 @@ jobs:
         with:
           path: .cache/cpm
           key: cpm-Linux-${{ hashFiles('cmake/Dependencies.cmake', 'cmake/CPM.cmake') }}
-      - run: cmake --preset asan-ubsan -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DSOMNIUM_WARNINGS_AS_ERRORS=ON -DSDL_WAYLAND=OFF
+      # Link X11 normally: dlclose otherwise removes Xlib's global cache roots before LSan.
+      # Leak detection stays enabled; no allocation stack is suppressed.
+      - run: cmake --preset asan-ubsan -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DSOMNIUM_WARNINGS_AS_ERRORS=ON -DSDL_WAYLAND=OFF -DSDL_X11_SHARED=OFF
       - run: cmake --build --preset asan-ubsan --parallel 3
       - run: xvfb-run -a ctest --preset asan-ubsan
         env:

@@ -116,9 +116,10 @@ Il n'existe notamment aucun arc `renderer -> scene`, `scene -> renderer`,
 pas un registre global de services.
 
 Les includes ne sont pas ajoutés globalement à CMake. Les dépendances tierces
-sont déclarées `SYSTEM`. Un contrôle de graphe et d'includes en CI complétera
-`target_link_libraries` : la visibilité CMake seule n'empêche pas un include
-relatif illicite ni la fuite d'un include transitif. Les en-têtes privés de
+sont déclarées `SYSTEM`. `cmake/Architecture.cmake` rejette les liens directs
+interdits et les dépendances privées exposées publiquement lors du configure.
+Le contrôle d'includes `tools/check_architecture.py` vérifie en CI les frontières
+natives et les dépendances entre en-têtes Somnium. Les en-têtes privés de
 coopération ne sont pas installés. `SDL.h`, qui peut inclure d'autres
 sous-systèmes, n'est pas utilisé comme raccourci pour contourner ces frontières.
 
@@ -136,7 +137,8 @@ Les références de scène et d'inputs sont empruntées pour l'appel. L'état mo
 la registry et les ressources restent possédés par `Engine`.
 
 En phase 0, `Engine` possède uniquement ce qu'il utilise : plateforme, fenêtre,
-horloge et état de boucle. Tous les modules ont leurs répertoires et leur
+lecteur de ressources, horloge et état de boucle. Tous les modules ont leurs
+répertoires et leur
 CMakeLists ; aucune cible sans sources réelles ni fonction factice n’est créée.
 
 À partir des phases suivantes, la création respecte les dépendances. À l'arrêt :
@@ -257,6 +259,9 @@ que si `SOMNIUM_ENABLE_DEBUG_UI=ON` ; leurs dépendances ne créent aucun cycle.
 `debug_ui` possède le contexte, construit l’inspecteur et utilise les façades
 d’intégration sans type SDL. Les pointeurs natifs demeurent dans la coopération
 privée. Aucune initialisation d’UI ou de device GPU n’a lieu en phase 0.
+À cette phase, seules les sources officielles sont compilées dans les deux
+cibles d'intégration ; les façades de coopération et la cible `debug_ui` seront
+créées avec leurs sources réelles en phase 1.
 
 Les événements sont toujours traités pour les relâchements, pertes de focus et
 connexions de manette. La capture UI filtre ensuite les actions de gameplay,
@@ -322,11 +327,13 @@ Le test de fenêtre borné en CI ne remplace pas le contrôle visuel local ;
 l'exécution ASan doit couvrir les chemins réellement exercés, sans prétendre
 valider un backend non exécuté.
 
-La CI future couvre configure, build, CTest et clang-format sur les trois OS,
-plus ASan/UBSan sur Linux. Les presets sont `debug`, `release`, `profiling`
-, `shipping` sans UI et `asan-ubsan` sur Linux/macOS. Le README sera livré avec l'implémentation
-de phase 0 et donnera les commandes effectivement testées, y compris les
-prérequis shadercross/DXC/SPIRV-Cross.
+La CI couvre configure, build, CTest et clang-format sur les trois OS en debug
+et shipping, plus ASan/UBSan sur Linux. La fenêtre Linux est testée sur X11
+avec Xvfb ; Wayland n'est pas exercé par ces jobs. Les presets sont `debug`,
+`release`, `profiling`, `shipping` sans UI et `asan-ubsan` sur Linux/macOS.
+Le README décrit les commandes de build et les prérequis
+shadercross/DXC/SPIRV-Cross. Le CLI de shaders lié à DXC et sa validation
+appartiennent à la phase 1 ; phase 0 compile l'archive shadercross hors moteur.
 
 Le socle initial de `main` contient les trois documents acceptés, un README,
 `.gitignore` et `.gitattributes` avec Git LFS. Il conserve le commit documentaire
