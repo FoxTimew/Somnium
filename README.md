@@ -11,10 +11,10 @@ La phase 0 fournit l'outillage, les fondations et une fenêtre vide, sans device
 - [Stack et dépendances](docs/adr/0001-stack-dependances-licences.md)
 - [Conventions](docs/adr/0002-conventions.md)
 
-Le jalon documentaire est accepté. Le socle `main` contient les documents,
-ce README et les règles Git/LFS ; le moteur est développé sur
-`phase/0-fondations`. La fusion de phase et le tag `phase-0` attendent une
-validation distincte.
+Le jalon documentaire et la phase 0 sont validés. La fusion `--no-ff` dans
+`main` et le tag `phase-0` sont autorisés après les corrections de revue et
+une nouvelle CI verte. La suite est préparée sur `phase/1-gpu-shaders` ;
+son périmètre et ses prérequis de sortie figurent dans l'architecture.
 
 ## Prérequis
 
@@ -69,8 +69,10 @@ explicite au-delà. Les identifiants relatifs n'acceptent pas de remontée `..`.
 
 Chaque preset a les commandes `cmake --preset <nom>`,
 `cmake --build --preset <nom>` et `ctest --preset <nom>`.
-L'UI est une option de build : les backends officiels sont compilés dans
-`somnium_platform_imgui` et `somnium_gpu_imgui`, sans initialisation à cette phase.
+L'intégration ImGui au moteur appartient à la phase 1 : initialisation,
+façades de coopération et liaison par `debug_ui`. En phase 0, l'option UI
+active seulement la compilation des sources amont, dont les deux backends
+officiels dans `somnium_platform_imgui` et `somnium_gpu_imgui`.
 Les modules sans source n'ont pas de cible factice.
 
 ## Profilage et mémoire
@@ -138,3 +140,12 @@ Les logs CTest sont conservés comme artefacts. Les tests de dépendances vérif
 notamment JSON sans exceptions, cgltf/stb sur entrée invalide, EnTT direct et
 projection GLM. Les tests de modules vérifient erreurs, handles, lecture et
 accumulateur. La preuve de rendu hors écran sera introduite en phase 1.
+
+Lors de la validation locale Windows/LLVM-MinGW, le lancement de
+`build/release/bin/somnium_core_tests.exe` a échoué avec le message :
+« Une stratégie de contrôle d’application a bloqué ce fichier. »
+La cause probable relève de la stratégie de contrôle d'application Windows ;
+le test n'a pas démarré et reste **non validé** dans ce preset local. Les cinq
+autres tests release passent, ainsi que les six tests debug, shipping et
+profiling. La CI MSVC couvre ces trois derniers presets. La couverture du
+preset release sera explicitée ou ajoutée à la matrice en phase 1.

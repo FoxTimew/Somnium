@@ -13,7 +13,7 @@ allowed = {
     "assets": {"core"},
     "scene": {"core", "assets"},
     "input": {"core", "platform"},
-    "debug_ui": {"core", "platform", "gpu", "scene", "input"},
+    "debug_ui": {"core", "scene", "input", "platform_imgui", "gpu_imgui"},
     "runtime": {"core", "platform", "gpu", "renderer", "assets", "scene", "input", "debug_ui"},
 }
 errors = []

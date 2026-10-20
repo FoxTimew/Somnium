@@ -6,6 +6,7 @@
 #include <somnium/core/result.hpp>
 
 #include <cstdint>
+#include <limits>
 #include <memory_resource>
 #include <vector>
 

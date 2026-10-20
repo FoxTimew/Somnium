@@ -6,8 +6,9 @@ Document validé ; distingue les contrats du MVP des capacités déjà implémen
 
 Statut : **accepté**, 20 octobre 2026, avec les arbitrages D1 à D5 ci-dessous.
 
-La phase 0 est autorisée. La phase 1, la fusion finale et le tag `phase-0`
-restent soumis à une validation distincte. Voir les
+La phase 0 est validée. Sa fusion `--no-ff` et le tag `phase-0` sont autorisés
+après les corrections de revue et une nouvelle CI verte ; la branche suivante
+est `phase/1-gpu-shaders`. Voir les
 [ADR-0001](adr/0001-stack-dependances-licences.md) et
 [ADR-0002](adr/0002-conventions.md).
 
@@ -339,8 +340,48 @@ Le socle initial de `main` contient les trois documents acceptés, un README,
 `.gitignore` et `.gitattributes` avec Git LFS. Il conserve le commit documentaire
 antérieur. `phase/0-fondations` est avancée sur ce socle avant toute implémentation.
 Les étapes cohérentes sont commitées et poussées, puis leur CI consultée.
-Le merge `--no-ff` dans `main` et le tag `phase-0` attendent la validation de fin
-de phase. Aucune phase suivante ne commence implicitement.
+La validation de fin de phase 0 autorise le rebase sur `main`, puis le merge
+`--no-ff` et le tag `phase-0` après une nouvelle CI verte. La branche
+`phase/1-gpu-shaders` part du commit de fusion. Les validations des phases
+suivantes restent distinctes.
+
+### Phase 1 — périmètre et compléments de revue
+
+Le périmètre reste le device et la swapchain, les commandes et ressources GPU
+en RAII derrière des handles, un triangle coloré et l'overlay ImGui (FPS,
+temps de frame, compteurs GPU). `somnium_add_shaders()` produit SPIR-V, DXIL
+et MSL hors ligne depuis HLSL, avec dépendances incrémentales et conventions
+de binding dans un en-tête HLSL commun. Les tests couvrent les binaires de
+shaders et le cycle de vie des ressources.
+
+Les compléments demandés à la validation de phase 0 sont :
+
+- Retirer l'attente artificielle d'`Engine::run` dès qu'une swapchain existe.
+- Ajouter à `Log` le filtrage par niveau et catégorie et une surcharge
+  formatée par `std::format`, sans exposer spdlog.
+- Boucler dans `FileReader::read` sur `SDL_ReadIO` jusqu'à complétion ou erreur.
+- Épingler chaque action GitHub par SHA de commit complet, ajouter un job
+  clang-tidy et documenter la couverture release par shipping ou ajouter
+  explicitement release à la matrice.
+- À l'arrivée du CLI lié à DXC, décider si la compilation de vérification
+  `somnium_shadercross` reste systématique ou passe derrière une option.
+- Conserver dans le résumé de phase le message exact du blocage Windows du
+  test core release et sa cause probable côté contrôle d'application.
+  Le README consigne déjà ce résultat local non validé.
+
+La sortie exige le test automatisé hors écran avec relecture et comparaison
+à une image de référence avec tolérance, selon D5 : lavapipe/Vulkan Linux,
+WARP/D3D12 Windows si sa sélection est supportée par l'en-tête SDL épinglé,
+Metal macOS si un device est disponible. Un backend sans device en CI est
+explicitement « non validé » ; sa preuve locale comprend capture et journal
+des couches de validation joints à la PR.
+
+Les conventions NDC/UV/culling sont vérifiées dans `SDL_gpu.h` épinglé et
+consignées dans l'ADR-0002. Les ADR-0003 (chaîne de shaders, dont le prérequis
+`.metallib` pour le shipping macOS en phase 4) et ADR-0004 (frame et
+synchronisation GPU) tiennent chacun sur une page : Contexte, Décision,
+Alternatives, Conséquences, puis une seule ligne « Preuves » listant ce qui
+reste à démontrer.
 
 ## 9. Extensions réservées
 
