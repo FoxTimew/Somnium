@@ -27,6 +27,10 @@ if(APPLE)
     # Tracy's pinned sources use sprintf; Apple marks that libc API deprecated.
     # Keep the waiver private to the upstream client, never Somnium consumers.
     target_compile_options(TracyClient PRIVATE -Wno-deprecated-declarations)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    # Pinned Tracy host diagnostics ignore POSIX results and use sprintf buffers.
+    # Isolate these upstream warnings; project targets keep -Wall/-Wextra/-Werror.
+    target_compile_options(TracyClient PRIVATE -Wno-unused-result -Wno-format-overflow)
 endif()
 CPMAddPackage(NAME expected GITHUB_REPOSITORY TartanLlama/expected GIT_TAG v1.3.1
     SYSTEM YES OPTIONS "EXPECTED_BUILD_TESTS OFF" "EXPECTED_BUILD_PACKAGE OFF")
