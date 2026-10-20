@@ -38,7 +38,8 @@ jobs:
       - name: Format
         run: python tools/format.py --check
       - name: Configure
-        run: cmake --preset debug -DSOMNIUM_WARNINGS_AS_ERRORS=ON
+        # Xvfb exercises X11; Ubuntu 24.04's Wayland scanner predates SDL's protocol XML.
+        run: cmake --preset debug -DSOMNIUM_WARNINGS_AS_ERRORS=ON -DSDL_WAYLAND=OFF
       - name: Build
         run: cmake --build --preset debug --parallel 3
       - name: Tests Linux
@@ -48,7 +49,7 @@ jobs:
         if: runner.os != 'Linux'
         run: ctest --preset debug
       - name: Shipping configuration excludes UI
-        run: cmake --preset shipping -DSOMNIUM_WARNINGS_AS_ERRORS=ON
+        run: cmake --preset shipping -DSOMNIUM_WARNINGS_AS_ERRORS=ON -DSDL_WAYLAND=OFF
       - name: Build shipping
         run: cmake --build --preset shipping --parallel 3
       - name: Tests shipping Linux
@@ -79,7 +80,7 @@ jobs:
         with:
           path: .cache/cpm
           key: cpm-Linux-${{ hashFiles('cmake/Dependencies.cmake', 'cmake/CPM.cmake') }}
-      - run: cmake --preset asan-ubsan -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DSOMNIUM_WARNINGS_AS_ERRORS=ON
+      - run: cmake --preset asan-ubsan -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DSOMNIUM_WARNINGS_AS_ERRORS=ON -DSDL_WAYLAND=OFF
       - run: cmake --build --preset asan-ubsan --parallel 3
       - run: xvfb-run -a ctest --preset asan-ubsan
         env:

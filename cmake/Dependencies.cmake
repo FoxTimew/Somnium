@@ -4,6 +4,11 @@ include("${CMAKE_CURRENT_LIST_DIR}/CPM.cmake")
 CPMAddPackage(NAME SDL GITHUB_REPOSITORY libsdl-org/SDL GIT_TAG release-3.4.18
     SYSTEM YES OPTIONS "SDL_SHARED OFF" "SDL_STATIC ON" "SDL_TEST_LIBRARY OFF"
     "SDL_TESTS OFF" "SDL_EXAMPLES OFF" "SDL_INSTALL OFF")
+if(CMAKE_C_COMPILER_ID STREQUAL "Clang" AND CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 23)
+    # SDL's release-only diagnostic globals trigger this newly introduced warning.
+    # Scope the exception to upstream SDL; Somnium retains its complete warning set.
+    target_compile_options(SDL3-static PRIVATE -Wno-unused-but-set-global)
+endif()
 CPMAddPackage(NAME glm GITHUB_REPOSITORY g-truc/glm GIT_TAG 1.0.3
     SYSTEM YES OPTIONS "GLM_BUILD_TESTS OFF" "GLM_BUILD_LIBRARY OFF")
 CPMAddPackage(NAME EnTT GITHUB_REPOSITORY skypjack/entt GIT_TAG v4.0.0
