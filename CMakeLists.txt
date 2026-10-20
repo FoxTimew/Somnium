@@ -18,6 +18,12 @@ include(cmake/Warnings.cmake)
 include(cmake/Sanitizers.cmake)
 include(cmake/Dependencies.cmake)
 
+if(MSVC)
+    # CMake enables /EHsc by default. Remove it in our directory scope before
+    # adding exception-free targets; dependency subdirectories retain their flags.
+    string(REGEX REPLACE "(^| )[/-]EHsc( |$)" " " CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+endif()
+
 add_library(somnium_build_options INTERFACE)
 target_compile_features(somnium_build_options INTERFACE cxx_std_20)
 target_compile_definitions(somnium_build_options INTERFACE
