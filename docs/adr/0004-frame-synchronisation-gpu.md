@@ -24,16 +24,19 @@ et D2/D5 ; protocole détaillé dans [GPU_VALIDATION.md](../GPU_VALIDATION.md).
   Microsoft Basic Render Driver/WARP permet néanmoins de créer le device.
 - **Swapchain.** Réclamer la fenêtre, vérifier SDR/VSYNC et conserver deux frames
   en vol (SDL : 1–3). Dimensions en pixels à l'acquisition ; SDL reconstruit après
-  resize, `gpu` recrée ses cibles et revalide le format. Texture NULL, notamment
+  resize ; le triangle utilise le format SDR obtenu et aucune cible de profondeur. Texture NULL, notamment
   en minimisation : aucun rendu, attente d'événements par platform.
 - **Frame.** Thread de fenêtre : command buffer, puis
   `SDL_WaitAndAcquireGPUSwapchainTexture`, bloquant pour borner frames/allocations ;
-  uploads/UI, passes, soumission/présentation. Sans texture acquise, annulation
+  préparation UI, passes, soumission/présentation. Les uploads de ressources précèdent
+  `beginFrame()` ; l'API expose `acquireSwapchain`, `recordPass`, `submitFrame` et
+  `finishFrame`. `renderOffscreen` compose cette API sans swapchain. Sans texture acquise, annulation
   possible ; après acquisition, terminer et soumettre même sans dessin, car SDL
   interdit l'annulation. Supprimer l'attente artificielle d'Engine.
 - **Possession.** Les handles générationnels appartiennent au device ; aucune
-  ressource native publique. À l'étape b, chaque appel enregistre et soumet avant
-  de rendre la main : aucun emprunt CPU externe. Invalider un handle détruit ; différer
+  ressource native publique. `PipelineDescription` déclare format couleur/profondeur,
+  layout de vertex et états culling/profondeur pour D5 comme pour la présentation.
+  Invalider un handle détruit ; différer
   l'appel `SDL_ReleaseGPU*` demandé durant une frame jusqu'à sa soumission ou son
   annulation pour préserver les emprunts CPU. SDL diffère ensuite la destruction
   native jusqu'à sûreté GPU. Uploads avec `cycle=true` ; fence avant relecture

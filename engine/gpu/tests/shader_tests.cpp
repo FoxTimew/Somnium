@@ -1,12 +1,40 @@
 // Checks manifest failures through an injected in-memory reader, without requiring a GPU.
 // Synthetic headers test structural validation; only D5 proves driver acceptance of real shaders.
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "resources.hpp"
 #include "shader_data.hpp"
 #include <doctest/doctest.h>
 #include <nlohmann/json.hpp>
 
 #include <map>
 #include <string>
+
+TEST_CASE("native retirement preserves recording borrows across slot reuse") {
+    using namespace somnium;
+    gpu::detail::Resources<struct TestResource, int, int> resources;
+    int first = 1, second = 2;
+    std::vector<int*> released;
+    const auto release = [&](int* value) { released.push_back(value); };
+    auto original = resources.insert(&first, 10);
+    REQUIRE(original);
+    REQUIRE(resources.erase(*original, true, release));
+    CHECK(resources.get(*original) == nullptr);
+    CHECK_FALSE(resources.erase(*original, true, release));
+    CHECK(released.empty());
+    auto replacement = resources.insert(&second, 20);
+    REQUIRE(replacement);
+    CHECK(replacement->index == original->index);
+    CHECK(replacement->generation != original->generation);
+    CHECK(resources.get(*replacement)->native == &second);
+    resources.flush(release); // Both submission and cancellation end recording borrows.
+    REQUIRE(released.size() == 1);
+    CHECK(released.front() == &first);
+    resources.flush(release);
+    CHECK(released.size() == 1);
+    REQUIRE(resources.erase(*replacement, false, release));
+    REQUIRE(released.size() == 2);
+    CHECK(released.back() == &second);
+}
 
 namespace {
 using namespace somnium;

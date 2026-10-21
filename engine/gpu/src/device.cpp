@@ -1,6 +1,8 @@
-// Implements the offscreen graphics contract with the pinned SDL GPU API.
-// CPU recording never escapes a call; SDL owns deferred native destruction after submission.
+// Owns frame recording, presentation and resources through the pinned SDL GPU API.
+// Handles retire immediately; native releases wait until recording finishes.
+#include "resources.hpp"
 #include <somnium/gpu/device.hpp>
+#include <somnium/platform/native.hpp>
 
 #include <somnium/core/assert.hpp>
 #include <somnium/core/profile.hpp>
@@ -31,52 +33,33 @@ Error invalidArgument() {
     return {ErrorCode::InvalidArgument, "Invalid GPU resource or pass description"};
 }
 
-template <typename Tag, typename Native, typename Metadata> struct Resources {
-    struct Entry {
-        Native* native = nullptr;
-        Metadata metadata{};
-    };
-    HandlePool<Tag> identities;
-    std::vector<Entry> entries;
-    Result<Handle<Tag>> insert(Native* native, Metadata metadata) {
-        auto handle = identities.acquire();
-        if (!handle) {
-            return tl::unexpected(handle.error());
-        }
-        if (handle->index == entries.size()) {
-            entries.emplace_back();
-        }
-        entries[handle->index] = {native, std::move(metadata)};
-        return handle;
-    }
-    Entry* get(Handle<Tag> handle) {
-        return identities.contains(handle) ? &entries[handle.index] : nullptr;
-    }
-    template <typename Release>
-    Result<void> erase(Handle<Tag> handle, SDL_GPUDevice* device, Release release) {
-        auto* entry = get(handle);
-        if (!entry) {
-            return tl::unexpected(invalidHandle());
-        }
-        auto* native = std::exchange(entry->native, nullptr);
-        auto result = identities.release(handle);
-        release(device, native);
-        return result;
-    }
-    template <typename Release> void clear(SDL_GPUDevice* device, Release release) {
-        for (auto& entry : entries) {
-            if (entry.native) {
-                release(device, entry.native);
-                entry.native = nullptr;
-            }
-        }
-    }
-};
+using detail::Resources;
 struct ShaderMetadata {
     ShaderStage stage{};
     std::uint32_t samplers{}, storageTextures{}, storageBuffers{}, uniforms{};
 };
 struct Empty {};
+struct PipelineMetadata {
+    ColorFormat color;
+    DepthFormat depth;
+    std::uint32_t stride, samplers;
+};
+Error invalidState() {
+    return {ErrorCode::InvalidState, "Invalid GPU recording state"};
+}
+SDL_GPUTextureFormat nativeColor(ColorFormat format) {
+    switch (format) {
+    case ColorFormat::Rgba8:
+        return SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+    case ColorFormat::Bgra8:
+        return SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM;
+    case ColorFormat::Rgba8Srgb:
+        return SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM_SRGB;
+    case ColorFormat::Bgra8Srgb:
+        return SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM_SRGB;
+    }
+    return SDL_GPU_TEXTUREFORMAT_INVALID;
+}
 
 struct Transfer {
     SDL_GPUDevice* device;
@@ -140,14 +123,53 @@ struct Device::Impl {
     Resources<TextureTag, SDL_GPUTexture, TextureDescription> textures;
     Resources<SamplerTag, SDL_GPUSampler, Empty> samplers;
     Resources<ShaderTag, SDL_GPUShader, ShaderMetadata> shaders;
-    Resources<PipelineTag, SDL_GPUGraphicsPipeline, Empty> pipelines;
+    Resources<PipelineTag, SDL_GPUGraphicsPipeline, PipelineMetadata> pipelines;
+    SDL_Window* window = nullptr;
+    SDL_GPUCommandBuffer* recording = nullptr;
+    SDL_GPUTexture* swapchain = nullptr;
+    FrameSize extent;
+    ColorFormat swapchainFormat{};
+    bool acquisitionAttempted = false;
+    Statistics counters;
+    void flushRetired() {
+        buffers.flush([&](auto* value) { SDL_ReleaseGPUBuffer(device, value); });
+        textures.flush([&](auto* value) { SDL_ReleaseGPUTexture(device, value); });
+        shaders.flush([&](auto* value) { SDL_ReleaseGPUShader(device, value); });
+        samplers.flush([&](auto* value) { SDL_ReleaseGPUSampler(device, value); });
+        pipelines.flush([&](auto* value) { SDL_ReleaseGPUGraphicsPipeline(device, value); });
+    }
+    Result<void> finish(bool submit) {
+        if (!recording)
+            return tl::unexpected(invalidState());
+        // SDL forbids cancellation once a swapchain texture has been acquired.
+        submit = submit || swapchain != nullptr;
+        auto* command = std::exchange(recording, nullptr);
+        const bool success =
+            submit ? SDL_SubmitGPUCommandBuffer(command) : SDL_CancelGPUCommandBuffer(command);
+        const auto error = nativeError();
+        if (submit)
+            ++counters.submissions;
+        swapchain = nullptr;
+        acquisitionAttempted = false;
+        extent = {};
+        flushRetired();
+        if (!success)
+            return tl::unexpected(error);
+        return {};
+    }
     void checkThread() const {
         SOMNIUM_VERIFY(owner == std::this_thread::get_id());
     }
     ~Impl() {
         checkThread();
         if (device) {
+            if (recording) {
+                const auto completed = finish(false);
+                SOMNIUM_VERIFY(completed.has_value());
+            }
             SDL_WaitForGPUIdle(device);
+            if (window)
+                SDL_ReleaseWindowFromGPUDevice(device, window);
             pipelines.clear(device, SDL_ReleaseGPUGraphicsPipeline);
             shaders.clear(device, SDL_ReleaseGPUShader);
             samplers.clear(device, SDL_ReleaseGPUSampler);
@@ -234,7 +256,7 @@ Result<std::unique_ptr<Device>> Device::create(DeviceConfig config) {
 
 Result<Buffer> Device::createVertexBuffer(std::uint32_t bytes) {
     m_impl->checkThread();
-    if (!bytes || bytes % sizeof(Vertex) != 0) {
+    if (!bytes) {
         return tl::unexpected(invalidArgument());
     }
     SDL_GPUBufferCreateInfo description{};
@@ -368,57 +390,195 @@ Result<Shader> Device::createShader(const ShaderDescription& description) {
     return handle;
 }
 
-Result<Pipeline> Device::createPipeline(Shader vertex, Shader fragment) {
+Result<Pipeline> Device::createPipeline(const PipelineDescription& requested) {
     m_impl->checkThread();
-    const auto* vs = m_impl->shaders.get(vertex);
-    const auto* ps = m_impl->shaders.get(fragment);
-    if (!vs || !ps) {
+    const auto* vs = m_impl->shaders.get(requested.vertex);
+    const auto* ps = m_impl->shaders.get(requested.fragment);
+    if (!vs || !ps)
         return tl::unexpected(invalidHandle());
-    }
     if (vs->metadata.stage != ShaderStage::Vertex || ps->metadata.stage != ShaderStage::Fragment ||
         vs->metadata.samplers || vs->metadata.storageTextures || vs->metadata.storageBuffers ||
-        vs->metadata.uniforms || ps->metadata.samplers != 1 || ps->metadata.storageTextures ||
-        ps->metadata.storageBuffers || ps->metadata.uniforms) {
+        vs->metadata.uniforms || ps->metadata.samplers > 1 || ps->metadata.storageTextures ||
+        ps->metadata.storageBuffers || ps->metadata.uniforms || !requested.vertexStride ||
+        requested.vertexStride > 4096 || requested.vertexStride % 4 ||
+        requested.attributes.empty() || requested.attributes.size() > 16 ||
+        (requested.depth != DepthFormat::None && requested.depth != DepthFormat::Depth32) ||
+        (requested.depth == DepthFormat::None && (requested.depthTest || requested.depthWrite))) {
         return tl::unexpected(invalidArgument());
     }
-    const SDL_GPUVertexBufferDescription buffer{0, sizeof(Vertex), SDL_GPU_VERTEXINPUTRATE_VERTEX,
-                                                0};
-    const SDL_GPUVertexAttribute attributes[] = {
-        {0, 0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3, offsetof(Vertex, position)},
-        {1, 0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4, offsetof(Vertex, color)},
-        {2, 0, SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2, offsetof(Vertex, uv)}};
+    const SDL_GPUVertexBufferDescription buffer{0, requested.vertexStride,
+                                                SDL_GPU_VERTEXINPUTRATE_VERTEX, 0};
+    std::vector<SDL_GPUVertexAttribute> attributes;
+    std::uint32_t locations = 0;
+    for (const auto& attribute : requested.attributes) {
+        SDL_GPUVertexElementFormat format;
+        std::uint32_t bytes;
+        switch (attribute.format) {
+        case VertexFormat::Float2:
+            format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
+            bytes = 8;
+            break;
+        case VertexFormat::Float3:
+            format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3;
+            bytes = 12;
+            break;
+        case VertexFormat::Float4:
+            format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4;
+            bytes = 16;
+            break;
+        default:
+            return tl::unexpected(invalidArgument());
+        }
+        if (attribute.location >= 16 || (locations & (1U << attribute.location)) ||
+            attribute.offset > requested.vertexStride ||
+            bytes > requested.vertexStride - attribute.offset || attribute.offset % 4) {
+            return tl::unexpected(invalidArgument());
+        }
+        locations |= 1U << attribute.location;
+        attributes.push_back({attribute.location, 0, format, attribute.offset});
+    }
     SDL_GPUColorTargetDescription color{};
-    color.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+    color.format = nativeColor(requested.color);
+    if (color.format == SDL_GPU_TEXTUREFORMAT_INVALID)
+        return tl::unexpected(invalidArgument());
     SDL_GPUGraphicsPipelineCreateInfo description{};
     description.vertex_shader = vs->native;
     description.fragment_shader = ps->native;
-    description.vertex_input_state = {&buffer, 1, attributes, 3};
+    description.vertex_input_state = {&buffer, 1, attributes.data(),
+                                      static_cast<Uint32>(attributes.size())};
     description.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
     description.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_FILL;
-    description.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
-    description.rasterizer_state.front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE;
+    switch (requested.culling) {
+    case CullMode::None:
+        description.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
+        break;
+    case CullMode::Front:
+        description.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_FRONT;
+        break;
+    case CullMode::Back:
+        description.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_BACK;
+        break;
+    default:
+        return tl::unexpected(invalidArgument());
+    }
+    switch (requested.frontFace) {
+    case FrontFace::CounterClockwise:
+        description.rasterizer_state.front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE;
+        break;
+    case FrontFace::Clockwise:
+        description.rasterizer_state.front_face = SDL_GPU_FRONTFACE_CLOCKWISE;
+        break;
+    default:
+        return tl::unexpected(invalidArgument());
+    }
     description.rasterizer_state.enable_depth_clip = true;
     description.multisample_state.sample_count = SDL_GPU_SAMPLECOUNT_1;
-    description.depth_stencil_state.compare_op = SDL_GPU_COMPAREOP_LESS;
-    description.depth_stencil_state.enable_depth_test = true;
-    description.depth_stencil_state.enable_depth_write = true;
+    switch (requested.depthCompare) {
+    case DepthCompare::Always:
+        description.depth_stencil_state.compare_op = SDL_GPU_COMPAREOP_ALWAYS;
+        break;
+    case DepthCompare::Less:
+        description.depth_stencil_state.compare_op = SDL_GPU_COMPAREOP_LESS;
+        break;
+    case DepthCompare::LessEqual:
+        description.depth_stencil_state.compare_op = SDL_GPU_COMPAREOP_LESS_OR_EQUAL;
+        break;
+    default:
+        return tl::unexpected(invalidArgument());
+    }
+    description.depth_stencil_state.enable_depth_test = requested.depthTest;
+    description.depth_stencil_state.enable_depth_write = requested.depthWrite;
     description.target_info.color_target_descriptions = &color;
     description.target_info.num_color_targets = 1;
-    description.target_info.depth_stencil_format = SDL_GPU_TEXTUREFORMAT_D32_FLOAT;
-    description.target_info.has_depth_stencil_target = true;
+    description.target_info.depth_stencil_format = requested.depth == DepthFormat::Depth32
+                                                       ? SDL_GPU_TEXTUREFORMAT_D32_FLOAT
+                                                       : SDL_GPU_TEXTUREFORMAT_INVALID;
+    description.target_info.has_depth_stencil_target = requested.depth != DepthFormat::None;
     auto* native = SDL_CreateGPUGraphicsPipeline(m_impl->device, &description);
-    if (!native) {
+    if (!native)
         return tl::unexpected(nativeError());
-    }
-    auto handle = m_impl->pipelines.insert(native, {});
-    if (!handle) {
+    auto handle = m_impl->pipelines.insert(
+        native, {requested.color, requested.depth, requested.vertexStride, ps->metadata.samplers});
+    if (!handle)
         SDL_ReleaseGPUGraphicsPipeline(m_impl->device, native);
-    }
     return handle;
+}
+
+Result<ColorFormat> Device::attachWindow(platform::Platform& platform) {
+    m_impl->checkThread();
+    if (m_impl->window || m_impl->recording)
+        return tl::unexpected(invalidState());
+    auto* window = platform::detail::Access::window(platform);
+    if (!window)
+        return tl::unexpected(invalidArgument());
+    if (!SDL_ClaimWindowForGPUDevice(m_impl->device, window))
+        return tl::unexpected(nativeError());
+    m_impl->window = window;
+    if (!SDL_SetGPUSwapchainParameters(m_impl->device, window, SDL_GPU_SWAPCHAINCOMPOSITION_SDR,
+                                       SDL_GPU_PRESENTMODE_VSYNC) ||
+        !SDL_SetGPUAllowedFramesInFlight(m_impl->device, 2))
+        return tl::unexpected(nativeError());
+    switch (SDL_GetGPUSwapchainTextureFormat(m_impl->device, window)) {
+    case SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM:
+        m_impl->swapchainFormat = ColorFormat::Rgba8;
+        break;
+    case SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM:
+        m_impl->swapchainFormat = ColorFormat::Bgra8;
+        break;
+    case SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM_SRGB:
+        m_impl->swapchainFormat = ColorFormat::Rgba8Srgb;
+        break;
+    case SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM_SRGB:
+        m_impl->swapchainFormat = ColorFormat::Bgra8Srgb;
+        break;
+    default:
+        return tl::unexpected(Error{ErrorCode::Gpu, "Unsupported SDR swapchain format"});
+    }
+    return m_impl->swapchainFormat;
+}
+Result<void> Device::beginFrame() {
+    m_impl->checkThread();
+    if (m_impl->recording)
+        return tl::unexpected(invalidState());
+    m_impl->recording = SDL_AcquireGPUCommandBuffer(m_impl->device);
+    if (!m_impl->recording)
+        return tl::unexpected(nativeError());
+    return {};
+}
+Result<FrameSize> Device::acquireSwapchain() {
+    m_impl->checkThread();
+    if (!m_impl->recording || !m_impl->window || m_impl->acquisitionAttempted)
+        return tl::unexpected(invalidState());
+    m_impl->acquisitionAttempted = true;
+    if (!SDL_WaitAndAcquireGPUSwapchainTexture(m_impl->recording, m_impl->window,
+                                               &m_impl->swapchain, &m_impl->extent.width,
+                                               &m_impl->extent.height))
+        return tl::unexpected(nativeError());
+    if (!m_impl->swapchain)
+        m_impl->extent = {};
+    return m_impl->extent;
+}
+Result<void> Device::submitFrame() {
+    m_impl->checkThread();
+    return m_impl->finish(true);
+}
+Result<void> Device::finishFrame() {
+    m_impl->checkThread();
+    return m_impl->finish(false);
+}
+Statistics Device::statistics() const {
+    m_impl->checkThread();
+    auto result = m_impl->counters;
+    result.pendingReleases = m_impl->buffers.retired.size() + m_impl->textures.retired.size() +
+                             m_impl->shaders.retired.size() + m_impl->samplers.retired.size() +
+                             m_impl->pipelines.retired.size();
+    return result;
 }
 
 Result<void> Device::upload(Buffer buffer, std::span<const std::byte> bytes) {
     m_impl->checkThread();
+    if (m_impl->recording)
+        return tl::unexpected(invalidState());
     const auto* entry = m_impl->buffers.get(buffer);
     if (!entry) {
         return tl::unexpected(invalidHandle());
@@ -450,11 +610,18 @@ Result<void> Device::upload(Buffer buffer, std::span<const std::byte> bytes) {
     const SDL_GPUBufferRegion destination{entry->native, 0, entry->metadata};
     SDL_UploadToGPUBuffer(pass, &source, &destination, true);
     SDL_EndGPUCopyPass(pass);
-    return command.submit();
+    auto submitted = command.submit();
+    if (submitted) {
+        ++m_impl->counters.submissions;
+        ++m_impl->counters.uploads;
+    }
+    return submitted;
 }
 
 Result<void> Device::upload(Texture texture, std::span<const std::byte> rgba) {
     m_impl->checkThread();
+    if (m_impl->recording)
+        return tl::unexpected(invalidState());
     const auto* entry = m_impl->textures.get(texture);
     if (!entry) {
         return tl::unexpected(invalidHandle());
@@ -497,83 +664,116 @@ Result<void> Device::upload(Texture texture, std::span<const std::byte> rgba) {
     const auto destination = region(entry->native, description);
     SDL_UploadToGPUTexture(pass, &source, &destination, true);
     SDL_EndGPUCopyPass(pass);
-    return command.submit();
+    auto submitted = command.submit();
+    if (submitted) {
+        ++m_impl->counters.submissions;
+        ++m_impl->counters.uploads;
+    }
+    return submitted;
 }
 
-Result<void> Device::render(const RenderPass& description, std::span<const Draw> draws) {
+Result<void> Device::renderOffscreen(const RenderPass& description, std::span<const Draw> draws) {
+    if (!description.color)
+        return tl::unexpected(invalidArgument());
+    auto started = beginFrame();
+    if (!started)
+        return started;
+    auto recorded = recordPass(description, draws);
+    if (!recorded) {
+        const auto finished = finishFrame();
+        if (!finished)
+            return finished;
+        return recorded;
+    }
+    return submitFrame();
+}
+
+Result<void> Device::recordPass(const RenderPass& description, std::span<const Draw> draws) {
     m_impl->checkThread();
-    SOMNIUM_PROFILE_SCOPE("gpu.offscreen");
+    SOMNIUM_PROFILE_SCOPE("gpu.pass");
+    if (!m_impl->recording)
+        return tl::unexpected(invalidState());
     const auto* color = m_impl->textures.get(description.color);
     const auto* depth = m_impl->textures.get(description.depth);
-    if (!color || !depth) {
+    if ((description.color && !color) || (description.depth && !depth))
         return tl::unexpected(invalidHandle());
-    }
-    if (color->metadata.kind != TextureKind::ColorRgba8 ||
-        depth->metadata.kind != TextureKind::Depth32 ||
-        color->metadata.width != depth->metadata.width ||
-        color->metadata.height != depth->metadata.height ||
+    if (!color && !m_impl->swapchain)
+        return tl::unexpected(invalidState());
+    const auto width = color ? color->metadata.width : m_impl->extent.width;
+    const auto height = color ? color->metadata.height : m_impl->extent.height;
+    const auto colorFormat = color ? ColorFormat::Rgba8 : m_impl->swapchainFormat;
+    const auto depthFormat = depth ? DepthFormat::Depth32 : DepthFormat::None;
+    if ((color && color->metadata.kind != TextureKind::ColorRgba8) ||
+        (depth && (depth->metadata.kind != TextureKind::Depth32 || depth->metadata.width != width ||
+                   depth->metadata.height != height)) ||
         !std::isfinite(description.clearDepth) || description.clearDepth < 0 ||
         description.clearDepth > 1 ||
         !std::all_of(description.clearColor.begin(), description.clearColor.end(),
-                     [](float value) { return std::isfinite(value); })) {
+                     [](float value) { return std::isfinite(value); }))
         return tl::unexpected(invalidArgument());
-    }
-    // Validate the entire list before recording, so errors cannot leave a partial pass.
+    // Validate the whole pass before the first native draw.
     for (const auto& draw : draws) {
         const auto* buffer = m_impl->buffers.get(draw.vertices);
-        const auto* texture = m_impl->textures.get(draw.texture);
-        if (!buffer || !texture || !m_impl->pipelines.get(draw.pipeline) ||
-            !m_impl->samplers.get(draw.sampler)) {
+        const auto* pipeline = m_impl->pipelines.get(draw.pipeline);
+        if (!buffer || !pipeline)
             return tl::unexpected(invalidHandle());
+        if (pipeline->metadata.samplers) {
+            const auto* texture = m_impl->textures.get(draw.texture);
+            if (!texture || !m_impl->samplers.get(draw.sampler))
+                return tl::unexpected(invalidHandle());
+            if (texture->metadata.kind != TextureKind::SampledRgba8)
+                return tl::unexpected(invalidArgument());
         }
-        const auto capacity = buffer->metadata / sizeof(Vertex);
-        if (texture->metadata.kind != TextureKind::SampledRgba8 || draw.firstVertex > capacity ||
-            draw.vertexCount > capacity - draw.firstVertex || !draw.vertexCount ||
-            draw.vertexCount % 3 != 0) {
+        const auto capacity = buffer->metadata / pipeline->metadata.stride;
+        if (pipeline->metadata.color != colorFormat || pipeline->metadata.depth != depthFormat ||
+            draw.firstVertex > capacity || draw.vertexCount > capacity - draw.firstVertex ||
+            !draw.vertexCount || draw.vertexCount % 3 != 0)
             return tl::unexpected(invalidArgument());
-        }
     }
-    Command command{SDL_AcquireGPUCommandBuffer(m_impl->device)};
-    if (!command.native) {
-        return tl::unexpected(nativeError());
-    }
-    SDL_PushGPUDebugGroup(command.native, "Somnium offscreen");
+    SDL_PushGPUDebugGroup(m_impl->recording, color ? "Somnium offscreen" : "Somnium presentation");
     SDL_GPUColorTargetInfo colorTarget{};
-    colorTarget.texture = color->native;
+    colorTarget.texture = color ? color->native : m_impl->swapchain;
     colorTarget.clear_color = {description.clearColor[0], description.clearColor[1],
                                description.clearColor[2], description.clearColor[3]};
     colorTarget.load_op = SDL_GPU_LOADOP_CLEAR;
     colorTarget.store_op = SDL_GPU_STOREOP_STORE;
-    colorTarget.cycle = true;
+    colorTarget.cycle = color != nullptr;
     SDL_GPUDepthStencilTargetInfo depthTarget{};
-    depthTarget.texture = depth->native;
+    depthTarget.texture = depth ? depth->native : nullptr;
     depthTarget.clear_depth = description.clearDepth;
     depthTarget.load_op = SDL_GPU_LOADOP_CLEAR;
     depthTarget.store_op = SDL_GPU_STOREOP_DONT_CARE;
     depthTarget.stencil_load_op = SDL_GPU_LOADOP_DONT_CARE;
     depthTarget.stencil_store_op = SDL_GPU_STOREOP_DONT_CARE;
     depthTarget.cycle = true;
-    auto* pass = SDL_BeginGPURenderPass(command.native, &colorTarget, 1, &depthTarget);
+    auto* pass =
+        SDL_BeginGPURenderPass(m_impl->recording, &colorTarget, 1, depth ? &depthTarget : nullptr);
     if (!pass) {
-        SDL_PopGPUDebugGroup(command.native);
+        SDL_PopGPUDebugGroup(m_impl->recording);
         return tl::unexpected(nativeError());
     }
     for (const auto& draw : draws) {
-        SDL_BindGPUGraphicsPipeline(pass, m_impl->pipelines.get(draw.pipeline)->native);
+        const auto* pipeline = m_impl->pipelines.get(draw.pipeline);
+        SDL_BindGPUGraphicsPipeline(pass, pipeline->native);
         const SDL_GPUBufferBinding vertices{m_impl->buffers.get(draw.vertices)->native, 0};
         SDL_BindGPUVertexBuffers(pass, 0, &vertices, 1);
-        const SDL_GPUTextureSamplerBinding texture{m_impl->textures.get(draw.texture)->native,
-                                                   m_impl->samplers.get(draw.sampler)->native};
-        SDL_BindGPUFragmentSamplers(pass, 0, &texture, 1);
+        if (pipeline->metadata.samplers) {
+            const SDL_GPUTextureSamplerBinding texture{m_impl->textures.get(draw.texture)->native,
+                                                       m_impl->samplers.get(draw.sampler)->native};
+            SDL_BindGPUFragmentSamplers(pass, 0, &texture, 1);
+        }
         SDL_DrawGPUPrimitives(pass, draw.vertexCount, 1, draw.firstVertex, 0);
+        ++m_impl->counters.drawCalls;
     }
     SDL_EndGPURenderPass(pass);
-    SDL_PopGPUDebugGroup(command.native);
-    return command.submit();
+    SDL_PopGPUDebugGroup(m_impl->recording);
+    return {};
 }
 
 Result<std::vector<std::byte>> Device::readback(Texture texture) {
     m_impl->checkThread();
+    if (m_impl->recording)
+        return tl::unexpected(invalidState());
     const auto* entry = m_impl->textures.get(texture);
     if (!entry) {
         return tl::unexpected(invalidHandle());
@@ -606,6 +806,7 @@ Result<std::vector<std::byte>> Device::readback(Texture texture) {
     if (!fence) {
         return tl::unexpected(nativeError());
     }
+    ++m_impl->counters.submissions;
     const bool complete = SDL_WaitForGPUFences(m_impl->device, true, &fence, 1);
     const auto error = nativeError();
     SDL_ReleaseGPUFence(m_impl->device, fence);
@@ -628,22 +829,32 @@ Result<std::vector<std::byte>> Device::readback(Texture texture) {
 
 Result<void> Device::destroy(Buffer handle) {
     m_impl->checkThread();
-    return m_impl->buffers.erase(handle, m_impl->device, SDL_ReleaseGPUBuffer);
+    return m_impl->buffers.erase(handle, m_impl->recording != nullptr, [&](auto* native) {
+        SDL_ReleaseGPUBuffer(m_impl->device, native);
+    });
 }
 Result<void> Device::destroy(Texture handle) {
     m_impl->checkThread();
-    return m_impl->textures.erase(handle, m_impl->device, SDL_ReleaseGPUTexture);
+    return m_impl->textures.erase(handle, m_impl->recording != nullptr, [&](auto* native) {
+        SDL_ReleaseGPUTexture(m_impl->device, native);
+    });
 }
 Result<void> Device::destroy(Shader handle) {
     m_impl->checkThread();
-    return m_impl->shaders.erase(handle, m_impl->device, SDL_ReleaseGPUShader);
+    return m_impl->shaders.erase(handle, m_impl->recording != nullptr, [&](auto* native) {
+        SDL_ReleaseGPUShader(m_impl->device, native);
+    });
 }
 Result<void> Device::destroy(Sampler handle) {
     m_impl->checkThread();
-    return m_impl->samplers.erase(handle, m_impl->device, SDL_ReleaseGPUSampler);
+    return m_impl->samplers.erase(handle, m_impl->recording != nullptr, [&](auto* native) {
+        SDL_ReleaseGPUSampler(m_impl->device, native);
+    });
 }
 Result<void> Device::destroy(Pipeline handle) {
     m_impl->checkThread();
-    return m_impl->pipelines.erase(handle, m_impl->device, SDL_ReleaseGPUGraphicsPipeline);
+    return m_impl->pipelines.erase(handle, m_impl->recording != nullptr, [&](auto* native) {
+        SDL_ReleaseGPUGraphicsPipeline(m_impl->device, native);
+    });
 }
 } // namespace somnium::gpu

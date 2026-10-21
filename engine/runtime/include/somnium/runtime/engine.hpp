@@ -11,10 +11,12 @@
 
 namespace somnium::runtime {
 struct EngineConfig {
-    std::string_view title = "Somnium - Phase 0";
+    std::string_view title = "Somnium - Phase 1";
     int width = 1280;
     int height = 720;
     std::string_view resourceRoot;
+    // Empty selects D3D12 on Windows, Metal on macOS and Vulkan on Linux.
+    std::string_view backend;
 };
 struct RunOptions {
     std::uint64_t frameLimit =

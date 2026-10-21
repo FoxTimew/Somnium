@@ -2,7 +2,7 @@
 # Private SDL headers do not propagate to engine consumers.
 add_library(somnium_platform STATIC src/platform.cpp src/file_reader.cpp)
 add_library(somnium::platform ALIAS somnium_platform)
-target_include_directories(somnium_platform PUBLIC include)
+target_include_directories(somnium_platform PUBLIC include PRIVATE private)
 target_link_libraries(somnium_platform PUBLIC somnium::core PRIVATE SDL3::SDL3)
 somnium_configure_target(somnium_platform)
 if(BUILD_TESTING)

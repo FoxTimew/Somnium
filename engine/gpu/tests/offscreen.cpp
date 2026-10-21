@@ -68,11 +68,11 @@ Result<void> execute(gpu::Device& device, const std::filesystem::path& scenePath
     SOMNIUM_TEST_TRY(
         fragment,
         device.loadShader(*shaderReader, scene->at("shaders").at("fragment").get<std::string>()));
-    SOMNIUM_TEST_TRY(pipeline, device.createPipeline(*vertex, *fragment));
+    SOMNIUM_TEST_TRY(pipeline, device.createPipeline({*vertex, *fragment}));
     // Pipeline creation consumes shader bytecode synchronously. Releasing these is legal.
     SOMNIUM_TEST_TRY(releasedVertex, device.destroy(*vertex));
     SOMNIUM_TEST_TRY(releasedFragment, device.destroy(*fragment));
-    const auto releasedShaders = device.createPipeline(*vertex, *fragment);
+    const auto releasedShaders = device.createPipeline({*vertex, *fragment});
     if (releasedShaders || releasedShaders.error().code != ErrorCode::InvalidHandle) {
         return tl::unexpected(Error{ErrorCode::InvalidState, "Released shader handle accepted"});
     }
@@ -111,20 +111,31 @@ Result<void> execute(gpu::Device& device, const std::filesystem::path& scenePath
                                scene->at("clear_depth").get<float>()};
     auto invalidDraw = draws.front();
     invalidDraw.vertexCount = static_cast<std::uint32_t>(vertices.size() + 3);
-    const auto invalidRange = device.render(pass, std::span(&invalidDraw, 1));
+    const auto invalidRange = device.renderOffscreen(pass, std::span(&invalidDraw, 1));
     if (invalidRange || invalidRange.error().code != ErrorCode::InvalidArgument) {
         return tl::unexpected(Error{ErrorCode::InvalidState, "Invalid vertex range accepted"});
     }
-    SOMNIUM_TEST_TRY(rendered, device.render(pass, draws));
+    SOMNIUM_TEST_TRY(rendered, device.renderOffscreen(pass, draws));
     // A second upload while the first submission may be in flight exercises cycling.
     SOMNIUM_TEST_TRY(reuploaded, device.upload(*buffer, bytes));
-    SOMNIUM_TEST_TRY(renderedAgain, device.render(pass, draws));
-    // Immediately retire resources already submitted. SDL defers their native destruction.
+    SOMNIUM_TEST_TRY(recording, device.beginFrame());
+    SOMNIUM_TEST_TRY(renderedAgain, device.recordPass(pass, draws));
+    // Invalidate during recording, including resources borrowed by the queued pass.
     SOMNIUM_TEST_TRY(retiredBuffer, device.destroy(*buffer));
     SOMNIUM_TEST_TRY(retiredTexture, device.destroy(*texture));
     SOMNIUM_TEST_TRY(retiredSampler, device.destroy(*sampler));
     SOMNIUM_TEST_TRY(retiredPipeline, device.destroy(*pipeline));
     SOMNIUM_TEST_TRY(retiredDepth, device.destroy(*depth));
+    const auto staleDraw = device.recordPass(pass, draws);
+    if (staleDraw || staleDraw.error().code != ErrorCode::InvalidHandle ||
+        device.statistics().pendingReleases != 5) {
+        return tl::unexpected(
+            Error{ErrorCode::InvalidState, "Recording retirement contract failed"});
+    }
+    SOMNIUM_TEST_TRY(submitted, device.submitFrame());
+    if (device.statistics().pendingReleases != 0) {
+        return tl::unexpected(Error{ErrorCode::InvalidState, "Retired resources not released"});
+    }
     const auto stale = device.upload(*buffer, bytes);
     const auto doubled = device.destroy(*buffer);
     if (stale || doubled || stale.error().code != ErrorCode::InvalidHandle ||
@@ -135,6 +146,17 @@ Result<void> execute(gpu::Device& device, const std::filesystem::path& scenePath
     if (reused->index != buffer->index || reused->generation == buffer->generation) {
         return tl::unexpected(
             Error{ErrorCode::InvalidState, "Generation not advanced on slot reuse"});
+    }
+    // The cancellation path retires native resources as well, with no GPU execution.
+    SOMNIUM_TEST_TRY(cancelRecording, device.beginFrame());
+    SOMNIUM_TEST_TRY(retiredReused, device.destroy(*reused));
+    if (device.statistics().pendingReleases != 1) {
+        return tl::unexpected(Error{ErrorCode::InvalidState, "Cancellation retirement missing"});
+    }
+    SOMNIUM_TEST_TRY(cancelled, device.finishFrame());
+    if (device.statistics().pendingReleases != 0) {
+        return tl::unexpected(
+            Error{ErrorCode::InvalidState, "Cancellation did not release resources"});
     }
     SOMNIUM_TEST_TRY(pixels, device.readback(*color));
     std::ofstream image(output / "actual.rgba", std::ios::binary);

@@ -9,6 +9,9 @@
 #include <string_view>
 
 namespace somnium::platform {
+namespace detail {
+struct Access;
+}
 struct WindowConfig {
     std::string_view title = "Somnium";
     int width = 1280;
@@ -30,9 +33,11 @@ class Platform final {
     Platform& operator=(const Platform&) = delete;
     [[nodiscard]] Events pollEvents();
     [[nodiscard]] Result<void> requestQuit();
-    void wait(std::uint32_t milliseconds) const;
+    // Waits for events only while presentation has no drawable; does not consume the event.
+    [[nodiscard]] Result<void> waitEvents() const;
 
   private:
+    friend struct detail::Access;
     struct Impl;
     explicit Platform(std::unique_ptr<Impl> impl);
     std::unique_ptr<Impl> m_impl;

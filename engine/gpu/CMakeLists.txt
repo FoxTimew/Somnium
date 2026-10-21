@@ -2,7 +2,7 @@
 # CPU manifest contracts use doctest independently of device availability.
 add_library(somnium_gpu STATIC src/device.cpp src/shader_data.cpp)
 add_library(somnium::gpu ALIAS somnium_gpu)
-target_include_directories(somnium_gpu PUBLIC include)
+target_include_directories(somnium_gpu PUBLIC include PRIVATE private "${PROJECT_SOURCE_DIR}/engine/platform/private")
 target_link_libraries(somnium_gpu PUBLIC somnium::core somnium::platform PRIVATE SDL3::SDL3 nlohmann_json::nlohmann_json)
 somnium_configure_target(somnium_gpu)
 if(BUILD_TESTING)

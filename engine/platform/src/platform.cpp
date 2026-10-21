@@ -1,5 +1,6 @@
 // Contains SDL initialization, window ownership and native event collection.
 // No GPU device, ImGui include or UI-specific conditional belongs here.
+#include <somnium/platform/native.hpp>
 #include <somnium/platform/platform.hpp>
 
 #include <somnium/core/assert.hpp>
@@ -21,6 +22,8 @@ namespace somnium::platform {
 struct Platform::Impl {
     SDL_Window* window = nullptr;
     bool initialized = false;
+    void* observerContext = nullptr;
+    void (*observer)(void*, const SDL_Event&) = nullptr;
     std::thread::id owner = std::this_thread::get_id();
 
     ~Impl() {
@@ -79,6 +82,8 @@ Events Platform::pollEvents() {
     Events result;
     SDL_Event event{};
     while (SDL_PollEvent(&event)) {
+        if (m_impl->observer)
+            m_impl->observer(m_impl->observerContext, event);
         if (event.type == SDL_EVENT_QUIT) {
             result.quitRequested = true;
         } else if (m_impl->window && event.type >= SDL_EVENT_WINDOW_FIRST &&
@@ -96,8 +101,22 @@ Events Platform::pollEvents() {
     return result;
 }
 
-void Platform::wait(std::uint32_t milliseconds) const {
-    SDL_Delay(milliseconds);
+Result<void> Platform::waitEvents() const {
+    SOMNIUM_VERIFY(m_impl->owner == std::this_thread::get_id());
+    if (!SDL_WaitEvent(nullptr))
+        return tl::unexpected(Error{ErrorCode::Platform, SDL_GetError()});
+    return {};
+}
+
+SDL_Window* detail::Access::window(Platform& platform) {
+    SOMNIUM_VERIFY(platform.m_impl->owner == std::this_thread::get_id());
+    return platform.m_impl->window;
+}
+void detail::Access::setEventObserver(Platform& platform, void* context,
+                                      void (*observer)(void*, const SDL_Event&)) {
+    SOMNIUM_VERIFY(platform.m_impl->owner == std::this_thread::get_id());
+    platform.m_impl->observerContext = context;
+    platform.m_impl->observer = observer;
 }
 
 Result<void> Platform::requestQuit() {

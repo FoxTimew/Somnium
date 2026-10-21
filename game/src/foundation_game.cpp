@@ -17,7 +17,7 @@ Result<void> FoundationGame::start(runtime::GameContext&) {
     m_steps = 0;
     m_simulatedSeconds = 0.0;
     m_running = true;
-    Log::write("game", Log::Level::Info, "Phase 0 started: window only, no GPU device");
+    Log::write("game", Log::Level::Info, "Gameplay session started");
     return {};
 }
 

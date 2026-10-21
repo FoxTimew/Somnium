@@ -10,22 +10,26 @@
 
 int main(int argc, char** argv) {
     somnium::runtime::RunOptions options;
-    if (argc != 1) {
-        if (argc != 3 || std::string_view(argv[1]) != "--frames") {
-            std::fputs("Usage: sandbox [--frames positive-count]\n", stderr);
+    somnium::runtime::EngineConfig config;
+    for (int index = 1; index < argc; index += 2) {
+        if (index + 1 >= argc) {
+            std::fputs("Usage: sandbox [--frames N] [--backend vulkan|direct3d12|metal]\n", stderr);
             return 2;
         }
-        const std::string_view count(argv[2]);
-        const auto parsed =
-            std::from_chars(count.data(), count.data() + count.size(), options.frameLimit);
-        if (parsed.ec != std::errc{} || parsed.ptr != count.data() + count.size() ||
-            options.frameLimit == 0) {
-            std::fputs("Frame count must be a positive integer\n", stderr);
+        const std::string_view key(argv[index]), value(argv[index + 1]);
+        if (key == "--backend")
+            config.backend = value;
+        else if (key == "--frames") {
+            const auto parsed =
+                std::from_chars(value.data(), value.data() + value.size(), options.frameLimit);
+            if (parsed.ec != std::errc{} || parsed.ptr != value.data() + value.size() ||
+                options.frameLimit == 0)
+                return 2;
+        } else
             return 2;
-        }
     }
     somnium::game::FoundationGame game;
-    auto engine = somnium::runtime::Engine::create();
+    auto engine = somnium::runtime::Engine::create(config);
     if (!engine) {
         somnium::Log::write("sandbox", somnium::Log::Level::Error, engine.error().message);
         return 1;
