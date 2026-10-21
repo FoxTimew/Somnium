@@ -11,10 +11,12 @@ La phase 0 fournit l'outillage, les fondations et une fenêtre vide, sans device
 - [Stack et dépendances](docs/adr/0001-stack-dependances-licences.md)
 - [Conventions](docs/adr/0002-conventions.md)
 
-Le jalon documentaire et la phase 0 sont validés. La fusion `--no-ff` dans
-`main` et le tag `phase-0` sont autorisés après les corrections de revue et
-une nouvelle CI verte. La suite est préparée sur `phase/1-gpu-shaders` ;
-son périmètre et ses prérequis de sortie figurent dans l'architecture.
+Le jalon documentaire et la phase 0 sont validés ; la fusion `--no-ff` dans
+`main` et le tag `phase-0` sont réalisés. La suite est préparée sur
+`phase/1-gpu-shaders`, avec un spike isolé `feat/shader-toolchain-spike`.
+Les [ADR-0003](docs/adr/0003-chaine-shaders.md),
+[ADR-0004](docs/adr/0004-frame-synchronisation-gpu.md) et le
+[plan CI](docs/PHASE_1_CI.md) attendent validation avant code GPU/UI.
 
 ## Prérequis
 
@@ -106,21 +108,23 @@ DXC activé et SPIRV-Cross `vulkan-sdk-1.4.363.0`. L'archive reste hors du moteu
 le CLI lié à DXC et la génération HLSL par `somnium_add_shaders()` appartiennent
 à la phase 1. Aucun binaire de shader n'est produit en phase 0.
 
-Pour préparer un CLI complet, installer DXC
-[`v1.9.2609`](https://github.com/microsoft/DirectXShaderCompiler/releases/tag/v1.9.2609)
-et ses bibliothèques `dxcompiler`/`dxil` (DLL et import libraries sous Windows,
-bibliothèques partagées sous Linux). Pour macOS, une construction de DXC depuis
-ses sources est nécessaire ; sa configuration sera vérifiée en phase 1.
-Installer SPIRV-Cross au tag ci-dessus, avec son interface C et ses packages
-CMake, puis SDL3 3.4.18. Configurer le dépôt SDL_shadercross au SHA
-`1ff05bec573988a98ef9e0260b4da44f512b8367` avec les options amont
-`SDLSHADERCROSS_CLI=ON`, `SDLSHADERCROSS_DXC=ON`,
-`SDLSHADERCROSS_VENDORED=OFF`, `SDLSHADERCROSS_SPIRVCROSS_SHARED=OFF`
-et les préfixes des packages installés. Son module
-`FindDirectXShaderCompiler.cmake` décrit les chemins des SDK attendus.
-Les instructions d'installation et la validation du CLI complet seront
-finalisées avec la chaîne de shaders ; elles ne sont pas une preuve actuelle
-de compilation HLSL sur les trois OS.
+Le spike prouve maintenant le CLI complet en CI sur les trois OS : DXC
+`v1.9.2609` officiel sous Windows/Linux x64, sources épinglées sous macOS arm64.
+Avec Python 3.12, Git et le compilateur C/C++ installé :
+
+```sh
+python -m pip install cmake==3.31.6 ninja==1.11.1.3
+python tools/shader_toolchain/build.py --provider official --jobs 3
+```
+
+Sous macOS, remplacer `official` par `source`. Sous Windows, utiliser un terminal
+développeur MSVC. Le bootstrap acquiert SDL, SPIRV-Cross, shadercross et DXC au
+[verrou](tools/shader_toolchain/lock.json), vérifie les archives, construit et
+teste l'outil. Installation sous `.cache/shader-toolchain/install/<provider>`.
+Un outil absent/inexécutable échoue explicitement ; aucun test n'est ignoré.
+Les commandes, mesures, cache, comparaison avec le Vulkan SDK et le blocage
+local du nouvel exécutable CLI sont consignés dans [SHADERS.md](docs/SHADERS.md).
+L'intégration CMake au moteur et le rendu restent à réaliser après accord.
 
 Au MVP, le MSL généré hors ligne est chargé par SDL et compilé par le driver.
 Le `.metallib` est reporté au cuiseur de phase 4, prérequis de shipping macOS.
@@ -140,4 +144,3 @@ Les logs CTest sont conservés comme artefacts. Les tests de dépendances vérif
 notamment JSON sans exceptions, cgltf/stb sur entrée invalide, EnTT direct et
 projection GLM. Les tests de modules vérifient erreurs, handles, lecture et
 accumulateur. La preuve de rendu hors écran sera introduite en phase 1.
-

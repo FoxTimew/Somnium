@@ -6,9 +6,8 @@ Document validé ; distingue les contrats du MVP des capacités déjà implémen
 
 Statut : **accepté**, 20 octobre 2026, avec les arbitrages D1 à D5 ci-dessous.
 
-La phase 0 est validée. Sa fusion `--no-ff` et le tag `phase-0` sont autorisés
-après les corrections de revue et une nouvelle CI verte ; la branche suivante
-est `phase/1-gpu-shaders`. Voir les
+La phase 0 est validée, fusionnée `--no-ff` et taguée `phase-0` sur `main`.
+La branche suivante est `phase/1-gpu-shaders`. Voir les
 [ADR-0001](adr/0001-stack-dependances-licences.md) et
 [ADR-0002](adr/0002-conventions.md).
 
@@ -346,6 +345,17 @@ La validation de fin de phase 0 autorise le rebase sur `main`, puis le merge
 suivantes restent distinctes.
 
 ### Phase 1 — périmètre et compléments de revue
+
+Point de contrôle du 21 octobre : le spike isolé sur
+`feat/shader-toolchain-spike` prouve le CLI shadercross lié à DXC sur les trois OS.
+Les [ADR-0003](adr/0003-chaine-shaders.md),
+[ADR-0004](adr/0004-frame-synchronisation-gpu.md) et le
+[plan CI](PHASE_1_CI.md) sont **proposés**, avec détails dans
+[SHADERS.md](SHADERS.md) et [GPU_VALIDATION.md](GPU_VALIDATION.md).
+Aucun code dans `gpu`, `debug_ui` ou `cmake/Shaders.cmake` avant leur validation.
+La sélection WARP n'est pas exposée par SDL GPU épinglé ; la preuve D3D12 CI
+reste conditionnelle à un device utilisable, sinon capture et validation locales
+obligatoires. La compilation hors ligne réussie ne prouve aucun rendu.
 
 Le périmètre reste le device et la swapchain, les commandes et ressources GPU
 en RAII derrière des handles, un triangle coloré et l'overlay ImGui (FPS,
