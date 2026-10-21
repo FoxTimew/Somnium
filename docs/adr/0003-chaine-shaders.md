@@ -4,7 +4,7 @@ Les commandes, mesures et bindings détaillés sont dans SHADERS.md.
 -->
 # ADR-0003 — Chaîne de shaders hors ligne
 
-Date : 21 octobre 2026. Statut : **proposé — validation requise avant intégration**.
+Date : 21 octobre 2026. Statut : **accepté**, avec les ajustements du point de contrôle.
 
 ## Contexte
 
@@ -22,10 +22,14 @@ Les preuves et commandes reproductibles sont dans [SHADERS.md](../SHADERS.md).
   `vulkan-sdk-1.4.363.0` et SDL 3.4.18 sont résolus en SHA complets dans le
   [verrou](../../tools/shader_toolchain/lock.json). Cache des outils installés par
   OS, architecture, image/compilateur et recette ; tous les essais restent actifs
-  après restauration. Configuration fatale si CLI/DXC absent ou inexécutable.
+  après restauration. Le configure moteur ne lance jamais le bootstrap : variable
+  `SOMNIUM_SHADERCROSS_EXECUTABLE`, chemin installé par défaut, erreur fatale avec
+  commande de bootstrap si CLI ou DXC des depfiles manque. CI : outils requis
+  avant moteur via `needs`, avec transfert de l'installation vérifiée.
 - **Génération.** `somnium_add_shaders()` recevra cible, nom logique, `.hlsl`,
-  point d'entrée, étage vertex/fragment, dossier d'includes, defines et entrée
-  MSL explicite vérifiée dans le texte généré. Sorties sous le build par
+  entrée `vsMain`/`psMain`, étage vertex/fragment, dossier d'includes et defines.
+  `main` interdit, aucun `MSL_ENTRYPOINT` ; vérifier le même nom dans le MSL.
+  Sorties sous le build par
   configuration : `<nom>.<entrée>.<vert|frag>.{spv,dxil,msl,json}`. Un depfile DXC
   `-M -MF`, utilisant les mêmes includes/defines, suivra les includes transitifs.
   Installer/copier les artefacts sous `assets/shaders` à côté de l'exécutable.
@@ -34,15 +38,17 @@ Les preuves et commandes reproductibles sont dans [SHADERS.md](../SHADERS.md).
   le SPIR-V produit fournira les quatre compteurs de `SDL_GPUShaderCreateInfo` ;
   un manifeste versionné ajoutera étage, formats et entrées. Cela évite une
   duplication manuelle des compteurs. Ne pas activer l'élimination des bindings.
-  Le JSON CLI ne fournit pas l'entrée MSL nettoyée : `main0` observé pour `main`
-  doit être validé, jamais deviné par le moteur.
+  Le JSON CLI ne fournit pas l'entrée MSL : la convention évite le renommage
+  `main` vers `main0` ; un nom absent du MSL produit fait échouer le build.
 - **Chargement.** Choisir dans les artefacts et formats réellement retournés par
   le device : DXIL/D3D12, SPIR-V/Vulkan, MSL/Metal. Lire via le contrat de données
   injecté, valider manifeste et tailles, puis créer le shader. Aucun repli HLSL.
-  Le driver compile le MSL au MVP ; `.metallib` reste au cuiseur de phase 4,
+  Cible macOS déclarée **11.0**, MSL **2.3.0** explicite, compatible avec cette
+  cible et supérieur au minimum SDL Metal (macOS 10.14, GPU Mac2). Une cible
+  inférieure à 11.0 est rejetée. Le driver compile le MSL ; `.metallib` reste en phase 4,
   **prérequis de shipping macOS**. Aucun DXC/shadercross livré ou lié au moteur.
 - **Ancienne vérification.** Passer l'archive seule `somnium_shadercross` derrière
-  `SOMNIUM_VERIFY_SHADERCROSS_LIBRARY=OFF` par défaut après validation ; le CLI
+  `SOMNIUM_VERIFY_SHADERCROSS_LIBRARY=OFF` par défaut ; le CLI
   isolé et ses essais deviennent la preuve obligatoire de la chaîne complète.
 
 ## Alternatives
@@ -57,6 +63,6 @@ main et compilation HLSL à l'exécution sont écartés.
 Le spike valide les trois CLI : 111 s Windows, 76 s Linux, 816 s macOS à froid ;
 environ 1 s avec cache Windows/macOS. Le [plan CI](../PHASE_1_CI.md) réserve donc
 un budget distinct au build source macOS. L'incrémentalité et le chargement GPU
-restent à implémenter après accord sur cet ADR.
+restent à démontrer aux étapes a/b ; arrêt après b avant swapchain/UI.
 
 Preuves : intégration CMake/depfiles et installation ; validation du manifeste et des entrées par format ; chargement/rendu des trois formats ; production .metallib au cuiseur.

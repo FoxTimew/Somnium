@@ -16,7 +16,8 @@ Le jalon documentaire et la phase 0 sont validés ; la fusion `--no-ff` dans
 `phase/1-gpu-shaders`, avec un spike isolé `feat/shader-toolchain-spike`.
 Les [ADR-0003](docs/adr/0003-chaine-shaders.md),
 [ADR-0004](docs/adr/0004-frame-synchronisation-gpu.md) et le
-[plan CI](docs/PHASE_1_CI.md) attendent validation avant code GPU/UI.
+[plan CI](docs/PHASE_1_CI.md) sont acceptés avec les ajustements du 21 octobre. L'implémentation s'arrête
+après la preuve GPU hors écran (étape b) pour validation intermédiaire.
 
 ## Prérequis
 

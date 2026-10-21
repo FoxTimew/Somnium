@@ -2,11 +2,11 @@
 Décrit les tests à implémenter après validation de l'ADR-0004.
 Distingue la lecture des en-têtes, le rendu hors écran et la présentation réelle.
 -->
-# Protocole de validation GPU — proposition de phase 1
+# Protocole de validation GPU — contrat accepté de phase 1
 
 Ce document est un protocole, pas un compte rendu de rendu réussi. Aucun test
 GPU n'est implémenté au point de contrôle documentaire. Les noms de commandes
-ci-dessous sont des interfaces proposées à valider avec l'ADR-0004.
+ci-dessous décrivent les interfaces acceptées avec l'ADR-0004, à implémenter.
 
 ## Autorité et conventions
 
@@ -22,7 +22,7 @@ SDL convertit les différences de backend : aucune inversion Vulkan manuelle.
 Le monde Somnium reste main droite et sa projection `RH_ZO` ; cela ne change
 pas les conventions des coordonnées projetées de SDL.
 
-Choix proposé : `SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE` et
+Choix accepté, confirmation par D5 encore attendue : `SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE` et
 `SDL_GPU_CULLMODE_BACK`, profondeur LESS avec clear à 1. Ces valeurs sont lues
 dans l'en-tête et leur signification confirmée par les tables des backends ;
 leur application à notre géométrie doit encore passer le test ci-dessous.
@@ -56,22 +56,24 @@ pas à introduire une inversion locale propre à un backend.
    fraction de pixels différents est ≤ 0,001, avec mêmes dimensions et mêmes
    canaux. Aucune conversion sRGB, correction colorimétrique ni masque de bord
    implicite. Les couleurs des centres des régions témoins doivent également
-   correspondre, pour que la tolérance globale ne masque pas un repère absent.
+   correspondre exactement, sans aucune tolérance par canal, pour que la tolérance globale ne masque pas un repère absent.
 7. Libérer toutes les ressources, puis le device ; aucune erreur des couches de
    validation n'est admise, même si la comparaison d'image passe.
 
 La référence commune et indépendante du backend sera suivie par LFS sous
-`assets/tests/reference/gpu_conventions.png` (la règle PNG existe déjà).
-Les données géométriques/UV et positions des sondes restent du texte versionné
-à côté du test. Le cube glTF de phase 2 complète cette preuve ; il ne la remplace pas.
+`engine/gpu/tests/reference/gpu_conventions.png` (la règle PNG existe déjà).
+Les seuils, données géométriques/UV et positions des sondes restent du texte versionné
+à côté du test, jamais en dur dans son code. Aligner les arêtes sur des frontières
+de pixels autant que possible. Une référence par backend exige une justification
+écrite dans la PR ; la référence commune est la règle. Le cube glTF de phase 2 complète cette preuve ; il ne la remplace pas.
 
 ## Régénération et preuves
 
-Interface proposée après validation :
+Interface de régénération acceptée :
 
 ```sh
-gpu_reference_test --backend vulkan --compare assets/tests/reference/gpu_conventions.png
-gpu_reference_test --backend vulkan --write-reference assets/tests/reference/gpu_conventions.png --confirm-reference-update
+gpu_reference_test --backend vulkan --compare engine/gpu/tests/reference/gpu_conventions.png
+gpu_reference_test --backend vulkan --write-reference engine/gpu/tests/reference/gpu_conventions.png --confirm-reference-update
 ```
 
 La deuxième commande exige les deux options et refuse `CI=true`. Le changement

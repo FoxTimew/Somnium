@@ -8,7 +8,8 @@ Sépare les commandes déjà exécutées des interfaces à implémenter après a
 
 Seuls `tools/shader_toolchain` et son workflow sont implémentés. Les commandes
 de bootstrap ci-dessous fonctionnent indépendamment de CMake moteur. La fonction
-`somnium_add_shaders`, le manifeste et l'en-tête HLSL commun sont **proposés**.
+`somnium_add_shaders`, le manifeste et l'en-tête HLSL commun sont **acceptés** et
+leur réalisation est l'étape a, suivie de la preuve GPU hors écran à l'étape b.
 Aucune création de device ni preuve de rendu n'appartient à ce spike.
 
 Le [verrou machine](../tools/shader_toolchain/lock.json) contient les URLs,
@@ -102,8 +103,10 @@ python tools/shader_toolchain/build.py --provider source --jobs 3
 Installation sous `.cache/shader-toolchain/install/<provider>/bin` et `lib`.
 Le projet isolé refuse les sources/DXC absents avec `FATAL_ERROR`. Le mini-projet
 `verify` exige le chemin absolu du CLI et l'exécute au configure ; le workflow
-teste aussi un chemin inexistant et exige le diagnostic attendu. Dans la future
-intégration, le configure moteur vérifiera **CLI et DXC pour les depfiles** ; une
+teste aussi un chemin inexistant et exige le diagnostic attendu. Le configure moteur ne lance jamais `build.py` : il lit la variable CMake
+`SOMNIUM_SHADERCROSS_EXECUTABLE`, par défaut le chemin installé du provider
+`source` sur macOS, `official` ailleurs, et cherche `dxc` à côté du CLI. Il vérifie
+**CLI et DXC pour les depfiles**, avec erreur fatale et commande de bootstrap ; une
 option de build d'outils n'autorisera pas l'absence des produits nécessaires.
 
 Constat local Windows du 21 octobre : le CLI a été compilé mais son lancement
@@ -115,14 +118,14 @@ validé localement **6/6** ; l'ancienne limitation du test core est retirée.
 ## Commandes de génération proposées
 
 Exemple vertex, mêmes options que les essais déjà exécutés (remplacer `vertex`
-par `fragment` pour le pixel shader). Les chemins du CLI viennent du bootstrap :
+par `fragment`, `vsMain` par `psMain` pour le pixel shader). Les chemins du CLI viennent du bootstrap :
 
 ```sh
-shadercross triangle.vert.hlsl -s HLSL -t vertex -e main -I shaders -d SPIRV -o triangle.main.vert.spv
-shadercross triangle.vert.hlsl -s HLSL -t vertex -e main -I shaders -d DXIL -o triangle.main.vert.dxil
-shadercross triangle.vert.hlsl -s HLSL -t vertex -e main -I shaders -d MSL -o triangle.main.vert.msl
-shadercross triangle.main.vert.spv -s SPIRV -t vertex -e main -d JSON -o triangle.main.vert.reflection.json
-dxc triangle.vert.hlsl -T vs_6_0 -E main -I shaders -M -MF triangle.main.vert.d -Fo triangle.main.vert.spv
+shadercross triangle.vert.hlsl -s HLSL -t vertex -e vsMain -I shaders -d SPIRV -o triangle.vsMain.vert.spv
+shadercross triangle.vert.hlsl -s HLSL -t vertex -e vsMain -I shaders -d DXIL -o triangle.vsMain.vert.dxil
+shadercross triangle.vert.hlsl -s HLSL -t vertex -e vsMain -I shaders -d MSL --msl-version 2.3.0 -o triangle.vsMain.vert.msl
+shadercross triangle.vsMain.vert.spv -s SPIRV -t vertex -e vsMain -d JSON -o triangle.vsMain.vert.reflection.json
+dxc triangle.vert.hlsl -T vs_6_0 -E vsMain -I shaders -M -MF triangle.vsMain.vert.d -Fo triangle.vsMain.vert.spv
 ```
 
 Le dernier mécanisme a été vérifié localement sur la fixture : le depfile contient
@@ -131,11 +134,16 @@ accepte un seul `-I` : une racine d'includes, chemins relatifs sous celle-ci ;
 defines `-Dnom=valeur` identiques pour chaque commande et le depfile.
 Pas de `--cull` ; pas de `--debug` automatiquement associé au preset debug, car
 l'aide du CLI avertit que ces shaders nécessitent un debugger graphique attaché.
-Le mode debug du device reste indépendant. MSL 1.2.0, valeur par défaut du CLI,
-est le niveau initial du MVP ; toute élévation exige une justification de feature.
+Le mode debug du device reste indépendant. MSL **2.3.0** est passé explicitement. `CMAKE_OSX_DEPLOYMENT_TARGET=11.0`
+est la cible déclarée, rejetée si inférieure à 11.0. MSL 2.3 correspond à macOS 11
+([Apple](https://developer.apple.com/documentation/metal/mtllanguageversion/version2_3)).
+Le backend SDL épinglé exige au minimum macOS 10.14 et Mac2 par défaut
+(`METAL_PrepareDriver` et `METAL_CreateDevice` dans SDL_gpu_metal.m). Une cible
+plus récente conserve ce sous-ensemble MSL compatible, sans dépendre du défaut du CLI.
 
 Interface proposée : cible consommatrice, `NAME`, `SOURCE`, `ENTRYPOINT`,
-`STAGE`, `INCLUDE_DIRECTORY`, `DEFINES`, `MSL_ENTRYPOINT`. Rejeter les collisions
+`STAGE`, `INCLUDE_DIRECTORY`, `DEFINES`. Entrées imposées : `vsMain` et `psMain` ;
+`main` est interdit et `MSL_ENTRYPOINT` est supprimé. Rejeter les collisions
 de nom, étapes non supportées, ressources/bindings invalides et options ambiguës.
 Sorties `${CMAKE_CURRENT_BINARY_DIR}/shaders/$<CONFIG>/...`, jamais dans les
 sources ; `DEPFILE` pour includes transitifs et `DEPENDS` pour source, outils,
@@ -144,9 +152,9 @@ rebuild sans changement, changement d'options et suppression d'un produit.
 
 Un manifeste JSON version 1 rassemble fichiers relatifs, hash des produits,
 étage, points d'entrée par format et compteurs. SPIR-V/DXIL conservent l'entrée
-HLSL ; MSL doit nommer la fonction générée (les deux fixtures donnent `main0`).
-La génération valide l'entrée MSL explicitement fournie, ou échoue sur ambiguïté.
-La réflexion CLI ne l'expose pas. Valider également uniformes/resources non
+HLSL. La génération exige que la fonction MSL porte exactement le même nom
+`vsMain`/`psMain`, ou échoue. La réflexion CLI ne fournit pas ce nom ; aucune
+seconde valeur d'entrée ni remappage implicite n'est accepté. Valider également uniformes/resources non
 utilisés et variantes pour prévenir une divergence des compilations par format.
 
 Copie incrémentale dans `<dossier-exécutable>/assets/shaders` pour le build local,

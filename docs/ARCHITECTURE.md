@@ -350,9 +350,10 @@ Point de contrôle du 21 octobre : le spike isolé sur
 `feat/shader-toolchain-spike` prouve le CLI shadercross lié à DXC sur les trois OS.
 Les [ADR-0003](adr/0003-chaine-shaders.md),
 [ADR-0004](adr/0004-frame-synchronisation-gpu.md) et le
-[plan CI](PHASE_1_CI.md) sont **proposés**, avec détails dans
+[plan CI](PHASE_1_CI.md) sont **acceptés** avec les ajustements du 21 octobre, avec détails dans
 [SHADERS.md](SHADERS.md) et [GPU_VALIDATION.md](GPU_VALIDATION.md).
-Aucun code dans `gpu`, `debug_ui` ou `cmake/Shaders.cmake` avant leur validation.
+Ordre accepté : shaders/incrémentalité, GPU hors écran D5, puis arrêt pour
+validation intermédiaire avant swapchain, UI et compléments de qualité.
 La sélection WARP n'est pas exposée par SDL GPU épinglé ; la preuve D3D12 CI
 reste conditionnelle à un device utilisable, sinon capture et validation locales
 obligatoires. La compilation hors ligne réussie ne prouve aucun rendu.

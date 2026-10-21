@@ -2,7 +2,7 @@
 Plan de CI soumis avec les ADR-0003 et ADR-0004 avant toute implémentation GPU.
 Les inventaires observés sont distingués des jobs de rendu encore à écrire.
 -->
-# Plan CI de phase 1 — point de contrôle du 21 octobre 2026
+# Plan CI de phase 1 — accepté le 21 octobre 2026
 
 ## Ce qui est déjà prouvé
 
@@ -69,7 +69,10 @@ n'offrent aucun choix WARP ou identifiant d'adaptateur. Le
 énumère l'adaptateur 0 selon préférence d'énergie, sans `EnumWarpAdapter`.
 Le hint WARP de SDL Renderer D3D11 ne s'applique pas à SDL GPU. La présence de
 WARP ou de la couche debug dans Windows ne prouve donc pas un rendu D3D12 CI.
-Pas de fork SDL ni d'injection native d'adaptateur dans cette phase.
+Lecture complète du backend : **aucun filtre `DXGI_ADAPTER_FLAG_SOFTWARE` ni
+filtre Microsoft Basic Render Driver**. Le probe de création est donc obligatoire
+sur le runner : un device logiciel peut être obtenu de fait. Son résultat, pas
+l'absence de sélecteur WARP, décide du statut. Pas de fork SDL ni d'injection native.
 
 Vulkan : exiger l'activation réelle de la couche, pas seulement son installation.
 D3D12 : journaliser la création debug et l'absence de messages de validation ;
@@ -101,7 +104,9 @@ les autres jobs sont verts. Linux/lavapipe est prévu obligatoire : une erreur
 d'installation d'ICD/layers est un échec du job, pas une exemption locale.
 
 Le [protocole D5](GPU_VALIDATION.md) fixe RGBA8 256×256, écart de 2/255 par canal,
-fraction maximale 0,001, références PNG LFS, régénération manuelle refusée en CI
+fraction maximale 0,001 sur l'image entière, centres témoins exactement égaux,
+géométrie/seuils/sondes en texte versionné et référence PNG LFS unique sous
+`engine/gpu/tests/reference/`, régénération manuelle refusée en CI
 et images obtenue/référence/diff jointes sur échec. Le rendu hors écran n'atteste
 pas la swapchain : resize/minimisation/overlay restent vérifiés séparément.
 
@@ -118,4 +123,6 @@ pas la swapchain : resize/minimisation/overlay restent vérifiés séparément.
   erreurs de manifeste et la séparation shipping/UI après validation des ADR.
 
 Ces ajouts ne sont pas présentés comme déjà exécutés dans le spike. Les sources
-GPU/UI et `cmake/Shaders.cmake` attendent la validation des ADR-0003/0004.
+GPU/UI suivent les étapes acceptées a à e ; arrêt obligatoire après b pour
+validation intermédiaire. Le workflow de chaîne d'outils précède les jobs moteur
+par `needs` et leur transmet le CLI/DXC vérifié ; aucun configure ne bootstrappe.

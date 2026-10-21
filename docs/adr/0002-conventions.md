@@ -73,14 +73,14 @@ provient des pixels de la cible de rendu, sans supposer qu'elle égale les
 dimensions logiques de la fenêtre.
 
 Les enums lus sont `SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE` / `CLOCKWISE` et
-`SDL_GPU_CULLMODE_NONE` / `FRONT` / `BACK`. Proposition soumise avec l'ADR-0004 :
+`SDL_GPU_CULLMODE_NONE` / `FRONT` / `BACK`. Choix accepté avec l'ADR-0004, non encore confirmé par D5 :
 front face COUNTER_CLOCKWISE, culling BACK, profondeur LESS et clear à 1. Les
 backends épinglés traduisent directement ces choix en leurs conventions natives ;
 le résultat doit encore être vérifié par le [test de référence](../GPU_VALIDATION.md)
 hors écran : triangle CCW asymétrique, winding opposé rejeté, texture à quatre
 couleurs, repères UV/NDC et recouvrement à deux profondeurs. La lecture de l'en-tête
 est acquise ; aucun rendu n'est revendiqué. Le cube glTF complète cette preuve
-en phase 2. L'application du choix de culling attend la validation de l'ADR-0004.
+en phase 2. Le choix ne sera marqué confirmé qu'après le test D5 vert.
 
 Les bindings SDL GPU seront documentés avec l'ADR-0003 et un en-tête HLSL commun.
 Ils ne seront pas inventés depuis les conventions d'un backend natif.
