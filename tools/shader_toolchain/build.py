@@ -137,11 +137,12 @@ def verify(prefix):
         raise RuntimeError("Consumer did not fail explicitly for a missing offline compiler")
     run("dxc-version", [prefix / "bin" / ("dxc" + EXT), "--version"], env=env)
     for stage, short in [("vertex", "vert"), ("fragment", "frag")]:
+        entry = "vsMain" if stage == "vertex" else "psMain"
         source = HERE / "fixtures" / f"probe.{short}.hlsl"
-        base = [compiler, source, "-s", "HLSL", "-t", stage, "-e", "main", "-I", HERE / "fixtures"]
+        base = [compiler, source, "-s", "HLSL", "-t", stage, "-e", entry, "-I", HERE / "fixtures"]
         for target in ["SPIRV", "DXIL", "MSL"]:
             output = REPORTS / f"probe.{short}.{target.lower()}"
-            run(f"compile-{short}-{target}", [*base, "-d", target, "-o", output], env=env)
+            run(f"compile-{short}-{target}", [*base, "-d", target, "--msl-version", "2.3.0", "-o", output], env=env)
             data = output.read_bytes()
             if not data or (target == "SPIRV" and data[:4] != b'\x03\x02\x23\x07') or (target == "DXIL" and data[:4] != b'DXBC'):
                 raise RuntimeError(f"Invalid {target} output")
@@ -149,7 +150,7 @@ def verify(prefix):
                 raise RuntimeError("Missing Metal shader declaration")
         metadata = REPORTS / f"probe.{short}.json"
         run(f"reflect-{short}", [compiler, REPORTS / f"probe.{short}.spirv", "-s", "SPIRV",
-            "-d", "JSON", "-t", stage, "-e", "main", "-o", metadata], env=env)
+            "-d", "JSON", "-t", stage, "-e", entry, "-o", metadata], env=env)
         counts = json.loads(metadata.read_text())
         expected = {"samplers": int(stage == "fragment"), "storage_buffers": int(stage == "fragment"),
                     "storage_textures": 0, "uniform_buffers": 1}
@@ -157,7 +158,7 @@ def verify(prefix):
             raise RuntimeError(f"Unexpected reflection for {stage}: {counts}")
     invalid = REPORTS / "invalid.hlsl"
     invalid.write_text("This is deliberately invalid HLSL.\n", encoding="utf-8")
-    status, _ = run("invalid-hlsl", [compiler, invalid, "-s", "HLSL", "-d", "SPIRV", "-t", "vertex",
+    status, _ = run("invalid-hlsl", [compiler, invalid, "-s", "HLSL", "-d", "SPIRV", "-t", "vertex", "-e", "vsMain",
         "-o", REPORTS / "invalid.spirv"], env=env, expect_success=False)
     if not status:
         raise RuntimeError("Invalid shader unexpectedly succeeded")
@@ -198,7 +199,7 @@ def sdk_probe():
     capabilities = {}
     for target, extra in [("SPIRV", ["-spirv"]), ("DXIL", [])]:
         status, _ = run(f"sdk-{target}", [sdk / "bin/dxc", HERE / "fixtures/probe.vert.hlsl",
-            "-T", "vs_6_0", "-E", "main", "-I", HERE / "fixtures", "-Fo", REPORTS / f"sdk.{target.lower()}", *extra],
+            "-T", "vs_6_0", "-E", "vsMain", "-I", HERE / "fixtures", "-Fo", REPORTS / f"sdk.{target.lower()}", *extra],
             env=env, expect_success=False)
         capabilities[target] = status == 0
     capabilities["dxcompiler_libraries"] = [p.name for p in (sdk / "lib").glob("*dxcompiler*")]

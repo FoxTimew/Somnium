@@ -6,7 +6,8 @@ Sépare les commandes déjà exécutées des interfaces à implémenter après a
 
 ## État et sources
 
-Seuls `tools/shader_toolchain` et son workflow sont implémentés. Les commandes
+L'étape a implémente `cmake/Shaders.cmake`, le manifeste et les tests
+d'incrémentalité, en plus du bootstrap isolé. Les commandes
 de bootstrap ci-dessous fonctionnent indépendamment de CMake moteur. La fonction
 `somnium_add_shaders`, le manifeste et l'en-tête HLSL commun sont **acceptés** et
 leur réalisation est l'étape a, suivie de la preuve GPU hors écran à l'étape b.
@@ -132,6 +133,11 @@ Le dernier mécanisme a été vérifié localement sur la fixture : le depfile c
 la source et `probe_common.hlsli`. Pour fragment, profil `ps_6_0`. Le CLI épinglé
 accepte un seul `-I` : une racine d'includes, chemins relatifs sous celle-ci ;
 defines `-Dnom=valeur` identiques pour chaque commande et le depfile.
+DXC 1.9.2609 écrit ces chemins sans échappement
+([source épinglée](https://github.com/microsoft/DirectXShaderCompiler/blob/01b62ad47db7dee3dd33f90e7339cf9e860b3f93/tools/clang/tools/dxcompiler/dxcompilerobj.cpp#L882)).
+Le générateur conserve la liste DXC, normalise les séparateurs et échappe espaces,
+`#`, `$` et `:` pour le depfile CMake/Ninja. Le test avec chemins contenant des
+espaces vérifie qu'un build sans changement ne régénère aucun produit.
 Pas de `--cull` ; pas de `--debug` automatiquement associé au preset debug, car
 l'aide du CLI avertit que ces shaders nécessitent un debugger graphique attaché.
 Le mode debug du device reste indépendant. MSL **2.3.0** est passé explicitement. `CMAKE_OSX_DEPLOYMENT_TARGET=11.0`
@@ -141,7 +147,7 @@ Le backend SDL épinglé exige au minimum macOS 10.14 et Mac2 par défaut
 (`METAL_PrepareDriver` et `METAL_CreateDevice` dans SDL_gpu_metal.m). Une cible
 plus récente conserve ce sous-ensemble MSL compatible, sans dépendre du défaut du CLI.
 
-Interface proposée : cible consommatrice, `NAME`, `SOURCE`, `ENTRYPOINT`,
+Interface implémentée : `TARGET` consommateur, `NAME`, `SOURCE`, `ENTRYPOINT`,
 `STAGE`, `INCLUDE_DIRECTORY`, `DEFINES`. Entrées imposées : `vsMain` et `psMain` ;
 `main` est interdit et `MSL_ENTRYPOINT` est supprimé. Rejeter les collisions
 de nom, étapes non supportées, ressources/bindings invalides et options ambiguës.
@@ -164,7 +170,7 @@ Il adapte les données validées vers une description GPU sans JSON ni SDL publi
 `SDL_GetGPUShaderFormats` est intersecté avec les artefacts disponibles ; format
 obligatoire absent ou compteurs incohérents : échec explicite avant le dessin.
 
-## Bindings de l'en-tête HLSL commun proposé
+## Bindings de l'en-tête HLSL commun
 
 Autorité : [`SDL_CreateGPUShader`](https://github.com/libsdl-org/SDL/blob/829a65d769d935c4852f8159e964312c0957260a/include/SDL3/SDL_gpu.h#L2700).
 Pour chaque étage, S = textures échantillonnées, T = storage textures en lecture,
@@ -179,8 +185,8 @@ non bornés ni bindings éliminés. Le compute et les UAV ne font pas partie du 
 | Storage buffers lecture | `t(S+T)..t(S+T+B-1), space0` | mêmes t, `space2` | après storage textures | buffers après uniformes |
 | Uniform buffers | `b0.., space1` | `b0.., space3` | set 1 / 3 | `buffer(0..)` |
 
-Les macros de l'en-tête commun exprimeront les espaces par étage et les offsets
-des catégories ; les shaders déclareront les ressources, pas une seconde copie
+Les macros de `assets/shaders/conventions.hlsli` expriment les espaces par étage et les offsets
+des catégories ; les shaders déclarent les ressources, pas une seconde copie
 des compteurs C++. Utiliser `column_major` et `mul(matrice, vecteur)`, conformément
 à l'ADR-0002. Entrées vertex utilisateur `TEXCOORD0`, `TEXCOORD1`, etc. ; valeurs
 système `SV_*`. En MSL, laisser shadercross/`stage_in` gérer les vertex buffers,
@@ -191,3 +197,9 @@ Le JSON de réflexion fournit `samplers`, `storage_textures`, `storage_buffers`,
 Il fournit aussi les entrées/sorties ; les compteurs sont vérifiés au build puis
 bornés/validés au chargement. Les bindings manuels restent contrôlés par le
 compilateur et les tests ; la réflexion ne justifie aucun placement arbitraire.
+
+Le test CTest `somnium_shader_build_tests` utilise le vrai CLI et couvre les
+chemins avec espaces, no-op, includes transitifs/ajoutés/retirés, defines, produit
+supprimé, installation et erreurs de source/entrée/outil. Le configure ne lance
+aucun bootstrap. Le workflow réutilisable de chaîne d'outils est requis par
+`needs` et publie l'installation en archive pour les jobs moteur.

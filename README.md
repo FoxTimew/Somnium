@@ -102,12 +102,13 @@ disparaître les racines des caches globaux Xlib avant le passage de LSan.
 La détection de fuites reste active, sans suppression. Wayland n'est pas couvert
 par cette exécution ; les autres configurations locales peuvent l'activer.
 
-## Outils de shaders — préparation de la phase 1
+## Outils de shaders — phase 1, étape a
 
-Phase 0 compile les sources de la bibliothèque SDL_shadercross avec le support
-DXC activé et SPIRV-Cross `vulkan-sdk-1.4.363.0`. L'archive reste hors du moteur ;
-le CLI lié à DXC et la génération HLSL par `somnium_add_shaders()` appartiennent
-à la phase 1. Aucun binaire de shader n'est produit en phase 0.
+La phase 1 produit SPIR-V, DXIL, MSL 2.3 et un manifeste depuis HLSL au build,
+avec depfiles DXC. Entrées imposées : `vsMain` / `psMain`, jamais `main`.
+La cible macOS est 11.0 minimum. Les produits sont copiés et installés sous
+`bin/assets/shaders`. L'ancienne archive de vérification est optionnelle :
+`SOMNIUM_VERIFY_SHADERCROSS_LIBRARY=OFF` par défaut.
 
 Le spike prouve maintenant le CLI complet en CI sur les trois OS : DXC
 `v1.9.2609` officiel sous Windows/Linux x64, sources épinglées sous macOS arm64.
@@ -125,7 +126,10 @@ teste l'outil. Installation sous `.cache/shader-toolchain/install/<provider>`.
 Un outil absent/inexécutable échoue explicitement ; aucun test n'est ignoré.
 Les commandes, mesures, cache, comparaison avec le Vulkan SDK et le blocage
 local du nouvel exécutable CLI sont consignés dans [SHADERS.md](docs/SHADERS.md).
-L'intégration CMake au moteur et le rendu restent à réaliser après accord.
+Exécuter le bootstrap **avant** le configure moteur. Celui-ci ne le lance jamais :
+`SOMNIUM_SHADERCROSS_EXECUTABLE` désigne le CLI installé et DXC doit être voisin.
+Une erreur fatale indique la commande à exécuter si un outil manque. Les jobs
+moteur CI attendent la chaîne d'outils via `needs`. Aucun rendu à l'écran à l'étape a.
 
 Au MVP, le MSL généré hors ligne est chargé par SDL et compilé par le driver.
 Le `.metallib` est reporté au cuiseur de phase 4, prérequis de shipping macOS.

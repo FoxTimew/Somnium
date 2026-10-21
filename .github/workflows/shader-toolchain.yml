@@ -1,11 +1,8 @@
 # Proves offline shader compilation independently of all engine modules.
 # Required providers fail on missing tools; the rejected SDK probe remains manual.
-name: Shader toolchain spike
+name: Shader toolchain
 on:
-  push:
-    branches: [main, 'phase/1-gpu-shaders', 'feat/shader-toolchain-spike']
-  pull_request:
-    paths: ['tools/shader_toolchain/**', '.github/workflows/shader-toolchain.yml']
+  workflow_call:
 permissions:
   contents: read
 jobs:
@@ -72,6 +69,14 @@ jobs:
           key: shader-tools-${{ runner.os }}-${{ runner.arch }}-${{ steps.host.outputs.key }}-${{ hashFiles('tools/shader_toolchain/**') }}
       - name: Build CLI and compile SPIR-V, DXIL, MSL plus reflection
         run: python tools/shader_toolchain/build.py --provider ${{ matrix.provider }} --jobs 3
+      - name: Package verified tools for engine jobs
+        shell: bash
+        run: tar -czf shader-tools.tar.gz -C .cache/shader-toolchain/install .
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: shader-tools-${{ runner.os }}
+          path: shader-tools.tar.gz
+          if-no-files-found: error
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:

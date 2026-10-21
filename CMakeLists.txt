@@ -1,6 +1,7 @@
 # Builds the phase 0 foundation and its concrete game consumer.
 # Dependencies are scoped to targets; dormant modules create no dummy libraries.
 cmake_minimum_required(VERSION 3.28)
+set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum macOS version; MSL 2.3 baseline")
 project(Somnium VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -13,6 +14,8 @@ option(SOMNIUM_ENABLE_DEBUG_UI "Build the optional ImGui integrations" ON)
 option(SOMNIUM_ENABLE_PROFILING "Enable Tracy CPU and memory instrumentation" OFF)
 option(SOMNIUM_ENABLE_SANITIZERS "Enable address and undefined behavior sanitizers" OFF)
 option(SOMNIUM_WARNINGS_AS_ERRORS "Treat Somnium warnings as errors" OFF)
+option(SOMNIUM_VERIFY_SHADERCROSS_LIBRARY "Compile the legacy archive-only shadercross check" OFF)
+include(cmake/Shaders.cmake)
 include(CTest)
 include(cmake/Warnings.cmake)
 include(cmake/Sanitizers.cmake)
