@@ -90,6 +90,15 @@ jobs:
       - name: Diagnose Metal validation independently (primary failure preserved)
         if: failure() && runner.os == 'macOS' && steps.capture.outcome == 'failure'
         run: python tools/gpu/diagnose_metal.py
+      - name: Capture Metal presentation and window lifecycle on the CI desktop
+        if: runner.os == 'macOS' && steps.capture.outputs.validation == 'validé'
+        run: python tools/presentation/capture_macos.py --executable .cache/gpu-bin/sandbox --output .cache/presentation-metal
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always() && runner.os == 'macOS'
+        with:
+          name: presentation-metal
+          path: .cache/presentation-metal/
+          if-no-files-found: warn
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:

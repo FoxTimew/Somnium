@@ -68,6 +68,8 @@ jobs:
         run: ctest --preset debug
       - name: Shipping configuration excludes UI
         run: cmake --preset shipping -DSOMNIUM_WARNINGS_AS_ERRORS=ON -DSDL_WAYLAND=OFF
+      - name: Verify shipping target and compilation graph
+        run: python tools/check_shipping.py build/shipping
       - name: Build shipping
         run: cmake --build --preset shipping --parallel 3
       - name: Tests shipping Linux

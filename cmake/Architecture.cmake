@@ -48,6 +48,18 @@ somnium_check_links(somnium_runtime "somnium_core;somnium_scene;somnium_input"
 somnium_check_links(somnium_game "somnium_runtime" "")
 somnium_check_links(sandbox "" "somnium_game;somnium_runtime")
 
+# Source ownership is checked too: linking the integrations correctly is insufficient
+# if an optional backend was accidentally added to a base target's source list.
+foreach(module platform gpu)
+    get_target_property(base_sources somnium_${module} SOURCES)
+    foreach(source IN LISTS base_sources)
+        file(TO_CMAKE_PATH "${source}" normalized_source)
+        if(normalized_source MATCHES "[Ii][Mm][Gg][Uu][Ii]|(^|/)integration/")
+            message(FATAL_ERROR "Optional UI source in somnium_${module}: ${source}")
+        endif()
+    endforeach()
+endforeach()
+
 if(NOT SOMNIUM_ENABLE_DEBUG_UI)
     foreach(target somnium_imgui somnium_platform_imgui somnium_gpu_imgui somnium_debug_ui)
         if(TARGET ${target})

@@ -12,5 +12,6 @@ somnium_add_shaders(TARGET sandbox NAME textured
 install(TARGETS sandbox RUNTIME DESTINATION bin)
 if(BUILD_TESTING)
     add_test(NAME somnium_window_smoke COMMAND sandbox --frames 12)
-    set_tests_properties(somnium_window_smoke PROPERTIES TIMEOUT 30 LABELS "window")
+    set_tests_properties(somnium_window_smoke PROPERTIES TIMEOUT 30 LABELS "window"
+        ENVIRONMENT "SDL_ASSERT=abort;SDL_LOGGING=*=verbose")
 endif()

@@ -11,7 +11,8 @@
 namespace somnium::platform {
 namespace detail {
 struct Access;
-}
+struct EventAccess;
+} // namespace detail
 struct WindowConfig {
     std::string_view title = "Somnium";
     int width = 1280;
@@ -38,6 +39,7 @@ class Platform final {
 
   private:
     friend struct detail::Access;
+    friend struct detail::EventAccess;
     struct Impl;
     explicit Platform(std::unique_ptr<Impl> impl);
     std::unique_ptr<Impl> m_impl;

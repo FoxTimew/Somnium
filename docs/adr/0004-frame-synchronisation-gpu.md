@@ -22,6 +22,8 @@ et D2/D5 ; protocole détaillé dans [GPU_VALIDATION.md](../GPU_VALIDATION.md).
   sélecteur dans `SDL_gpu.h` ; adaptateur 0 choisi selon préférence d'énergie.
   Aucun filtre logiciel dans le backend épinglé : le probe Windows décide si
   Microsoft Basic Render Driver/WARP permet néanmoins de créer le device.
+  Conserver la capacité SDL `depthClamp` requise par le backend ImGui officiel ;
+  les pipelines Somnium activent toujours le clipping de profondeur.
 - **Swapchain.** Réclamer la fenêtre, vérifier SDR/VSYNC et conserver deux frames
   en vol (SDL : 1–3). Dimensions en pixels à l'acquisition ; SDL reconstruit après
   resize ; le triangle utilise le format SDR obtenu et aucune cible de profondeur. Texture NULL, notamment

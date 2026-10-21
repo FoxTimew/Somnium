@@ -2,6 +2,7 @@
 // Handles retire immediately; native releases wait until recording finishes.
 #include "resources.hpp"
 #include <somnium/gpu/device.hpp>
+#include <somnium/gpu/native.hpp>
 #include <somnium/platform/native.hpp>
 
 #include <somnium/core/assert.hpp>
@@ -186,6 +187,27 @@ Device::Device(std::unique_ptr<Impl> impl) : m_impl(std::move(impl)) {
 Device::~Device() {
     SOMNIUM_PROFILE_FREE(this);
 }
+SDL_GPUDevice* detail::Access::device(Device& owner) {
+    owner.m_impl->checkThread();
+    return owner.m_impl->device;
+}
+SDL_GPUTextureFormat detail::Access::presentationFormat(Device& owner) {
+    owner.m_impl->checkThread();
+    return owner.m_impl->window ? nativeColor(owner.m_impl->swapchainFormat)
+                                : SDL_GPU_TEXTUREFORMAT_INVALID;
+}
+Result<detail::NativeFrame> detail::Access::frame(Device& owner) {
+    owner.m_impl->checkThread();
+    if (!owner.m_impl->recording || !owner.m_impl->swapchain)
+        return tl::unexpected(invalidState());
+    return NativeFrame{owner.m_impl->recording, owner.m_impl->swapchain, owner.m_impl->extent};
+}
+void detail::Access::count(Device& owner, Activity activity) {
+    owner.m_impl->checkThread();
+    owner.m_impl->counters.drawCalls += activity.draws;
+    owner.m_impl->counters.uploads += activity.uploads;
+    owner.m_impl->counters.submissions += activity.submissions;
+}
 const DeviceInfo& Device::info() const {
     m_impl->checkThread();
     return m_impl->information;
@@ -221,7 +243,7 @@ Result<std::unique_ptr<Device>> Device::create(DeviceConfig config) {
         SDL_SetBooleanProperty(properties, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_DXIL_BOOLEAN, true) &&
         SDL_SetBooleanProperty(properties, SDL_PROP_GPU_DEVICE_CREATE_SHADERS_MSL_BOOLEAN, true) &&
         SDL_SetBooleanProperty(properties,
-                               SDL_PROP_GPU_DEVICE_CREATE_FEATURE_DEPTH_CLAMPING_BOOLEAN, false);
+                               SDL_PROP_GPU_DEVICE_CREATE_FEATURE_DEPTH_CLAMPING_BOOLEAN, true);
     if (configured) {
         impl->device = SDL_CreateGPUDeviceWithProperties(properties);
     }

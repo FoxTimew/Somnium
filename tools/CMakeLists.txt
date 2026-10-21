@@ -23,4 +23,6 @@ if(BUILD_TESTING)
     add_test(NAME somnium_architecture
         COMMAND "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/tools/check_architecture.py"
         "${PROJECT_SOURCE_DIR}")
+    add_test(NAME somnium_architecture_rules
+        COMMAND "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/tools/test_architecture.py")
 endif()

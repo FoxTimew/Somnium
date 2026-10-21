@@ -11,6 +11,9 @@
 #include <somnium/platform/file_reader.hpp>
 #include <somnium/platform/platform.hpp>
 #include <somnium/runtime/fixed_step.hpp>
+#if defined(SOMNIUM_ENABLE_DEBUG_UI)
+#include <somnium/debug_ui/overlay.hpp>
+#endif
 
 #include <array>
 #include <utility>
@@ -24,6 +27,9 @@ struct Engine::Impl {
     gpu::Buffer vertices;
     gpu::Texture texture;
     gpu::Sampler sampler;
+#if defined(SOMNIUM_ENABLE_DEBUG_UI)
+    std::unique_ptr<debug_ui::Overlay> overlay = nullptr;
+#endif
     bool hasRun = false;
 };
 
@@ -111,6 +117,12 @@ Result<std::unique_ptr<Engine>> Engine::create(const EngineConfig& config) {
     auto impl =
         std::make_unique<Impl>(Impl{std::move(*platform), std::move(*resources), std::move(*device),
                                     *pipeline, *buffer, *texture, *sampler});
+#if defined(SOMNIUM_ENABLE_DEBUG_UI)
+    auto overlay = debug_ui::Overlay::create(*impl->platform, *impl->gpu);
+    if (!overlay)
+        return tl::unexpected(overlay.error());
+    impl->overlay = std::move(*overlay);
+#endif
     return std::unique_ptr<Engine>(new Engine(std::move(impl)));
 }
 
@@ -144,7 +156,8 @@ Result<RunStats> Engine::run(Gameplay& game, RunOptions options) {
             clock.reset();
             accumulator.reset();
         }
-        auto batch = accumulator.advance(clock.sampleSeconds());
+        const auto frameSeconds = clock.sampleSeconds();
+        auto batch = accumulator.advance(frameSeconds);
         if (!batch) {
             return tl::unexpected(batch.error());
         }
@@ -211,12 +224,22 @@ Result<RunStats> Engine::run(Gameplay& game, RunOptions options) {
                            std::to_string(size->height));
             previousSize = *size;
         }
+#if defined(SOMNIUM_ENABLE_DEBUG_UI)
+        auto prepared = m_impl->overlay->prepare(frameSeconds);
+        if (!prepared)
+            return tl::unexpected(prepared.error());
+#endif
         const gpu::Draw draw{
             m_impl->pipeline, m_impl->vertices, m_impl->texture, m_impl->sampler, 0, 3};
         auto rendered =
             m_impl->gpu->recordPass({{}, {}, {0.025F, 0.035F, 0.065F, 1}}, std::span(&draw, 1));
         if (!rendered)
             return tl::unexpected(rendered.error());
+#if defined(SOMNIUM_ENABLE_DEBUG_UI)
+        auto overlayRendered = m_impl->overlay->render();
+        if (!overlayRendered)
+            return tl::unexpected(overlayRendered.error());
+#endif
         frame.active = false;
         auto submitted = m_impl->gpu->submitFrame();
         if (!submitted)

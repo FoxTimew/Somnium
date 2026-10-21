@@ -1,5 +1,6 @@
 // Contains SDL initialization, window ownership and native event collection.
 // No GPU device, ImGui include or UI-specific conditional belongs here.
+#include <somnium/platform/events.hpp>
 #include <somnium/platform/native.hpp>
 #include <somnium/platform/platform.hpp>
 
@@ -112,7 +113,7 @@ SDL_Window* detail::Access::window(Platform& platform) {
     SOMNIUM_VERIFY(platform.m_impl->owner == std::this_thread::get_id());
     return platform.m_impl->window;
 }
-void detail::Access::setEventObserver(Platform& platform, void* context,
+void detail::EventAccess::setObserver(Platform& platform, void* context,
                                       void (*observer)(void*, const SDL_Event&)) {
     SOMNIUM_VERIFY(platform.m_impl->owner == std::this_thread::get_id());
     platform.m_impl->observerContext = context;
