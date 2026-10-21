@@ -40,7 +40,9 @@ with (output / "validation.log").open("w", encoding="utf-8") as log:
             query = run(helper, process.pid, "inspect")
             windows = json.loads(query.stdout) if query.returncode == 0 else []
             if windows:
-                window = max(windows, key=lambda item: item.get("kCGWindowBounds", {}).get("Width", 0))
+                # Menu-bar windows can be wider than the actual sandbox window.
+                window = max(windows, key=lambda item: item.get("kCGWindowBounds", {}).get("Width", 0)
+                             * item.get("kCGWindowBounds", {}).get("Height", 0))
                 break
             time.sleep(0.2)
         if not window:
@@ -63,16 +65,27 @@ with (output / "validation.log").open("w", encoding="utf-8") as log:
             if action.returncode == 0:
                 state = run(helper, process.pid, "inspect")
                 result["actions"][operation]["windows"] = json.loads(state.stdout)
+                observed = next((item for item in result["actions"][operation]["windows"]
+                                 if item.get("kCGWindowNumber") == window["kCGWindowNumber"]), {})
                 if operation == "minimize":
-                    observed = result["actions"][operation]["windows"]
-                    result["actions"][operation]["observed_minimized"] = not any(item.get("kCGWindowIsOnscreen", False) for item in observed)
+                    result["actions"][operation]["observed_minimized"] = not observed.get("kCGWindowIsOnscreen", False)
                     screenshot = run("screencapture", "-x", output / "minimized-desktop.png")
                     if screenshot.returncode == 0:
                         result["captures"].append("minimized-desktop.png")
                 else:
+                    bounds = observed.get("kCGWindowBounds", {})
+                    if operation == "resize":
+                        before = window["kCGWindowBounds"]
+                        result["actions"][operation]["observed_resized"] = (
+                            bounds.get("Width", 0) > 0 and bounds.get("Height", 0) > 0
+                            and (bounds["Width"], bounds["Height"]) != (before["Width"], before["Height"]))
+                    else:
+                        result["actions"][operation]["observed_restored"] = observed.get("kCGWindowIsOnscreen", False)
                     capture(operation)
         complete = all(value["exit_code"] == 0 for value in result["actions"].values())
         complete = complete and result["actions"].get("minimize", {}).get("observed_minimized", False)
+        complete = complete and result["actions"].get("resize", {}).get("observed_resized", False)
+        complete = complete and result["actions"].get("restore", {}).get("observed_restored", False)
         result["status"] = "validé" if complete else "non validé"
     except (RuntimeError, subprocess.SubprocessError, json.JSONDecodeError) as error:
         result["reason"] = str(error)

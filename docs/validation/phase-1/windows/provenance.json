@@ -1,0 +1,58 @@
+{
+  "origin": "local Windows, AMD Radeon RX 6600M",
+  "date": "2026-10-21",
+  "commit": "2356c60f8c828ab197c5c3630510778a6b7351aa",
+  "binary_origin": "https://github.com/FoxTimew/Somnium/actions/runs/39633123591/artifacts/12359488455",
+  "sandbox_sha256": "c89a8a963bf3ab05019ba04eac80785a0d77382ce9062af45883838dcc883768",
+  "working_directory": "repository root; shader assets are next to the executable in a different directory",
+  "image_note": "Unmodified window captures; maximized captures include the assistant task notification at the bottom right. Minimized windows have no drawable screenshot: the UI tool state and subsequent restored capture are recorded instead.",
+  "vulkan_validation": {
+    "repository": "https://github.com/KhronosGroup/Vulkan-ValidationLayers",
+    "commit": "15c64e73db67e27ff0215708fbe48684a35c6827",
+    "version": "1.4.363",
+    "synchronization_validation": true,
+    "installation": "portable build; process-local VK_LAYER_PATH, no system settings changed"
+  },
+  "backends": {
+    "direct3d12": {
+      "status": "validé",
+      "images_sha256": {
+        "direct3d12-overlay.jpg": "8a012fcb499de9dd1f9d01f905c033c586a98bd482190d84692a04b26ad21099",
+        "direct3d12-resize.jpg": "389f98528b1187fa504fb3f5cc8d8c06467b6fcddd3926e4e61171230d7d8d6d",
+        "direct3d12-restored.jpg": "327f09a479e666c4a56b68d09de9516534cffce3962f47434dea62bf4b9d939f"
+      },
+      "resize_pixels": [
+        "1280x720",
+        "1920x991",
+        "1280x720"
+      ],
+      "minimized_observation": "window is minimized; call activate_window, refresh with get_window, then retry get_window_state",
+      "restored_render_verified": true,
+      "interactive_exit_code": 0,
+      "null_swapchain_wait_observed": false,
+      "close_after_acquisition": "12 rendered frames, subsequent acquired command buffer submitted without rendering",
+      "d5_status": "validé",
+      "d5_image_sha256": "cb88b4b571fc5b7216bb775ba458386fc0d8e0f224aad5a941faa9fcd93b20c6"
+    },
+    "vulkan": {
+      "status": "validé",
+      "images_sha256": {
+        "vulkan-overlay.jpg": "5430b5d0686334393bec9bbe123d9f5178d89c84a508973eb9bf92b8336b27a2",
+        "vulkan-resize.jpg": "02c9548eef48037aa9f1b2713fbdcd5f389004c301dd3159be312523ec921c3f",
+        "vulkan-restored.jpg": "690f202467d6f6e882aa8951c38d41b610707db6aa093b85c5273c7b4900c44f"
+      },
+      "resize_pixels": [
+        "1280x720",
+        "1920x991",
+        "1280x720"
+      ],
+      "minimized_observation": "window is minimized; call activate_window, refresh with get_window, then retry get_window_state",
+      "restored_render_verified": true,
+      "interactive_exit_code": 0,
+      "null_swapchain_wait_observed": true,
+      "close_after_acquisition": "12 rendered frames, subsequent acquired command buffer submitted without rendering",
+      "d5_status": "validé",
+      "d5_image_sha256": "cb88b4b571fc5b7216bb775ba458386fc0d8e0f224aad5a941faa9fcd93b20c6"
+    }
+  }
+}

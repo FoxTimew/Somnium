@@ -42,8 +42,25 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif()
 CPMAddPackage(NAME expected GITHUB_REPOSITORY TartanLlama/expected GIT_TAG v1.3.1
     SYSTEM YES OPTIONS "EXPECTED_BUILD_TESTS OFF" "EXPECTED_BUILD_PACKAGE OFF")
+set(somnium_doctest_cxx_flags "${CMAKE_CXX_FLAGS}")
+if(MSVC)
+    string(REGEX REPLACE "(^| )[/-]EHsc( |$)" " " CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+endif()
 CPMAddPackage(NAME doctest GITHUB_REPOSITORY doctest/doctest GIT_TAG v2.5.3
-    SYSTEM YES OPTIONS "DOCTEST_WITH_TESTS OFF" "DOCTEST_WITH_MAIN_IN_STATIC_LIB OFF")
+    SYSTEM YES OPTIONS "DOCTEST_WITH_TESTS OFF" "DOCTEST_WITH_MAIN_IN_STATIC_LIB ${BUILD_TESTING}")
+set(CMAKE_CXX_FLAGS "${somnium_doctest_cxx_flags}")
+unset(somnium_doctest_cxx_flags)
+if(BUILD_TESTING)
+    # Compile the upstream runner once, outside project units analyzed by clang-tidy.
+    # Test/framework allocations remain covered by ASan/LSan; no diagnostic is suppressed.
+    target_compile_definitions(doctest_with_main PUBLIC DOCTEST_CONFIG_NO_EXCEPTIONS_BUT_WITH_ALL_ASSERTS)
+    if(MSVC)
+        target_compile_options(doctest_with_main PRIVATE /GR- /EHs-c-)
+    else()
+        target_compile_options(doctest_with_main PRIVATE -fno-exceptions -fno-rtti)
+    endif()
+    somnium_sanitizers(doctest_with_main)
+endif()
 CPMAddPackage(NAME cgltf GITHUB_REPOSITORY jkuhlmann/cgltf GIT_TAG v1.15 DOWNLOAD_ONLY YES)
 CPMAddPackage(NAME stb GITHUB_REPOSITORY nothings/stb
     GIT_TAG a7d4c2175630e1ea5b6f8dd00ab96fed0b97b96d DOWNLOAD_ONLY YES)

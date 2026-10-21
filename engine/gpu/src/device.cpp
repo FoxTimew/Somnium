@@ -671,7 +671,8 @@ Result<void> Device::upload(Texture texture, std::span<const std::byte> rgba) {
     }
     for (std::uint32_t y = 0; y < description.height; ++y) {
         std::memcpy(mapped + std::size_t(y) * pitch,
-                    rgba.data() + std::size_t(y) * description.width * 4, description.width * 4);
+                    rgba.data() + std::size_t(y) * description.width * 4,
+                    std::size_t(description.width) * 4);
     }
     SDL_UnmapGPUTransferBuffer(m_impl->device, transfer.native);
     Command command{SDL_AcquireGPUCommandBuffer(m_impl->device)};
@@ -702,7 +703,7 @@ Result<void> Device::renderOffscreen(const RenderPass& description, std::span<co
         return started;
     auto recorded = recordPass(description, draws);
     if (!recorded) {
-        const auto finished = finishFrame();
+        auto finished = finishFrame();
         if (!finished)
             return finished;
         return recorded;
@@ -843,7 +844,7 @@ Result<std::vector<std::byte>> Device::readback(Texture texture) {
     std::vector<std::byte> result(std::size_t(description.width) * description.height * 4);
     for (std::uint32_t y = 0; y < description.height; ++y) {
         std::memcpy(result.data() + std::size_t(y) * description.width * 4,
-                    mapped + std::size_t(y) * pitch, description.width * 4);
+                    mapped + std::size_t(y) * pitch, std::size_t(description.width) * 4);
     }
     SDL_UnmapGPUTransferBuffer(m_impl->device, transfer.native);
     return result;

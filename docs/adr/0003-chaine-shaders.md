@@ -1,70 +1,59 @@
-<!--
-Propose la chaîne hors ligne à partir du spike isolé et des sources épinglées.
-Les commandes, mesures et bindings détaillés sont dans SHADERS.md.
--->
+<!-- Décision normative ; commandes, bindings et mesures détaillés dans SHADERS.md. -->
 # ADR-0003 — Chaîne de shaders hors ligne
 
-Date : 21 octobre 2026. Statut : **accepté**, avec les ajustements du point de contrôle.
+Date : 21 octobre 2026. Statut : **accepté**.
 
 ## Contexte
 
-SDL GPU exige des formats et bindings différents selon le backend. D3 interdit
-le compilateur HLSL dans le moteur. Le spike `feat/shader-toolchain-spike`
-construit le CLI réel sans modifier `gpu`, `debug_ui` ou `cmake/Shaders.cmake`.
-Les preuves et commandes reproductibles sont dans [SHADERS.md](../SHADERS.md).
+SDL GPU utilise SPIR-V, DXIL ou MSL selon le device. D3 interdit la compilation
+HLSL à l'exécution et tout compilateur dans le moteur. Le spike isolé a validé
+les trois CLI ; [SHADERS.md](../SHADERS.md) conserve les mesures et commandes.
 
 ## Décision
 
-- **Acquisition.** Même recette en local et CI : archives officielles DXC
-  `v1.9.2609` vérifiées par SHA-256 sous Windows/Linux ; sources de cette version
-  sous macOS, faute d'archive officielle. SDL_shadercross
-  `1ff05bec573988a98ef9e0260b4da44f512b8367`, SPIRV-Cross
-  `vulkan-sdk-1.4.363.0` et SDL 3.4.18 sont résolus en SHA complets dans le
-  [verrou](../../tools/shader_toolchain/lock.json). Cache des outils installés par
-  OS, architecture, image/compilateur et recette ; tous les essais restent actifs
-  après restauration. Le configure moteur ne lance jamais le bootstrap : variable
-  `SOMNIUM_SHADERCROSS_EXECUTABLE`, chemin installé par défaut, erreur fatale avec
-  commande de bootstrap si CLI ou DXC des depfiles manque. CI : outils requis
-  avant moteur via `needs`, avec transfert de l'installation vérifiée.
-- **Génération.** `somnium_add_shaders()` reçoit cible, nom logique, `.hlsl`,
-  entrée `vsMain`/`psMain`, étage vertex/fragment, dossier d'includes et defines.
-  `main` interdit, aucun `MSL_ENTRYPOINT` ; vérifier le même nom dans le MSL.
-  Sorties sous le build par
-  configuration : `<nom>.<entrée>.<vert|frag>.{spv,dxil,msl,json}`. Un depfile DXC
-  `-M -MF`, utilisant les mêmes includes/defines et échappé pour Ninja, suit les includes transitifs.
-  Installer/copier les artefacts sous `assets/shaders` à côté de l'exécutable.
-- **Contrat.** L'en-tête HLSL commun porte les espaces/registres SDL du tableau
-  de l'annexe, indices denses sans trous. La réflexion JSON de shadercross sur
-  le SPIR-V produit fournit les quatre compteurs de `SDL_GPUShaderCreateInfo` ;
-  un manifeste versionné ajoute étage, formats et entrées. Cela évite une
-  duplication manuelle des compteurs. Ne pas activer l'élimination des bindings.
-  Le JSON CLI ne fournit pas l'entrée MSL : la convention évite le renommage
-  `main` vers `main0` ; un nom absent du MSL produit fait échouer le build.
-- **Chargement.** Choisir dans les artefacts et formats réellement retournés par
-  le device : DXIL/D3D12, SPIR-V/Vulkan, MSL/Metal. Lire via le contrat de données
-  injecté, valider manifeste et tailles, puis créer le shader. Aucun repli HLSL.
-  Cible macOS déclarée **11.0**, MSL **2.3.0** explicite, compatible avec cette
-  cible et supérieur au minimum SDL Metal (macOS 10.14, GPU Mac2). Une cible
-  inférieure à 11.0 est rejetée. Le driver compile le MSL ; `.metallib` reste en phase 4,
-  **prérequis de shipping macOS**. Aucun DXC/shadercross livré ou lié au moteur.
-- **Ancienne vérification.** L'archive seule `somnium_shadercross` est derrière
-  `SOMNIUM_VERIFY_SHADERCROSS_LIBRARY=OFF` par défaut ; le CLI
-  isolé et ses essais deviennent la preuve obligatoire de la chaîne complète.
+- **Outils.** DXC **v1.9.2609** : archives officielles vérifiées par SHA-256 sous
+  Windows/Linux, sources sous macOS. SDL_shadercross
+  **1ff05bec573988a98ef9e0260b4da44f512b8367**, SPIRV-Cross
+  **vulkan-sdk-1.4.363.0** et SDL **3.4.18** sont verrouillés par SHA complets dans
+  [lock.json](../../tools/shader_toolchain/lock.json). Même bootstrap explicite
+  en local/CI ; cache par OS, architecture, image, compilateur et recette,
+  avec essais réexécutés après restauration. Le configure moteur ne lance jamais
+  `build.py` : `SOMNIUM_SHADERCROSS_EXECUTABLE` pointe par défaut vers l'installation
+  du bootstrap ; CLI ou DXC voisin absent/inexécutable donne `FATAL_ERROR` et
+  commande corrective. Les jobs moteur dépendent du job outils via `needs`.
+- **Génération.** `somnium_add_shaders()` reçoit cible, nom logique, source HLSL,
+  entrée, étage, includes et defines. Entrées **vsMain/psMain**, `main` interdit ;
+  aucun paramètre `MSL_ENTRYPOINT`, présence du même nom vérifiée dans le MSL.
+  Sorties sous le build : `<nom>.<entrée>.<vert|frag>.{spv,dxil,msl,json}`.
+  Depfile DXC `-M -MF` avec mêmes includes/defines, dépendances transitives et
+  échappement Ninja. Copie et installation dans `<binaire>/assets/shaders`.
+- **Bindings et métadonnées.** L'en-tête HLSL commun porte les espaces/registres
+  SDL par étage, décrits dans [le tableau](../SHADERS.md). Indices denses ; pas
+  d'élimination des bindings. La réflexion JSON shadercross du SPIR-V fournit
+  les quatre compteurs de `SDL_GPUShaderCreateInfo` ; le manifeste ajoute étage,
+  formats et entrées. Cette source unique évite les compteurs manuels divergents.
+- **Chargement.** `gpu` valide manifeste, tailles et compteurs via `ByteReader`
+  injecté. Sélection parmi les formats réellement supportés : DXIL/D3D12,
+  SPIR-V/Vulkan, MSL/Metal. Aucun repli HLSL ni outil livré avec le moteur.
+  `CMAKE_OSX_DEPLOYMENT_TARGET=13.3` minimum pour `std::format` avec libc++ Apple ;
+  cible inférieure rejetée. MSL **2.3.0** reste explicite : sous-ensemble suffisant,
+  compatible macOS 11+, au-delà du minimum SDL Metal (macOS 10.14, GPU Mac2). Le MVP
+  charge le MSL tel quel ; compilation driver autorisée. **.metallib reporté
+  au cuiseur de phase 4, prérequis de shipping macOS.**
+- **Vérification historique.** `SOMNIUM_VERIFY_SHADERCROSS_LIBRARY=OFF` par défaut ;
+  le CLI isolé et ses tests constituent la preuve obligatoire.
 
 ## Alternatives
 
-DXC du Vulkan SDK écarté : téléchargement refusé dans l'essai et support DirectX
-non garanti par sa documentation. Compiler DXC partout augmenterait le coût à
-froid sans gain sur les archives officielles vérifiées. Compteurs écrits à la
-main et compilation HLSL à l'exécution sont écartés.
+DXC Vulkan SDK écarté : téléchargement refusé pendant le spike et support DirectX
+non garanti. Compiler DXC partout augmente le coût sans gain sur les archives
+vérifiées. Compteurs manuels et compilation HLSL runtime sont écartés.
 
 ## Conséquences
 
-Le spike valide les trois CLI : 111 s Windows, 76 s Linux, 816 s macOS à froid ;
-environ 1 s avec cache Windows/macOS. Le [plan CI](../PHASE_1_CI.md) réserve donc
-un budget distinct au build source macOS. L'incrémentalité et l'installation sont
-[validées en CI](https://github.com/FoxTimew/Somnium/actions/runs/39588199919) sur les trois OS ;
-le chargement et le rendu des trois formats passent [D5](../GPU_VALIDATION.md)
-à l'étape b, avant tout passage à swapchain/UI.
+CLI à froid : 111 s Windows, 76 s Linux, 816 s macOS ; environ 1 s avec cache
+Windows/macOS. Incrémentalité, installation et diagnostics sont testés sur les
+trois OS ; [D5](../GPU_VALIDATION.md) confirme le chargement et le rendu des trois formats.
+Le blocage du CLI local Windows par la stratégie d'application reste consigné dans l'annexe.
 
 Preuves : production .metallib au cuiseur.

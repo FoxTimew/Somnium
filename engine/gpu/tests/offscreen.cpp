@@ -40,11 +40,14 @@ struct Logs {
     }
 };
 // Each failure unwinds ordinary RAII objects before main reports it.
+// 'name' declares an identifier, not an expression that could change precedence.
+// NOLINTBEGIN(bugprone-macro-parentheses)
 #define SOMNIUM_TEST_TRY(name, expression)                                                         \
     auto name = (expression);                                                                      \
     if (!name) {                                                                                   \
         return tl::unexpected(name.error());                                                       \
     }
+// NOLINTEND(bugprone-macro-parentheses)
 
 Result<Json> loadJson(const core::ByteReader& reader, std::string_view name) {
     SOMNIUM_TEST_TRY(bytes, reader.read(name));
@@ -57,8 +60,15 @@ Result<Json> loadJson(const core::ByteReader& reader, std::string_view name) {
     return parsed;
 }
 
-Result<void> execute(gpu::Device& device, const std::filesystem::path& scenePath,
-                     const std::filesystem::path& output, const std::filesystem::path& shaderRoot) {
+struct TestFiles {
+    std::filesystem::path scene;
+    std::filesystem::path output;
+    std::filesystem::path shaders;
+};
+Result<void> execute(gpu::Device& device, const TestFiles& files) {
+    const auto& scenePath = files.scene;
+    const auto& output = files.output;
+    const auto& shaderRoot = files.shaders;
     SOMNIUM_TEST_TRY(sceneReader, platform::FileReader::create(scenePath.parent_path().string()));
     SOMNIUM_TEST_TRY(scene, loadJson(*sceneReader, scenePath.filename().string()));
     SOMNIUM_TEST_TRY(shaderReader, platform::FileReader::create(shaderRoot.string()));
@@ -206,7 +216,8 @@ int main(int argc, char** argv) {
         std::cerr << "DEVICE_UNAVAILABLE: " << device.error().message << '\n';
         return 77;
     }
-    const auto result = execute(**device, argv[2], argv[3], argv[4]);
+    const auto result =
+        execute(**device, {.scene = argv[2], .output = argv[3], .shaders = argv[4]});
     device->reset();
     platform->reset();
     if (!result) {

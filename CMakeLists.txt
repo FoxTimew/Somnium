@@ -1,8 +1,14 @@
-# Builds the foundations, offline shaders and offscreen GPU proof.
+# Builds offline shaders, GPU presentation, the optional overlay and the offscreen proof.
 # Dependencies are scoped to targets; dormant modules create no dummy libraries.
 cmake_minimum_required(VERSION 3.28)
-set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum macOS version; MSL 2.3 baseline")
+set(CMAKE_OSX_DEPLOYMENT_TARGET "13.3" CACHE STRING "Minimum macOS version for std::format")
 project(Somnium VERSION 0.1.0 LANGUAGES C CXX)
+
+if(APPLE AND CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS "13.3")
+    message(FATAL_ERROR
+        "Somnium requires macOS 13.3 or newer for std::format with Apple libc++. "
+        "Reconfigure with -DCMAKE_OSX_DEPLOYMENT_TARGET=13.3.")
+endif()
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -51,7 +57,7 @@ endfunction()
 
 function(somnium_add_test target source module)
     add_executable(${target} ${source})
-    target_link_libraries(${target} PRIVATE somnium::${module} doctest::doctest)
+    target_link_libraries(${target} PRIVATE somnium::${module} doctest::doctest_with_main)
     somnium_configure_target(${target})
     target_compile_definitions(${target} PRIVATE DOCTEST_CONFIG_NO_EXCEPTIONS_BUT_WITH_ALL_ASSERTS)
     add_test(NAME ${target} COMMAND ${target})

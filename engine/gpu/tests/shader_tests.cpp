@@ -1,6 +1,5 @@
 // Checks manifest failures through an injected in-memory reader, without requiring a GPU.
 // Synthetic headers test structural validation; only D5 proves driver acceptance of real shaders.
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "resources.hpp"
 #include "shader_data.hpp"
 #include <doctest/doctest.h>

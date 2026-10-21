@@ -1,0 +1,17 @@
+2026-10-21 16:27:20.769 sandbox[1230:6653] App name: sandbox
+2026-10-21 16:27:20.769 sandbox[1230:6653] App version: <unspecified>
+2026-10-21 16:27:20.769 sandbox[1230:6653] App ID: <unspecified>
+2026-10-21 16:27:20.769 sandbox[1230:6653] SDL revision: SDL-3.4.18-release-3.4.18
+2026-10-21 16:27:20.809 sandbox[1230:6653] SDL chose video backend 'cocoa'
+2026-10-21 16:27:20.837 sandbox[1230:6653] Metal API Validation Enabled
+2026-10-21 16:27:20.837 sandbox[1230:6653] Metal GPU Validation Enabled
+2026-10-21 16:27:20.849 sandbox[1230:6653] SDL chose gpu backend 'metal'
+2026-10-21 16:27:20.876 sandbox[1230:6653] SDL_GPU Driver: Metal
+2026-10-21 16:27:20.876 sandbox[1230:6653] Metal Device: Apple Paravirtual device
+[2026-10-21 16:27:20.992] [gpu] [info] metal: Apple Paravirtual device
+[2026-10-21 16:27:21.004] [game] [info] Gameplay session started
+[2026-10-21 16:27:21.029] [runtime] [info] Swapchain extent 1024x653
+[2026-10-21 16:27:22.250] [runtime] [info] Swapchain extent 960x572
+[2026-10-21 16:27:25.689] [runtime] [info] Close during frame: acquired command buffer submitted
+[2026-10-21 16:27:25.689] [game] [info] Stopped after 215 fixed steps (3.583 s)
+frames=248 fixed_steps=215 alpha=0.051938 dropped_seconds=0.000000

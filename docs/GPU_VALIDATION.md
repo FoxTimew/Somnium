@@ -127,13 +127,13 @@ Le même binaire arm64 et les mêmes shaders passent ensuite D5 sous macOS 15.7.
 Xcode 16.4 (16F6), image `macos-15-arm64/20260907.0337`, avec **API et GPU shader
 validation actives**, zéro pixel différent et les dix centres exacts :
 [capture et journal Metal](https://github.com/FoxTimew/Somnium/actions/runs/39592617094/artifacts/12342870817).
-Le job de rendu est donc fixé à `macos-15` ; builds et chaîne d'outils restent sur
-`macos-latest`. Aucune validation désactivée ni référence adaptée au backend.
+Le job de rendu est donc fixé à `macos-15` ; builds et chaîne d’outils ciblent désormais aussi `macos-15`
+après les échecs d’allocation du runner `macos-latest` pendant l’étape c. Aucune validation désactivée ni référence adaptée au backend.
 
 Sur Windows, les avertissements de clear optimisé ont été supprimés. L'absence
 de `WinPixEventRuntime.dll` reste signalée : les marqueurs SDL D3D12 ne sont pas
 disponibles dans ces captures. La couche debug et la comparaison D5 sont actives ;
-la visibilité des marqueurs PIX reste une preuve d'instrumentation à apporter.
+les groupes de debug SDL suffisent au contrat de phase et aucun marqueur PIX spécifique n’est requis.
 
 ## Présentation, UI et durée de vie
 
@@ -150,8 +150,8 @@ travaux nécessaires, arrêter GPU ImGui, platform ImGui, puis détruire le cont
 avant les objets GPU/fenêtre dont ils dépendent.
 
 Ces fonctions natives restent dans `somnium_platform_imgui` et
-`somnium_gpu_imgui`. Seules ces cibles accèdent aux en-têtes privés de coopération
-platform/gpu. Leurs façades accessibles à `debug_ui` n'exposent aucun type SDL et
+`somnium_gpu_imgui`. Ces cibles accèdent aux en-têtes privés de coopération
+platform/gpu pour l’UI ; aucune dépendance UI ne remonte dans les modules de base. Leurs façades accessibles à `debug_ui` n'exposent aucun type SDL et
 portent les namespaces d'includes d'intégration autorisés par l'architecture.
 Le `SDL_Event` ne passe jamais par debug_ui ni gpu. Option UI OFF : aucune cible
 d'intégration et aucun backend compilé ; sources platform/gpu sans include ImGui
@@ -162,12 +162,16 @@ redimensionnements, passage minimisé/restauré, fermeture pendant une frame,
 release shipping sans cibles ImGui. L'acquisition bloquante borne à deux frames
 en vol ; une texture NULL ne déclenche aucun rendu. La simulation réinitialise
 son horloge au retour de suspension ; l'attente en minimisation porte sur les
-événements, pas sur une fréquence artificielle.
+événements, pas sur une fréquence artificielle. L’adaptateur GPU recale le
+FramebufferScale des draw data ImGui sur la taille de la texture effectivement
+acquise : un resize arrivé entre acquisition et préparation UI ne produit ainsi
+jamais un viewport plus grand que la cible courante.
 
 Les tests de handles couvrent destruction, génération, double libération,
-invalidation et emprunts limités à la frame. À l'étape b, `render` enregistre et
-soumet dans un seul appel, sans exposer de command buffer CPU ; `destroy` appelle
-donc SDL immédiatement après invalidation. Les handles sont propres à leur device
+invalidation et emprunts limités à la frame. `renderOffscreen` compose désormais
+`beginFrame`/`recordPass`/`submitFrame` sans swapchain. `PipelineDescription` déclare
+formats couleur/profondeur, vertex layout, culling et profondeur ; D5 et le
+triangle l’utilisent avec des descriptions différentes. Les handles sont propres à leur device
 et toutes ses opérations restent sur le thread créateur. Une destruction demandée pendant
 l'enregistrement invalide le handle pour les nouvelles résolutions ; les objets
 déjà empruntés survivent jusqu'à soumission/annulation. SDL assure ensuite la
@@ -176,5 +180,15 @@ fence ; les transfers d'upload utilisent le cycling pour éviter l'écrasement.
 
 Sans device ou couche en CI, publier un résultat **non validé** identifié par
 backend, sans enregistrer un test CTest réussi ou skipped. La clôture de phase
-exige alors capture RenderDoc/PIX/Xcode et journal de validation locaux joints
+exige alors captures et journal de validation locaux joints
 à la PR pour le backend concerné. Le [plan CI](PHASE_1_CI.md) distingue ces cas.
+
+Le test de ressources CPU réutilise un slot invalidé pendant une frame et vérifie
+que son ancien objet natif n'est libéré qu'après la fin de l'enregistrement.
+D5 détruit cinq handles pendant une passe enregistrée, vérifie immédiatement
+leur invalidité et le compteur de libérations en attente, soumet puis vérifie
+la vidange ; une autre frame couvre l'annulation. Sa scène, sa référence et
+`provenance.json` sont inchangés par ces tests de durée de vie.
+
+La dépendance de validation au runner macos-15, l’horizon de retrait et la
+migration exigée sont consignés dans le [plan CI](PHASE_1_CI.md).

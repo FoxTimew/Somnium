@@ -16,7 +16,7 @@ if(BUILD_TESTING)
     set_tests_properties(somnium_shader_build_tests PROPERTIES TIMEOUT 120 LABELS "shaders")
     add_executable(somnium_dependency_tests dependencies/dependency_tests.cpp)
     target_link_libraries(somnium_dependency_tests PRIVATE somnium::core EnTT::EnTT
-        nlohmann_json::nlohmann_json somnium_cgltf somnium_stb doctest::doctest)
+        nlohmann_json::nlohmann_json somnium_cgltf somnium_stb doctest::doctest_with_main)
     somnium_configure_target(somnium_dependency_tests)
     add_test(NAME somnium_dependency_tests COMMAND somnium_dependency_tests)
     find_package(Python3 REQUIRED COMPONENTS Interpreter)

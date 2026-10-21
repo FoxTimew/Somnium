@@ -1,6 +1,5 @@
 // Checks the real overlay's timing window independently of a graphics device.
 // Startup, suspension and eviction must not produce misleading FPS values.
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "frame_times.hpp"
 #include <doctest/doctest.h>
 #include <limits>

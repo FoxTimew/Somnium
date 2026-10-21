@@ -140,12 +140,17 @@ Le générateur conserve la liste DXC, normalise les séparateurs et échappe es
 espaces vérifie qu'un build sans changement ne régénère aucun produit.
 Pas de `--cull` ; pas de `--debug` automatiquement associé au preset debug, car
 l'aide du CLI avertit que ces shaders nécessitent un debugger graphique attaché.
-Le mode debug du device reste indépendant. MSL **2.3.0** est passé explicitement. `CMAKE_OSX_DEPLOYMENT_TARGET=11.0`
-est la cible déclarée, rejetée si inférieure à 11.0. MSL 2.3 correspond à macOS 11
+Le mode debug du device reste indépendant. MSL **2.3.0** est passé explicitement.
+`CMAKE_OSX_DEPLOYMENT_TARGET=13.3` est le minimum moteur accepté pour conserver
+`std::format` avec la libc++ Apple : son `to_chars` flottant exige macOS 13.3
+([disponibilité Apple](https://developer.apple.com/xcode/cpp/)). Le configure moteur
+rejette une cible inférieure et indique la correction du cache. MSL 2.3 correspond à macOS 11
 ([Apple](https://developer.apple.com/documentation/metal/mtllanguageversion/version2_3)).
 Le backend SDL épinglé exige au minimum macOS 10.14 et Mac2 par défaut
 (`METAL_PrepareDriver` et `METAL_CreateDevice` dans SDL_gpu_metal.m). Une cible
-plus récente conserve ce sous-ensemble MSL compatible, sans dépendre du défaut du CLI.
+plus récente conserve ce sous-ensemble MSL suffisant et compatible, sans dépendre
+du défaut du CLI. Le module shader et ses fixtures autonomes, qui ne lient pas le
+moteur, gardent le plancher de langage macOS 11 ; le manifeste du moteur consigne 13.3.
 
 Interface implémentée : `TARGET` consommateur, `NAME`, `SOURCE`, `ENTRYPOINT`,
 `STAGE`, `INCLUDE_DIRECTORY`, `DEFINES`. Entrées imposées : `vsMain` et `psMain` ;

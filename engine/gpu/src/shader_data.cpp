@@ -2,6 +2,7 @@
 // The injected reader supplies bytes; only the device-supported artifact is consumed.
 #include "shader_data.hpp"
 #include <nlohmann/json.hpp>
+#include <somnium/core/conventions.hpp>
 
 #include <algorithm>
 #include <cstring>
@@ -77,7 +78,7 @@ Result<ShaderData> readShader(const core::ByteReader& reader, std::string_view m
     const auto& artifact = formats[key];
     if (!textField(artifact, "file") || !textField(artifact, "entrypoint") ||
         artifact["entrypoint"] != json["entrypoint"] ||
-        !unsignedField(artifact, "bytes", 256U * 1024U * 1024U) || artifact["bytes"] == 0) {
+        !unsignedField(artifact, "bytes", core::kMaxResourceBytes) || artifact["bytes"] == 0) {
         return tl::unexpected(invalidManifest());
     }
     const auto file = artifact["file"].get<std::string>();

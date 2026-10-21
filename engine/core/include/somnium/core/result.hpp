@@ -2,11 +2,12 @@
 // Error codes are extended only when a concrete caller needs to distinguish them.
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <tl/expected.hpp>
 
 namespace somnium {
-enum class ErrorCode {
+enum class ErrorCode : std::uint8_t {
     InvalidArgument,
     InvalidHandle,
     CapacityExceeded,

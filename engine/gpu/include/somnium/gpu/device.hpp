@@ -28,16 +28,16 @@ using Shader = Handle<struct ShaderTag>;
 using Sampler = Handle<struct SamplerTag>;
 using Pipeline = Handle<struct PipelineTag>;
 
-enum class Backend { Vulkan, D3D12, Metal };
-enum class ShaderFormat { Spirv, Dxil, Msl };
-enum class ShaderStage { Vertex, Fragment };
-enum class TextureKind { SampledRgba8, ColorRgba8, Depth32 };
-enum class ColorFormat { Rgba8, Bgra8, Rgba8Srgb, Bgra8Srgb };
-enum class DepthFormat { None, Depth32 };
-enum class CullMode { None, Front, Back };
-enum class FrontFace { CounterClockwise, Clockwise };
-enum class DepthCompare { Always, Less, LessEqual };
-enum class VertexFormat { Float2, Float3, Float4 };
+enum class Backend : std::uint8_t { Vulkan, D3D12, Metal };
+enum class ShaderFormat : std::uint8_t { Spirv, Dxil, Msl };
+enum class ShaderStage : std::uint8_t { Vertex, Fragment };
+enum class TextureKind : std::uint8_t { SampledRgba8, ColorRgba8, Depth32 };
+enum class ColorFormat : std::uint8_t { Rgba8, Bgra8, Rgba8Srgb, Bgra8Srgb };
+enum class DepthFormat : std::uint8_t { None, Depth32 };
+enum class CullMode : std::uint8_t { None, Front, Back };
+enum class FrontFace : std::uint8_t { CounterClockwise, Clockwise };
+enum class DepthCompare : std::uint8_t { Always, Less, LessEqual };
+enum class VertexFormat : std::uint8_t { Float2, Float3, Float4 };
 
 struct DeviceConfig {
     Backend backend;
