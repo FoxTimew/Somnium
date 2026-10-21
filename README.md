@@ -141,11 +141,3 @@ notamment JSON sans exceptions, cgltf/stb sur entrée invalide, EnTT direct et
 projection GLM. Les tests de modules vérifient erreurs, handles, lecture et
 accumulateur. La preuve de rendu hors écran sera introduite en phase 1.
 
-Lors de la validation locale Windows/LLVM-MinGW, le lancement de
-`build/release/bin/somnium_core_tests.exe` a échoué avec le message :
-« Une stratégie de contrôle d’application a bloqué ce fichier. »
-La cause probable relève de la stratégie de contrôle d'application Windows ;
-le test n'a pas démarré et reste **non validé** dans ce preset local. Les cinq
-autres tests release passent, ainsi que les six tests debug, shipping et
-profiling. La CI MSVC couvre ces trois derniers presets. La couverture du
-preset release sera explicitée ou ajoutée à la matrice en phase 1.

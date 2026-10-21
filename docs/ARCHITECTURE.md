@@ -365,9 +365,6 @@ Les compléments demandés à la validation de phase 0 sont :
   explicitement release à la matrice.
 - À l'arrivée du CLI lié à DXC, décider si la compilation de vérification
   `somnium_shadercross` reste systématique ou passe derrière une option.
-- Conserver dans le résumé de phase le message exact du blocage Windows du
-  test core release et sa cause probable côté contrôle d'application.
-  Le README consigne déjà ce résultat local non validé.
 
 La sortie exige le test automatisé hors écran avec relecture et comparaison
 à une image de référence avec tolérance, selon D5 : lavapipe/Vulkan Linux,
