@@ -47,6 +47,20 @@ Result<std::unique_ptr<Platform>> Platform::create(const WindowConfig& config) {
         config.title.find('\0') != std::string_view::npos) {
         return tl::unexpected(Error{ErrorCode::InvalidArgument, "Invalid window configuration"});
     }
+    auto session = createHeadless();
+    if (!session) {
+        return tl::unexpected(session.error());
+    }
+    const std::string title(config.title);
+    (*session)->m_impl->window =
+        SDL_CreateWindow(title.c_str(), config.width, config.height, SDL_WINDOW_RESIZABLE);
+    if (!(*session)->m_impl->window) {
+        return tl::unexpected(Error{ErrorCode::Platform, SDL_GetError()});
+    }
+    return session;
+}
+
+Result<std::unique_ptr<Platform>> Platform::createHeadless() {
     if (SDL_WasInit(0) != 0) {
         return tl::unexpected(Error{ErrorCode::InvalidState, "SDL session already owned"});
     }
@@ -54,12 +68,6 @@ Result<std::unique_ptr<Platform>> Platform::create(const WindowConfig& config) {
     SDL_SetMainReady();
     impl->initialized = true; // SDL_Quit also cleans up a partially failed initialization.
     if (!SDL_Init(SDL_INIT_VIDEO)) {
-        return tl::unexpected(Error{ErrorCode::Platform, SDL_GetError()});
-    }
-    const std::string title(config.title);
-    impl->window =
-        SDL_CreateWindow(title.c_str(), config.width, config.height, SDL_WINDOW_RESIZABLE);
-    if (!impl->window) {
         return tl::unexpected(Error{ErrorCode::Platform, SDL_GetError()});
     }
     return std::unique_ptr<Platform>(new Platform(std::move(impl)));
@@ -73,7 +81,8 @@ Events Platform::pollEvents() {
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_EVENT_QUIT) {
             result.quitRequested = true;
-        } else if (event.type >= SDL_EVENT_WINDOW_FIRST && event.type <= SDL_EVENT_WINDOW_LAST &&
+        } else if (m_impl->window && event.type >= SDL_EVENT_WINDOW_FIRST &&
+                   event.type <= SDL_EVENT_WINDOW_LAST &&
                    event.window.windowID == SDL_GetWindowID(m_impl->window)) {
             if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
                 result.quitRequested = true;

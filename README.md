@@ -21,7 +21,7 @@ après la preuve GPU hors écran (étape b) pour validation intermédiaire.
 
 ## Prérequis
 
-- Git avec Git LFS (`git lfs install`), CMake ≥ 3.28, Ninja, Python ≥ 3.10.
+- Git avec Git LFS (`git lfs install`), CMake ≥ 3.28, Ninja, Python ≥ 3.12.
 - Windows : MSVC avec Windows SDK depuis un terminal développeur, ou
   LLVM-MinGW UCRT. Ce dernier doit avoir son répertoire `bin` dans `PATH`.
 - Linux : GCC/Clang et les paquets de développement SDL de la CI (X11/Wayland,
@@ -37,7 +37,8 @@ Le bootstrap CPM est vérifié par SHA-256.
 
 ## Compiler, exécuter et tester
 
-Depuis la racine du dépôt, dans un terminal avec le compilateur dans `PATH` :
+Exécuter d'abord le bootstrap de shaders décrit ci-dessous. Puis, depuis la racine
+du dépôt, dans un terminal avec le compilateur dans `PATH` :
 
 ```sh
 cmake --preset debug -DSOMNIUM_WARNINGS_AS_ERRORS=ON
@@ -134,6 +135,30 @@ moteur CI attendent la chaîne d'outils via `needs`. Aucun rendu à l'écran à 
 Au MVP, le MSL généré hors ligne est chargé par SDL et compilé par le driver.
 Le `.metallib` est reporté au cuiseur de phase 4, prérequis de shipping macOS.
 
+## GPU hors écran — phase 1, étape b
+
+`somnium_gpu` possède le device et ses ressources derrière des handles typés et
+générationnels. La session `Platform::createHeadless()` initialise les services
+vidéo sans fenêtre. Le test D5 charge les shaders du build, rend dans RGBA8/D32,
+effectue une relecture avec fence puis compare une référence PNG unique sous LFS.
+Géométrie, seuils et sondes exactes : `engine/gpu/tests/reference_scene.json`.
+
+```sh
+python tools/gpu/run.py --executable build/debug/bin/somnium_gpu_offscreen --backend vulkan --output .cache/d5-local
+```
+
+Windows : `.exe` et `--backend direct3d12` ; macOS : `--backend metal`.
+Linux sans écran : `xvfb-run -a` devant la commande. Le
+[protocole D5](docs/GPU_VALIDATION.md) décrit la sélection de lavapipe,
+la régénération explicite et les captures. D5 est un job GPU distinct des tests
+CTest CPU/fenêtre, avec résultat visible « non validé » si device/couches manquent.
+La [preuve D5](https://github.com/FoxTimew/Somnium/actions/runs/39592617094) passe
+sur lavapipe/Linux, Microsoft Basic Render Driver/Windows et Metal/macOS 15,
+avec dix centres exacts et zéro pixel différent sur chaque backend. Le job de
+rendu Metal utilise macOS 15 à cause d'un défaut de validation shader du device
+paravirtualisé macOS 26, reproduit hors du moteur et documenté dans le protocole.
+La sandbox conserve sa fenêtre vide jusqu'à l'étape c, soumise au prochain accord.
+
 ## Qualité et CI
 
 ```sh
@@ -148,4 +173,4 @@ au configure ; CTest vérifie également les frontières d'includes.
 Les logs CTest sont conservés comme artefacts. Les tests de dépendances vérifient
 notamment JSON sans exceptions, cgltf/stb sur entrée invalide, EnTT direct et
 projection GLM. Les tests de modules vérifient erreurs, handles, lecture et
-accumulateur. La preuve de rendu hors écran sera introduite en phase 1.
+accumulateur. Les jobs D5 publient leurs captures, métriques et journaux natifs.

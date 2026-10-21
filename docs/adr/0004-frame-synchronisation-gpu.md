@@ -32,7 +32,8 @@ et D2/D5 ; protocole détaillé dans [GPU_VALIDATION.md](../GPU_VALIDATION.md).
   possible ; après acquisition, terminer et soumettre même sans dessin, car SDL
   interdit l'annulation. Supprimer l'attente artificielle d'Engine.
 - **Possession.** Les handles générationnels appartiennent au device ; aucune
-  ressource native publique. Invalider immédiatement un handle détruit ; différer
+  ressource native publique. À l'étape b, chaque appel enregistre et soumet avant
+  de rendre la main : aucun emprunt CPU externe. Invalider un handle détruit ; différer
   l'appel `SDL_ReleaseGPU*` demandé durant une frame jusqu'à sa soumission ou son
   annulation pour préserver les emprunts CPU. SDL diffère ensuite la destruction
   native jusqu'à sûreté GPU. Uploads avec `cycle=true` ; fence avant relecture
@@ -60,7 +61,8 @@ Wait-idle par frame : parallélisme perdu. WARP natif : frontière SDL contourn�
 
 ## Conséquences
 
+D5 passe sur Vulkan/lavapipe, D3D12/WARP et Metal/macOS 15, avec couches actives.
 Présentation et overlay restent à observer séparément. Sans device/couche CI :
 « non validé », capture et journal local joints à la PR selon le [plan CI](../PHASE_1_CI.md).
 
-Preuves : rendu et validation sur les trois backends ; cycles de vie/resize/minimisation ; culling/UV mesurés ; intégration ImGui et captures locales.
+Preuves : cycles de présentation/resize/minimisation ; intégration ImGui et captures locales.

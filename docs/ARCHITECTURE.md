@@ -354,9 +354,22 @@ Les [ADR-0003](adr/0003-chaine-shaders.md),
 [SHADERS.md](SHADERS.md) et [GPU_VALIDATION.md](GPU_VALIDATION.md).
 Ordre accepté : shaders/incrémentalité, GPU hors écran D5, puis arrêt pour
 validation intermédiaire avant swapchain, UI et compléments de qualité.
-La sélection WARP n'est pas exposée par SDL GPU épinglé ; la preuve D3D12 CI
-reste conditionnelle à un device utilisable, sinon capture et validation locales
-obligatoires. La compilation hors ligne réussie ne prouve aucun rendu.
+Les étapes a/b ajoutent la génération CMake avec depfiles, les manifestes réfléchis,
+le device GPU et les ressources typées, ainsi que le test D5 sans fenêtre.
+`gpu` centralise le chargement des shaders via `ByteReader` injecté ; ses tests
+CPU doctest couvrent les manifestes invalides sans device. Le rendu enregistre et
+soumet dans un appel, sans emprunt CPU externe ; le readback attend une fence.
+La référence commune LFS, la géométrie, les seuils et les sondes versionnées se
+trouvent sous `engine/gpu/tests/`. Le [protocole](GPU_VALIDATION.md) et le
+[plan CI](PHASE_1_CI.md) distinguent les preuves obtenues et celles encore absentes.
+La sélection WARP n'est pas exposée par SDL GPU épinglé ; le probe CI obtient
+néanmoins Microsoft Basic Render Driver et réussit D5, comme lavapipe sous Linux.
+Les dix centres sont exacts, sans pixel différent. D3D12 passe aussi sur la Radeon
+locale. Le [plan CI](PHASE_1_CI.md) consigne séparément le défaut de validation
+shader Metal du device paravirtualisé macOS 26 et son diagnostic SDK indépendant.
+Le même rendu passe sous macOS 15, avec validations API et shader actives ; les
+conventions NDC/UV/culling/profondeur sont donc confirmées sur les trois backends.
+La compilation hors ligne réussie ne prouve aucun rendu.
 
 Le périmètre reste le device et la swapchain, les commandes et ressources GPU
 en RAII derrière des handles, un triangle coloré et l'overlay ImGui (FPS,
@@ -379,7 +392,8 @@ Les compléments demandés à la validation de phase 0 sont :
 
 La sortie exige le test automatisé hors écran avec relecture et comparaison
 à une image de référence avec tolérance, selon D5 : lavapipe/Vulkan Linux,
-WARP/D3D12 Windows si sa sélection est supportée par l'en-tête SDL épinglé,
+WARP/D3D12 Windows si le probe SDL obtient un device utilisable (aucun sélecteur
+public ni filtre explicite des adaptateurs logiciels dans la source épinglée),
 Metal macOS si un device est disponible. Un backend sans device en CI est
 explicitement « non validé » ; sa preuve locale comprend capture et journal
 des couches de validation joints à la PR.

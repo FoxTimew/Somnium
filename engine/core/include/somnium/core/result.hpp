@@ -11,6 +11,7 @@ enum class ErrorCode {
     InvalidHandle,
     CapacityExceeded,
     Platform,
+    Gpu,
     Io,
     InvalidState
 };

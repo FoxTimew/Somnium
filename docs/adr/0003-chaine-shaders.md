@@ -26,17 +26,17 @@ Les preuves et commandes reproductibles sont dans [SHADERS.md](../SHADERS.md).
   `SOMNIUM_SHADERCROSS_EXECUTABLE`, chemin installé par défaut, erreur fatale avec
   commande de bootstrap si CLI ou DXC des depfiles manque. CI : outils requis
   avant moteur via `needs`, avec transfert de l'installation vérifiée.
-- **Génération.** `somnium_add_shaders()` recevra cible, nom logique, `.hlsl`,
+- **Génération.** `somnium_add_shaders()` reçoit cible, nom logique, `.hlsl`,
   entrée `vsMain`/`psMain`, étage vertex/fragment, dossier d'includes et defines.
   `main` interdit, aucun `MSL_ENTRYPOINT` ; vérifier le même nom dans le MSL.
   Sorties sous le build par
   configuration : `<nom>.<entrée>.<vert|frag>.{spv,dxil,msl,json}`. Un depfile DXC
-  `-M -MF`, utilisant les mêmes includes/defines, suivra les includes transitifs.
+  `-M -MF`, utilisant les mêmes includes/defines et échappé pour Ninja, suit les includes transitifs.
   Installer/copier les artefacts sous `assets/shaders` à côté de l'exécutable.
-- **Contrat.** L'en-tête HLSL commun portera les espaces/registres SDL du tableau
+- **Contrat.** L'en-tête HLSL commun porte les espaces/registres SDL du tableau
   de l'annexe, indices denses sans trous. La réflexion JSON de shadercross sur
-  le SPIR-V produit fournira les quatre compteurs de `SDL_GPUShaderCreateInfo` ;
-  un manifeste versionné ajoutera étage, formats et entrées. Cela évite une
+  le SPIR-V produit fournit les quatre compteurs de `SDL_GPUShaderCreateInfo` ;
+  un manifeste versionné ajoute étage, formats et entrées. Cela évite une
   duplication manuelle des compteurs. Ne pas activer l'élimination des bindings.
   Le JSON CLI ne fournit pas l'entrée MSL : la convention évite le renommage
   `main` vers `main0` ; un nom absent du MSL produit fait échouer le build.
@@ -47,7 +47,7 @@ Les preuves et commandes reproductibles sont dans [SHADERS.md](../SHADERS.md).
   cible et supérieur au minimum SDL Metal (macOS 10.14, GPU Mac2). Une cible
   inférieure à 11.0 est rejetée. Le driver compile le MSL ; `.metallib` reste en phase 4,
   **prérequis de shipping macOS**. Aucun DXC/shadercross livré ou lié au moteur.
-- **Ancienne vérification.** Passer l'archive seule `somnium_shadercross` derrière
+- **Ancienne vérification.** L'archive seule `somnium_shadercross` est derrière
   `SOMNIUM_VERIFY_SHADERCROSS_LIBRARY=OFF` par défaut ; le CLI
   isolé et ses essais deviennent la preuve obligatoire de la chaîne complète.
 
@@ -62,7 +62,9 @@ main et compilation HLSL à l'exécution sont écartés.
 
 Le spike valide les trois CLI : 111 s Windows, 76 s Linux, 816 s macOS à froid ;
 environ 1 s avec cache Windows/macOS. Le [plan CI](../PHASE_1_CI.md) réserve donc
-un budget distinct au build source macOS. L'incrémentalité et le chargement GPU
-restent à démontrer aux étapes a/b ; arrêt après b avant swapchain/UI.
+un budget distinct au build source macOS. L'incrémentalité et l'installation sont
+[validées en CI](https://github.com/FoxTimew/Somnium/actions/runs/39588199919) sur les trois OS ;
+le chargement et le rendu des trois formats passent [D5](../GPU_VALIDATION.md)
+à l'étape b, avant tout passage à swapchain/UI.
 
-Preuves : intégration CMake/depfiles et installation ; validation du manifeste et des entrées par format ; chargement/rendu des trois formats ; production .metallib au cuiseur.
+Preuves : production .metallib au cuiseur.

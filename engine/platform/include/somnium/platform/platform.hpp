@@ -1,4 +1,4 @@
-// Owns a resizable window and the SDL session without exporting native types.
+// Owns the SDL session and an optional resizable window without exporting native types.
 // The object must be created, polled and destroyed on the window thread.
 #pragma once
 
@@ -23,6 +23,8 @@ struct Events {
 class Platform final {
   public:
     [[nodiscard]] static Result<std::unique_ptr<Platform>> create(const WindowConfig& config);
+    // Initializes the video subsystem for an offscreen device, without a window.
+    [[nodiscard]] static Result<std::unique_ptr<Platform>> createHeadless();
     ~Platform();
     Platform(const Platform&) = delete;
     Platform& operator=(const Platform&) = delete;

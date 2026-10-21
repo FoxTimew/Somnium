@@ -54,6 +54,12 @@ jobs:
         run: cmake --preset debug -DSOMNIUM_WARNINGS_AS_ERRORS=ON -DSDL_WAYLAND=OFF
       - name: Build
         run: cmake --build --preset debug --parallel 3
+      - name: Package offscreen executable and offline shaders
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: gpu-binary-${{ runner.os }}
+          path: build/debug/bin/
+          if-no-files-found: error
       - name: Tests Linux
         if: runner.os == 'Linux'
         run: xvfb-run -a ctest --preset debug
@@ -124,3 +130,29 @@ jobs:
         with:
           name: sanitizer-logs
           path: build/asan-ubsan/Testing/Temporary/
+  gpu-linux:
+    permissions: {contents: read, checks: write}
+    needs: desktop
+    uses: ./.github/workflows/gpu-validation.yml
+    with:
+      os: ubuntu-24.04
+      backend: vulkan
+      required: true
+  gpu-windows:
+    permissions: {contents: read, checks: write}
+    needs: desktop
+    uses: ./.github/workflows/gpu-validation.yml
+    with:
+      os: windows-latest
+      backend: direct3d12
+      required: false
+  gpu-macos:
+    permissions: {contents: read, checks: write}
+    needs: desktop
+    uses: ./.github/workflows/gpu-validation.yml
+    with:
+      # macOS 26's paravirtual shader validator fails even the independent SDK probe.
+      # Exercise the same deployment-compatible binary on macOS 15 with full validation.
+      os: macos-15
+      backend: metal
+      required: false

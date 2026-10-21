@@ -1,4 +1,4 @@
-# Builds the phase 0 foundation and its concrete game consumer.
+# Builds the foundations, offline shaders and offscreen GPU proof.
 # Dependencies are scoped to targets; dormant modules create no dummy libraries.
 cmake_minimum_required(VERSION 3.28)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum macOS version; MSL 2.3 baseline")

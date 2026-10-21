@@ -1,6 +1,6 @@
 <!--
-Plan de CI soumis avec les ADR-0003 et ADR-0004 avant toute implémentation GPU.
-Les inventaires observés sont distingués des jobs de rendu encore à écrire.
+Plan de CI accepté avec les ADR-0003 et ADR-0004, complété par les preuves obtenues.
+Les tests exécutés restent distincts des étapes de présentation et de qualité à venir.
 -->
 # Plan CI de phase 1 — accepté le 21 octobre 2026
 
@@ -9,15 +9,37 @@ Les inventaires observés sont distingués des jobs de rendu encore à écrire.
 Le [spike](SHADERS.md) compile et exécute shadercross lié à DXC sur les trois OS,
 pour vertex et fragment vers SPIR-V/DXIL/MSL et réflexion. Il teste le diagnostic
 de configuration sans outil et le rejet de HLSL invalide. Cela ne crée aucun
-device GPU. **Aucun backend n'est encore validé par rendu dans ce checkpoint.**
+device GPU. L'étape b ajoute les probes de rendu décrits ci-dessous ; leurs
+résultats effectifs restent distincts de la preuve de compilation.
 
 La CI générale conserve debug/shipping/profiling sur les trois OS, formatage,
-frontières d'architecture, six tests par preset et ASan/UBSan Linux. Elle est
-[verte sur le premier commit du spike](https://github.com/FoxTimew/Somnium/actions/runs/39574749835).
+frontières d'architecture et ASan/UBSan Linux. Les tests de manifestes GPU,
+comparaison d'images et incrémentalité complètent les six tests de phase 0. Elle est
+[verte sur l'étape a](https://github.com/FoxTimew/Somnium/actions/runs/39588199919)
+(7/7 par preset ; ASan/UBSan propre). L'étape b ajoute deux entrées CTest.
 Le test release local est validé 6/6. Le commit docs `842155c` retire sa limitation.
 
-Toutes les actions des deux workflows sont maintenant épinglées par SHA complet :
-checkout 7.0.1, setup-python 7.0.0, cache 6.1.0, upload-artifact 7.0.2,
+Le [passage D5 du 21 octobre](https://github.com/FoxTimew/Somnium/actions/runs/39592617094)
+confirme **9/9 CTest** pour chacun des neuf couples OS/preset et ASan/UBSan.
+Les mesures de rendu sont distinctes :
+
+| Exécution | Device | Image / validation |
+| --- | --- | --- |
+| Vulkan CI Linux | llvmpipe LLVM 20.1.2, Mesa 25.2.8 | **Validé**, 0 pixel différent, 10 centres exacts, Khronos + synchronisation |
+| D3D12 CI Windows | Microsoft Basic Render Driver, 10.0.26100.33648 | **Validé**, 0 pixel différent, 10 centres exacts, couche debug active |
+| D3D12 local Windows | Radeon RX 6600M, 32.0.21037.1004 | **Validé**, mêmes résultats avec le binaire CI ; journal local conservé |
+| Metal CI macOS 15.7.9 / Xcode 16.4 | Apple Paravirtual device | **Validé**, 0 pixel différent, 10 centres exacts, validations API et shader actives |
+| Metal CI macOS 26 / Xcode 26.6 | Apple Paravirtual device | **Échec** avec validation shader, reproduit par le programme SDK indépendant ; API seule : image exacte, **non validé** |
+
+Le défaut d'instrumentation Metal est documenté dans le
+[protocole](GPU_VALIDATION.md). Le job Metal utilise **macos-15** avec le même binaire
+arm64 ciblant macOS 11, validation API **et** shader exigée. Les builds et outils
+restent sur `macos-latest`. Image de rendu observée : `macos-15-arm64/20260907.0337`,
+Xcode 16.4 (16F6). Aucun diagnostic API seul ne peut rendre D5 vert. Les trois
+captures ont le même SHA-256 que la référence commune ; celle-ci n'a pas changé.
+
+Toutes les actions des workflows sont épinglées par SHA complet :
+checkout 7.0.1, setup-python 7.0.0, cache 6.1.0, upload-artifact 7.0.2, download-artifact 8.0.2,
 msvc-dev-cmd 1.13.0. Leurs SHA sont l'autorité dans les YAML ; les commentaires
 de version servent à la lecture. Les dépendances non releasées suivent la même
 règle. Les images hébergées restent évolutives : version enregistrée et cache
@@ -46,7 +68,7 @@ ils ne sont pas confondus avec les compilateurs de shaders strictement verrouill
 Deux caches distincts : CPM par OS et verrou de dépendances existant ; outils
 installés du spike par OS/architecture/image/toolchain/hash de recette. Aucun
 cache de sortie des tests ni d'image de référence. Les fichiers LFS sont tirés
-par checkout avec `lfs: true` dans les futurs jobs GPU. Le cache d'outils ne
+par checkout avec `lfs: true` dans les jobs GPU. Le cache d'outils ne
 dispense jamais de compilation des fixtures, réflexion et essais négatifs.
 Le manifeste de verrou dans le cache doit être identique à celui du dépôt.
 
@@ -56,11 +78,11 @@ manquent, y compris après une restauration de cache incomplète.
 
 ## Matrice de rendu et couches de validation
 
-| Backend | Observation du spike | Travail prévu après validation | Preuve exigée |
+| Backend | Observation initiale du spike | Procédure implémentée en b | Preuve exigée |
 | --- | --- | --- | --- |
 | Vulkan / Linux | Runner nu : aucun ICD ni layer JSON inventorié | Installer Mesa/lavapipe et validation layers ; pointer `VK_DRIVER_FILES` vers l'ICD lvp installé, vérifier `vulkaninfo --summary` et `VK_LAYER_KHRONOS_validation` ; device debug autorisant le logiciel | D5 obligatoire en CI, journal de validation propre ; capture locale RenderDoc pour présentation/overlay |
 | D3D12 / Windows | Graphics Tools Installed, `System32/d3d12SDKLayers.dll` présent ; aucun device créé | Device SDL driver `direct3d12`, debug ON ; vérifier que la couche est effectivement chargée | Rendu CI seulement si device utilisable ; sinon **non validé**, test D5 local et capture PIX/RenderDoc + journal joints à la PR |
-| Metal / macOS | Xcode 26.6 présent ; `system_profiler SPDisplaysDataType` vide, aucune bibliothèque de validation trouvée par l'inventaire initial | Interroger un vrai device SDL Metal ; vérifier outils/couches avec Xcode, puis activer API/shader validation | Si device et validation disponibles : D5 CI ; sinon **non validé**, D5 local et capture Xcode + journal joints à la PR |
+| Metal / macOS | Xcode 26.6 présent ; inventaire initial sans écran | Device SDL Metal sur macOS 15, validation API/shader effective ; macOS 26 conservé dans le diagnostic du défaut paravirtualisé | Si device et validation disponibles : D5 CI ; sinon **non validé**, D5 local et capture Xcode + journal joints à la PR |
 
 **WARP : réponse négative pour la sélection.** Les propriétés publiques du
 [`SDL_gpu.h` épinglé](https://github.com/libsdl-org/SDL/blob/829a65d769d935c4852f8159e964312c0957260a/include/SDL3/SDL_gpu.h#L2266)
@@ -87,16 +109,19 @@ debug GPU OFF ; ils ne remplacent pas le passage debug avec couches.
 
 ## Résultats explicites et clôture
 
-Les futurs jobs GPU auront un probe préalable journalisé et une synthèse toujours
-exécutée. Trois résultats distincts : **validé** (image + couches propres),
+Les jobs GPU exécutent le binaire debug et ses shaders transférés du job moteur,
+après la chaîne d'outils requise. Une synthèse est toujours exécutée. Trois
+résultats distincts : **validé** (image + couches propres),
 **échec** (outil/rendu/validation incorrects), **non validé** (device ou couche
 indisponible, raison et inventaire joints). Un code d'erreur de rendu n'est jamais
 reclassé en indisponibilité. Pas de `continue-on-error`, de test skipped, ni de
 succès CTest inventé pour une absence de device.
 
 Pour un backend indisponible, le job/check porte explicitement « non validé »
-dans son nom et sa synthèse, avec conclusion neutre pour la couverture non
-effectuée. Les jobs CPU/outils restent requis et doivent réussir. La clôture
+dans son nom et sa synthèse. Le check de couverture publié par l'API GitHub prend
+la conclusion neutre si le rendu n'est pas validé ; le job de publication confirme
+seulement que ce résultat a été enregistré. Seul ce job possède `checks: write`.
+Les jobs CPU/outils restent requis et doivent réussir. La clôture
 manuelle de phase vérifie alors les pièces locales attachées à la PR : même
 commit, backend/device/version, résultat D5, référence/hash, capture graphique
 et journal complet des couches. À défaut, la phase n'est pas validable même si
