@@ -22,6 +22,13 @@ Les tests de phase 0 utilisent toutefois la même configuration sans exceptions
 ni RTTI que les modules liés, notamment pour éviter une incompatibilité UBSan/vptr.
 `JSON_NOEXCEPTION` et `SPDLOG_NO_EXCEPTIONS` sont définis de façon cohérente.
 
+Décision de plateforme acceptée le 21 octobre 2026 : **macOS 13.3 minimum** pour
+le moteur, via `CMAKE_OSX_DEPLOYMENT_TARGET`, dans tous les presets. La surcharge
+`std::format` de Log conserve la libc++ Apple ; le `std::to_chars` flottant
+qu'elle utilise exige macOS 13.3 ([disponibilité Apple](https://developer.apple.com/xcode/cpp/)).
+Le configure rejette une cible inférieure. Le SDK du runner de build peut être
+plus récent ; sa version n'est pas le minimum de déploiement.
+
 Les versions retenues sont les suivantes ; les appels SDL, shadercross, EnTT
 (notamment cette nouvelle version majeure) et cgltf sont écrits uniquement après
 lecture de leurs en-têtes dans le cache CPM.
@@ -103,5 +110,10 @@ platform/gpu. Le contrat de lecture est défini dans core, réalisé par platfor
 injecté par runtime ; le contrat gameplay suit runtime → game → sandbox.
 Le socle main contient les documents acceptés, README, règles Git/LFS ; la
 phase 0 est développée depuis ce socle sans fusion ni tag avant validation.
+
+Shipping annonce donc **macOS 13.3 ou ultérieur** : désactiver l'UI ne réduit pas
+ce minimum et aucun binaire compatible macOS 11/12 n'est promis. Ce minimum est
+distinct du prérequis `.metallib` de phase 4 ; le MSL 2.3 utilisé au MVP reste
+compatible avec la cible déclarée.
 
 Preuves : CLI shadercross lié à DXC et compilation HLSL sur les trois OS, sélection WARP, comparaison hors écran et captures GPU à établir en phase 1.

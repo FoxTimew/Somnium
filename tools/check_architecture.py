@@ -9,6 +9,8 @@ allowed = {
     "core": set(),
     "platform": {"core"},
     "gpu": {"core", "platform"},
+    "platform_imgui": {"core", "platform"},
+    "gpu_imgui": {"core", "gpu"},
     "renderer": {"core", "gpu"},
     "assets": {"core"},
     "scene": {"core", "assets"},
@@ -18,23 +20,29 @@ allowed = {
 }
 errors = []
 for module, dependencies in allowed.items():
-    for path in (root / "engine" / module).rglob("*"):
+    integration = module in {"platform_imgui", "gpu_imgui"}
+    source_root = root / "engine" / (module.removesuffix("_imgui") if integration else module)
+    if integration:
+        source_root /= "integration"
+    for path in source_root.rglob("*"):
         if path.suffix not in {".hpp", ".cpp", ".h", ".c"}:
             continue
+        if module in {"platform", "gpu"} and path.relative_to(source_root).parts[0] == "integration":
+            continue
         text = path.read_text(encoding="utf-8")
-        public = "include" in path.relative_to(root / "engine" / module).parts
+        public = "include" in path.relative_to(source_root).parts
         for dependency in re.findall(r"#include\s*[<\"]somnium/([^/]+)/", text):
             if dependency != module and dependency not in dependencies:
                 errors.append(f"{path}: forbidden {module} -> {dependency}")
         if public and re.search(r"\bSDL_\w+|#include\s*[<\"](?:SDL3|spdlog)/", text):
             errors.append(f"{path}: third-party type in public interface")
-        if module != "gpu" and re.search(r"#include\s*[<\"]SDL3/(?:SDL|SDL_gpu)\.h", text):
+        if module not in {"gpu", "gpu_imgui"} and re.search(r"#include\s*[<\"]SDL3/(?:SDL|SDL_gpu)\.h", text):
             errors.append(f"{path}: GPU/umbrella SDL header outside gpu")
-        if module in {"platform", "gpu"} and re.search(r"#include.*imgui|#if.*DEBUG_UI", text, re.I):
+        if module in {"platform", "gpu"} and re.search(r"#include.*imgui|#if.*(?:DEBUG_UI|IMGUI)", text, re.I):
             errors.append(f"{path}: optional UI leaked into base implementation")
         if module != "core" and "#include <spdlog/" in text:
             errors.append(f"{path}: logging implementation leaked")
-        if module not in {"platform", "input"} and re.search(r"\bSDL_Event\b", text):
+        if module not in {"platform", "platform_imgui", "input"} and re.search(r"\bSDL_Event\b", text):
             errors.append(f"{path}: native event escaped its boundary")
         if re.search(r"\b(?:int|auto)\s+main\s*\(", text) and "tests" not in path.parts:
             errors.append(f"{path}: engine must not define main")

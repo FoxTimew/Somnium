@@ -6,9 +6,8 @@ Document validé ; distingue les contrats du MVP des capacités déjà implémen
 
 Statut : **accepté**, 20 octobre 2026, avec les arbitrages D1 à D5 ci-dessous.
 
-La phase 0 est validée. Sa fusion `--no-ff` et le tag `phase-0` sont autorisés
-après les corrections de revue et une nouvelle CI verte ; la branche suivante
-est `phase/1-gpu-shaders`. Voir les
+La phase 0 est validée, fusionnée `--no-ff` et taguée `phase-0` sur `main`.
+La branche suivante est `phase/1-gpu-shaders`. Voir les
 [ADR-0001](adr/0001-stack-dependances-licences.md) et
 [ADR-0002](adr/0002-conventions.md).
 
@@ -19,9 +18,10 @@ sol et pièces, collisions AABB dans `game/`, portes articulées autour d'un piv
 action `Interact`, clavier/souris et manette. Le MVP final charge une scène JSON
 et affiche sa hiérarchie dans ImGui. Chaque capacité du moteur doit servir ce jeu.
 
-La phase 0 fournit uniquement les fondations, l'outillage et une fenêtre vide.
-Elle n'initialise aucun device GPU. Windows, Linux et macOS sont compilés et
-testés ; aucune cible, API ni toolchain console n'est introduite.
+La phase 1 ajoute le device GPU, les ressources, les shaders hors ligne,
+le triangle présenté et l'overlay de statistiques aux fondations de phase 0.
+Windows, Linux et macOS sont compilés et testés ; aucune cible, API ni toolchain
+console n'est introduite. Renderer/assets/scene/input restent aux phases suivantes.
 
 Les conventions mathématiques, de mémoire, d'erreurs et de style sont décrites
 dans l'ADR-0002. Leur traduction en constantes aura une seule autorité :
@@ -33,9 +33,9 @@ dans l'ADR-0002. Leur traduction en constantes aura une seule autorité :
 | --- | --- |
 | D1 | Toute dépendance sans release est épinglée par SHA complet, jamais par branche ; cette règle inclut stb et shadercross. |
 | D2 | Les backends officiels sont compilés dans `somnium_platform_imgui` et `somnium_gpu_imgui`, cibles séparées activées uniquement par `SOMNIUM_ENABLE_DEBUG_UI=ON` et liées par `debug_ui`. Les sources de platform/gpu ne contiennent aucun include ImGui ni condition UI. SDL_Event reste dans platform (collecte et intégration privée) et input (traduction). Aucun type SDL public. |
-| D3 | Le MVP charge le MSL produit hors ligne par shadercross. Le travail du driver est autorisé ; aucun compilateur HLSL dans le moteur. Le `.metallib` est reporté au cuiseur de phase 4 ; l'ADR-0003 le consignera comme prérequis de shipping macOS. |
+| D3 | Le MVP charge le MSL produit hors ligne par shadercross. Le travail du driver est autorisé ; aucun compilateur HLSL dans le moteur. Le `.metallib` est reporté au cuiseur de phase 4 ; l'ADR-0003 le consigne comme prérequis de shipping macOS. |
 | D4 | Pas de zones de durée GPU Tracy. Zones CPU, hooks mémoire, compteurs de draw calls/soumissions/uploads et marqueurs SDL visibles dans RenderDoc/PIX/Xcode. Critère de phase 2 amendé. |
-| D5 | Test de rendu hors écran, relecture et comparaison à une référence avec tolérance. CI : Vulkan/lavapipe Linux, D3D12/WARP Windows si sélection supportée (à vérifier dans SDL épinglé), Metal macOS si device disponible. Sans device : job explicitement « non validé » et preuve locale avec capture et journal de validation joints à la PR. |
+| D5 | Test de rendu hors écran, relecture et comparaison à une référence avec tolérance. CI : Vulkan/lavapipe Linux obligatoire, D3D12/WARP obtenu par le probe sans sélection publique SDL, Metal macOS si device disponible. Sans device/couche : job explicitement « non validé » et preuve locale avec capture et journal de validation joints à la PR. |
 
 Les contrats de lecture dans `core`, réalisé par `platform` et injecté par
 `runtime`, et de gameplay dans `runtime`, réalisé par `game` et assemblé dans
@@ -137,10 +137,11 @@ le réalise. L'appel passe par ce contrat, jamais par un include de `game`.
 Les références de scène et d'inputs sont empruntées pour l'appel. L'état moteur,
 la registry et les ressources restent possédés par `Engine`.
 
-En phase 0, `Engine` possède uniquement ce qu'il utilise : plateforme, fenêtre,
-lecteur de ressources, horloge et état de boucle. Tous les modules ont leurs
-répertoires et leur
-CMakeLists ; aucune cible sans sources réelles ni fonction factice n’est créée.
+En phase 1, `Engine` possède plateforme/fenêtre, lecteur de ressources, device,
+handles du triangle, overlay optionnel, horloge et état de boucle. Le device
+possède les objets GPU ; l'overlay est détruit avant lui. Tous les modules ont
+leurs répertoires et CMakeLists ; aucune cible sans sources réelles ni fonction
+factice n’est créée.
 
 À partir des phases suivantes, la création respecte les dépendances. À l'arrêt :
 le gameplay cesse d'être appelé, les travaux GPU sont achevés, l'UI et ses
@@ -208,6 +209,11 @@ Les données JSON et les shaders peuvent également être fournis comme octets.
 Le futur format cuit remplacera la source et les loaders, sans changer les
 handles ou les états ; aucun cuiseur ni système de montage n'est écrit au MVP.
 
+Le `FileReader` actuel résout par défaut `<exécutable>/assets` via SDL, jamais
+le répertoire courant. Son implémentation boucle sur les lectures partielles
+jusqu'à complétion ; erreur, zéro progression prématuré ou taille supérieure à
+256 MiB échouent explicitement. Les tests injectent un flux SDL fragmenté privé.
+
 ### Frontière assets / rendu
 
 `scene` conserve des handles d'assets CPU dans `MeshRenderer`. `renderer` possède
@@ -257,12 +263,13 @@ sont liées par `debug_ui`. Les sources de `platform` et `gpu` ne contiennent
 aucun include ImGui ni `#if` lié à l’UI. Les cibles d’intégration n’existent
 que si `SOMNIUM_ENABLE_DEBUG_UI=ON` ; leurs dépendances ne créent aucun cycle.
 
-`debug_ui` possède le contexte, construit l’inspecteur et utilise les façades
+`debug_ui` possède le contexte, construit l’overlay et utilise les façades
 d’intégration sans type SDL. Les pointeurs natifs demeurent dans la coopération
-privée. Aucune initialisation d’UI ou de device GPU n’a lieu en phase 0.
-À cette phase, seules les sources officielles sont compilées dans les deux
-cibles d'intégration ; les façades de coopération et la cible `debug_ui` seront
-créées avec leurs sources réelles en phase 1.
+privée. La phase 1 initialise contexte, adaptateur plateforme puis adaptateur GPU.
+Elle affiche FPS/temps moyen et compteurs draw calls/soumissions/uploads ;
+l'inspecteur de scène reste en phase 3. Les en-têtes publics des adaptateurs
+ne contiennent aucun type SDL. Le scanner teste aussi les violations synthétiques
+de D2 ; la CI shipping vérifie les cibles et la base de compilation.
 
 Les événements sont toujours traités pour les relâchements, pertes de focus et
 connexions de manette. La capture UI filtre ensuite les actions de gameplay,
@@ -282,15 +289,17 @@ L'horloge monotone de `core` exprime les durées en secondes.
 4. Calculer `alpha = reste / pasFixe`, compris entre zéro inclus et un exclu.
 5. Préparer les ressources nouvelles hors du parcours chaud, puis extraire la
    caméra et les packets interpolés dans une DrawList réutilisée.
-6. Construire l'UI et obtenir une frame GPU. Préparer ses uploads avant les passes
+6. Obtenir une frame GPU, puis construire l'UI. Préparer ses uploads avant les passes
    de rendu, comme l'exige le backend officiel ImGui.
 7. Enregistrer la passe renderer, puis l'overlay UI via `gpu`.
 8. Soumettre et présenter via `gpu`, puis marquer la frame CPU pour Tracy.
 
-En phase 0, seules la collecte, l'horloge, la boucle bornée et les notifications
-de gameplay utiles existent. Aucune DrawList ni opération GPU factice n'est
-appelée. La cadence externe est régulée par une attente de plateforme pour
-éviter une boucle active sans rendu.
+La phase 1 exécute collecte, pas fixes, acquisition, triangle et overlay ; elle
+n'invente pas de DrawList ni d'extraction de scène. `SDL_WaitAndAcquireGPUSwapchainTexture`
+bloque avec deux frames en vol ; VSYNC cadence la boucle. Sans texture acquise,
+la frame est soumise sans rendu puis platform attend un événement. Une fermeture
+détectée après acquisition soumet également la frame. Resize et reprise utilisent
+les dimensions réelles ; le chronomètre et l'accumulateur sont réinitialisés.
 
 Valeurs initiales acceptées : pas fixe `1/60 s`, delta entrant plafonné à
 `250 ms`, maximum de huit pas par itération. Après ce maximum, les pas entiers
@@ -329,7 +338,7 @@ l'exécution ASan doit couvrir les chemins réellement exercés, sans prétendre
 valider un backend non exécuté.
 
 La CI couvre configure, build, CTest et clang-format sur les trois OS en debug,
-shipping et profiling, plus ASan/UBSan sur Linux. La fenêtre Linux est testée sur X11
+release, shipping et profiling, plus ASan/UBSan et clang-tidy 18 sur Linux. La fenêtre Linux est testée sur X11
 avec Xvfb ; Wayland n'est pas exercé par ces jobs. Les presets sont `debug`,
 `release`, `profiling`, `shipping` sans UI et `asan-ubsan` sur Linux/macOS.
 Le README décrit les commandes de build et les prérequis
@@ -347,41 +356,56 @@ suivantes restent distinctes.
 
 ### Phase 1 — périmètre et compléments de revue
 
-Le périmètre reste le device et la swapchain, les commandes et ressources GPU
-en RAII derrière des handles, un triangle coloré et l'overlay ImGui (FPS,
-temps de frame, compteurs GPU). `somnium_add_shaders()` produit SPIR-V, DXIL
-et MSL hors ligne depuis HLSL, avec dépendances incrémentales et conventions
-de binding dans un en-tête HLSL commun. Les tests couvrent les binaires de
-shaders et le cycle de vie des ressources.
+Point de contrôle du 21 octobre : le spike isolé sur
+`feat/shader-toolchain-spike` prouve le CLI shadercross lié à DXC sur les trois OS.
+Les [ADR-0003](adr/0003-chaine-shaders.md),
+[ADR-0004](adr/0004-frame-synchronisation-gpu.md) et le
+[plan CI](PHASE_1_CI.md) sont **acceptés** avec les ajustements du 21 octobre, avec détails dans
+[SHADERS.md](SHADERS.md) et [GPU_VALIDATION.md](GPU_VALIDATION.md).
+Les étapes a/b sont validées : génération CMake avec depfiles et manifeste
+réfléchi, chargement via `ByteReader`, ressources GPU typées et test D5 sans fenêtre.
+Les étapes c/d/e ajoutent :
 
-Les compléments demandés à la validation de phase 0 sont :
+- API `beginFrame` / `acquireSwapchain` / `recordPass` / `submitFrame` ;
+  `finishFrame` annule seulement sans texture acquise. `renderOffscreen` compose
+  cette API. `PipelineDescription` décrit formats couleur/profondeur, vertex
+  layout et états ; D5 et triangle utilisent la même création de pipeline.
+- Destruction pendant l'enregistrement : handle invalidé immédiatement, appel
+  SDL de libération différé après soumission/annulation. La réutilisation du
+  slot ne libère pas prématurément l'ancien objet ; tests CPU et D5 le vérifient.
+- Présentation SDR/VSYNC à deux frames en vol, traitement resize/minimisation,
+  fermeture après acquisition et suppression de l'attente artificielle.
+- Deux intégrations ImGui séparées, pilotées par `debug_ui`, overlay de statistiques
+  et vérification effective de l'exclusion UI du preset shipping.
+- `Log` : seuil global Info, surcharge par catégorie exacte, niveau Off,
+  `std::format` seulement après filtrage ; minimum macOS 13.3 accepté pour libc++
+  Apple, MSL 2.3 explicite conservé. Aucun spdlog public. Tests de seuils,
+  formatage et sortie réelle. Lecture partielle testée via un flux SDL privé.
+- Actions GitHub épinglées par SHA, release sur les trois OS, clang-tidy 18 et
+  analyse de toutes les unités Somnium ; archive historique shadercross optionnelle
+  et OFF par défaut. Aucun configure ne lance le bootstrap des outils.
 
-- Retirer l'attente artificielle d'`Engine::run` dès qu'une swapchain existe.
-- Ajouter à `Log` le filtrage par niveau et catégorie et une surcharge
-  formatée par `std::format`, sans exposer spdlog.
-- Boucler dans `FileReader::read` sur `SDL_ReadIO` jusqu'à complétion ou erreur.
-- Épingler chaque action GitHub par SHA de commit complet, ajouter un job
-  clang-tidy et documenter la couverture release par shipping ou ajouter
-  explicitement release à la matrice.
-- À l'arrivée du CLI lié à DXC, décider si la compilation de vérification
-  `somnium_shadercross` reste systématique ou passe derrière une option.
-- Conserver dans le résumé de phase le message exact du blocage Windows du
-  test core release et sa cause probable côté contrôle d'application.
-  Le README consigne déjà ce résultat local non validé.
+La référence PNG LFS commune, sa provenance, les seuils, la géométrie et les dix
+sondes de D5 restent sous `engine/gpu/tests/`, inchangés. Le [protocole](GPU_VALIDATION.md)
+et le [plan CI](PHASE_1_CI.md) distinguent rendu, compilation et présentation.
+Lavapipe/Linux, Microsoft Basic Render Driver/Windows et Metal/macOS 15 passent
+D5 avec zéro pixel différent et les couches de validation actives ; Vulkan et
+D3D12 passent aussi sur la Radeon locale. NDC/UV/culling/profondeur sont confirmés dans l'ADR-0002.
 
-La sortie exige le test automatisé hors écran avec relecture et comparaison
-à une image de référence avec tolérance, selon D5 : lavapipe/Vulkan Linux,
-WARP/D3D12 Windows si sa sélection est supportée par l'en-tête SDL épinglé,
-Metal macOS si un device est disponible. Un backend sans device en CI est
-explicitement « non validé » ; sa preuve locale comprend capture et journal
-des couches de validation joints à la PR.
+Le runner **macos-15** reste nécessaire à la validation Metal : macOS 26 reproduit
+un défaut de validation shader sur un programme SDK indépendant. L'horizon de
+retrait annoncé et les conditions de migration figurent dans le plan CI.
+Aucun diagnostic sans validation shader ne remplace la preuve exigée.
+Les groupes de debug SDL suffisent ; aucun marqueur PIX spécifique n'est requis.
 
-Les conventions NDC/UV/culling sont vérifiées dans `SDL_gpu.h` épinglé et
-consignées dans l'ADR-0002. Les ADR-0003 (chaîne de shaders, dont le prérequis
-`.metallib` pour le shipping macOS en phase 4) et ADR-0004 (frame et
-synchronisation GPU) tiennent chacun sur une page : Contexte, Décision,
-Alternatives, Conséquences, puis une seule ligne « Preuves » listant ce qui
-reste à démontrer.
+Les [pièces de présentation](validation/phase-1/README.md) montrent triangle,
+overlay, resize et minimisation/restauration : Vulkan/D3D12 locaux, Metal en CI.
+La capture Metal du runner est acceptée comme substitut local le 21 octobre 2026.
+La validation finale exige la CI verte du SHA présenté dans la PR.
+Un backend sans device/couche CI est « non validé » et exige la preuve locale
+prévue par D5. La fusion `--no-ff` et le tag de phase restent soumis à l'accord
+de fin de phase. ADR-0003/0004 tiennent chacun en une page ; leur ligne « Preuves »
+recense uniquement les validations restantes.
 
 ## 9. Extensions réservées
 

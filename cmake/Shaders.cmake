@@ -1,2 +1,115 @@
-# Reserves the offline shader build integration for phase 1.
-# Phase 0 compiles shadercross but does not create shaders or a GPU device.
+# Consumes an explicitly bootstrapped offline compiler; configure never downloads tools.
+# Each shader owns a depfile, manifest and relocatable installed artifacts.
+include_guard(GLOBAL)
+find_package(Python3 3.12 REQUIRED COMPONENTS Interpreter)
+if(CMAKE_HOST_APPLE)
+    set(somnium_shader_provider source)
+else()
+    set(somnium_shader_provider official)
+endif()
+if(CMAKE_HOST_WIN32)
+    set(somnium_tool_suffix .exe)
+else()
+    set(somnium_tool_suffix "")
+endif()
+get_filename_component(somnium_shader_root "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE)
+set(SOMNIUM_SHADERCROSS_EXECUTABLE
+    "${somnium_shader_root}/.cache/shader-toolchain/install/${somnium_shader_provider}/bin/shadercross${somnium_tool_suffix}"
+    CACHE FILEPATH "Pinned offline shadercross executable (bootstrap separately)")
+get_filename_component(somnium_shader_bin "${SOMNIUM_SHADERCROSS_EXECUTABLE}" DIRECTORY)
+get_filename_component(somnium_shader_lib "${somnium_shader_bin}/../lib" ABSOLUTE)
+set(SOMNIUM_DXC_EXECUTABLE "${somnium_shader_bin}/dxc${somnium_tool_suffix}")
+set(somnium_bootstrap "python tools/shader_toolchain/build.py --provider ${somnium_shader_provider} --jobs 3")
+foreach(tool SOMNIUM_SHADERCROSS_EXECUTABLE SOMNIUM_DXC_EXECUTABLE)
+    if(NOT EXISTS "${${tool}}")
+        message(FATAL_ERROR "${tool} missing: ${${tool}}\nBootstrap explicitly: ${somnium_bootstrap}")
+    endif()
+    if(tool STREQUAL "SOMNIUM_DXC_EXECUTABLE")
+        set(argument --version)
+    else()
+        set(argument --help)
+    endif()
+    execute_process(COMMAND "${CMAKE_COMMAND}" -E env
+        "LD_LIBRARY_PATH=${somnium_shader_lib}" "DYLD_LIBRARY_PATH=${somnium_shader_lib}"
+        "${${tool}}" "${argument}" RESULT_VARIABLE status
+        OUTPUT_VARIABLE output ERROR_VARIABLE error TIMEOUT 20)
+    if(NOT status STREQUAL "0")
+        message(FATAL_ERROR "${tool} cannot run: ${status}\n${output}${error}\nBootstrap explicitly: ${somnium_bootstrap}")
+    endif()
+endforeach()
+if(NOT CMAKE_OSX_DEPLOYMENT_TARGET OR CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS 11.0)
+    message(FATAL_ERROR "Somnium requires declared CMAKE_OSX_DEPLOYMENT_TARGET >= 11.0 (MSL 2.3)")
+endif()
+set(SOMNIUM_MSL_VERSION "2.3.0")
+
+function(somnium_add_shaders)
+    cmake_parse_arguments(SHADER "" "TARGET;NAME;SOURCE;STAGE;ENTRYPOINT;INCLUDE_DIRECTORY" "DEFINES" ${ARGN})
+    foreach(required TARGET NAME SOURCE STAGE ENTRYPOINT INCLUDE_DIRECTORY)
+        if(NOT SHADER_${required})
+            message(FATAL_ERROR "somnium_add_shaders requires ${required}")
+        endif()
+    endforeach()
+    if(SHADER_UNPARSED_ARGUMENTS OR SHADER_KEYWORDS_MISSING_VALUES)
+        message(FATAL_ERROR "Unknown or incomplete shader arguments: ${SHADER_UNPARSED_ARGUMENTS} ${SHADER_KEYWORDS_MISSING_VALUES}")
+    endif()
+    if(NOT TARGET "${SHADER_TARGET}" OR NOT SHADER_NAME MATCHES "^[A-Za-z][A-Za-z0-9_]*$")
+        message(FATAL_ERROR "Invalid shader target or logical name")
+    endif()
+    if(SHADER_STAGE STREQUAL "vertex" AND SHADER_ENTRYPOINT STREQUAL "vsMain")
+        set(short vert)
+    elseif(SHADER_STAGE STREQUAL "fragment" AND SHADER_ENTRYPOINT STREQUAL "psMain")
+        set(short frag)
+    else()
+        message(FATAL_ERROR "Shader entrypoint must be vsMain (vertex) or psMain (fragment); main is forbidden")
+    endif()
+    set(id "${SHADER_NAME}.${SHADER_ENTRYPOINT}.${short}")
+    get_property(names GLOBAL PROPERTY SOMNIUM_SHADER_NAMES)
+    if(id IN_LIST names)
+        message(FATAL_ERROR "Duplicate shader logical name: ${id}")
+    endif()
+    set_property(GLOBAL APPEND PROPERTY SOMNIUM_SHADER_NAMES "${id}")
+    get_filename_component(source "${SHADER_SOURCE}" ABSOLUTE BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+    get_filename_component(includes "${SHADER_INCLUDE_DIRECTORY}" ABSOLUTE BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+    if(NOT EXISTS "${source}" OR NOT IS_DIRECTORY "${includes}")
+        message(FATAL_ERROR "Shader source or include root missing: ${source}, ${includes}")
+    endif()
+    set(base "${CMAKE_CURRENT_BINARY_DIR}/shaders/$<CONFIG>/${id}")
+    set(outputs "${base}.spv" "${base}.dxil" "${base}.msl" "${base}.json")
+    set(script "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../tools/shaders/compile.py")
+    if(SHADER_STAGE STREQUAL "vertex")
+        set(defines --define=SOMNIUM_VERTEX=1)
+    else()
+        set(defines --define=SOMNIUM_FRAGMENT=1)
+    endif()
+    foreach(define IN LISTS SHADER_DEFINES)
+        list(APPEND defines "--define=${define}")
+    endforeach()
+    add_custom_command(OUTPUT ${outputs}
+        COMMAND "${Python3_EXECUTABLE}" "${script}"
+            --shadercross "${SOMNIUM_SHADERCROSS_EXECUTABLE}" --dxc "${SOMNIUM_DXC_EXECUTABLE}"
+            --source "${source}" --include "${includes}" --output "${base}"
+            --stage "${SHADER_STAGE}" --entrypoint "${SHADER_ENTRYPOINT}"
+            --msl-version "${SOMNIUM_MSL_VERSION}" --deployment-target "${CMAKE_OSX_DEPLOYMENT_TARGET}"
+            ${defines}
+        DEPENDS "${source}" "${script}" "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/Shaders.cmake"
+            "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../tools/shader_toolchain/lock.json"
+            "${SOMNIUM_SHADERCROSS_EXECUTABLE}" "${SOMNIUM_DXC_EXECUTABLE}"
+        DEPFILE "${base}.d" BYPRODUCTS "${base}.d"
+        VERBATIM COMMENT "Offline shaders: ${id}")
+    # Use the real executable directory; a utility target is useful for build-contract tests.
+    get_target_property(type "${SHADER_TARGET}" TYPE)
+    if(type STREQUAL "EXECUTABLE")
+        set(destination "$<TARGET_FILE_DIR:${SHADER_TARGET}>/assets/shaders")
+    else()
+        set(destination "${CMAKE_CURRENT_BINARY_DIR}/bin/assets/shaders")
+    endif()
+    set(copy_commands COMMAND "${CMAKE_COMMAND}" -E make_directory "${destination}")
+    foreach(output IN LISTS outputs)
+        list(APPEND copy_commands COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${output}" "${destination}")
+    endforeach()
+    add_custom_target("${SHADER_TARGET}_${SHADER_NAME}_${short}_shaders"
+        ${copy_commands} DEPENDS ${outputs} VERBATIM)
+    add_dependencies("${SHADER_TARGET}" "${SHADER_TARGET}_${SHADER_NAME}_${short}_shaders")
+    set_property(TARGET "${SHADER_TARGET}" APPEND PROPERTY SOMNIUM_SHADER_MANIFESTS "${base}.json")
+    install(FILES ${outputs} DESTINATION bin/assets/shaders)
+endfunction()

@@ -1,151 +1,158 @@
 <!--
-Describes the foundation build, tooling and platform verification.
-Later shader and rendering work remains scoped to its approved phase.
+Décrit le moteur implémenté en phase 1 et les commandes de vérification reproductibles.
+Les résultats de rendu et les limites de l'environnement restent explicitement identifiés.
 -->
 # Somnium
 
-Moteur de jeu 3D C++20, développé par phases sur Windows, Linux et macOS.
-La phase 0 fournit l'outillage, les fondations et une fenêtre vide, sans device GPU.
+Moteur de jeu 3D C++20 pour Windows, Linux et macOS. La branche
+`phase/1-gpu-shaders` ajoute les shaders hors ligne, le device et les ressources
+GPU, un triangle présenté en VSYNC et un overlay ImGui. La fusion de phase 1 et
+son tag restent soumis à la validation de fin de phase.
 
-- [Architecture](docs/ARCHITECTURE.md)
-- [Stack et dépendances](docs/adr/0001-stack-dependances-licences.md)
-- [Conventions](docs/adr/0002-conventions.md)
+- [Architecture](docs/ARCHITECTURE.md) et [conventions](docs/adr/0002-conventions.md)
+- [Dépendances et licences](docs/adr/0001-stack-dependances-licences.md)
+- [Chaîne de shaders](docs/adr/0003-chaine-shaders.md), [frame GPU](docs/adr/0004-frame-synchronisation-gpu.md)
+- [Plan et résultats CI](docs/PHASE_1_CI.md), [protocole D5](docs/GPU_VALIDATION.md)
+- [Captures de présentation et journaux](docs/validation/phase-1/README.md) : Windows local, Metal CI identifié
 
-Le jalon documentaire et la phase 0 sont validés. La fusion `--no-ff` dans
-`main` et le tag `phase-0` sont autorisés après les corrections de revue et
-une nouvelle CI verte. La suite est préparée sur `phase/1-gpu-shaders` ;
-son périmètre et ses prérequis de sortie figurent dans l'architecture.
+## Prérequis et bootstrap
 
-## Prérequis
+Git avec Git LFS (`git lfs install`), CMake ≥ 3.28, Ninja et **Python ≥ 3.12,
+requis dès le configure**. Compilateur C++20 avec `std::format` : MSVC récent et
+Windows SDK depuis un terminal développeur, LLVM-MinGW UCRT, GCC 13/Clang récent
+sous Linux, ou Xcode récent sous macOS. Ajouter les outils au `PATH`.
+Les paquets de développement SDL/X11/Wayland/audio/udev nécessaires sous Linux
+figurent dans [ci.yml](.github/workflows/ci.yml) ; `xvfb` permet les tests sans écran.
 
-- Git avec Git LFS (`git lfs install`), CMake ≥ 3.28, Ninja, Python ≥ 3.10.
-- Windows : MSVC avec Windows SDK depuis un terminal développeur, ou
-  LLVM-MinGW UCRT. Ce dernier doit avoir son répertoire `bin` dans `PATH`.
-- Linux : GCC/Clang et les paquets de développement SDL de la CI (X11/Wayland,
-  xkbcommon, EGL/OpenGL, ALSA/PulseAudio et udev) ; `xvfb` pour tester sans écran.
-- macOS : Xcode Command Line Tools, CMake et Ninja.
-- Formatage : `python -m pip install clang-format==18.1.8`.
+Construire d'abord les outils de shaders :
 
-Les bibliothèques sont acquises par CPM avec les versions exactes de
-`cmake/Dependencies.cmake`. `CPM_SOURCE_CACHE` peut être défini dans
-l'environnement ou passé à CMake ; il vaut `.cache/cpm` par défaut. Le premier
-configure nécessite Internet. Les fichiers en cache ne sont pas versionnés.
-Le bootstrap CPM est vérifié par SHA-256.
+```sh
+python -m pip install cmake==3.31.6 ninja==1.11.1.3
+python tools/shader_toolchain/build.py --provider official --jobs 3
+```
 
-## Compiler, exécuter et tester
+Windows/Linux x64 utilisent les archives officielles DXC **v1.9.2609**, vérifiées
+par SHA-256. Sous macOS arm64, remplacer `official` par `source`. SDL_shadercross,
+SPIRV-Cross et DXC sont épinglés dans le [verrou](tools/shader_toolchain/lock.json).
+Le bootstrap construit, installe et teste le CLI sous
+`.cache/shader-toolchain/install/<provider>/bin`. Le configure moteur **ne le
+lance jamais** : `SOMNIUM_SHADERCROSS_EXECUTABLE` désigne ce CLI, avec DXC voisin
+pour les depfiles. Un outil manquant ou inexécutable provoque une erreur fatale
+avec la commande de bootstrap. Les détails et le blocage local Windows du CLI
+par la stratégie de contrôle d'application sont consignés dans [SHADERS.md](docs/SHADERS.md).
 
-Depuis la racine du dépôt, dans un terminal avec le compilateur dans `PATH` :
+CPM acquiert les bibliothèques aux versions exactes de `cmake/Dependencies.cmake`.
+`CPM_SOURCE_CACHE` vaut `.cache/cpm` par défaut ; le premier configure nécessite
+Internet. Les caches et le bootstrap CPM sont vérifiés, jamais versionnés.
+
+## Compiler et exécuter
+
+Depuis la racine du dépôt, après le bootstrap :
 
 ```sh
 cmake --preset debug -DSOMNIUM_WARNINGS_AS_ERRORS=ON
 cmake --build --preset debug --parallel
 ctest --preset debug
+build/debug/bin/sandbox --frames 120
 ```
 
-Sous LLVM-MinGW, sélectionner les compilateurs au premier configure :
+Sous Windows, exécuter `sandbox.exe`. Avec LLVM-MinGW, ajouter au premier
+configure `-DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++`.
+Sous Linux sans écran : `xvfb-run -a ctest --preset debug` ; les tests purement
+CPU se sélectionnent avec `ctest --preset debug -LE window`.
 
-```sh
-cmake --preset debug -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DSOMNIUM_WARNINGS_AS_ERRORS=ON
-```
+Le backend par défaut est D3D12 sous Windows, Vulkan sous Linux, Metal sous
+macOS. `sandbox --backend vulkan` permet une sélection explicite ; aucune
+substitution silencieuse. Sans `--frames`, la croix ferme la fenêtre.
+Le mode borné ferme après acquisition d'une frame et vérifie sa soumission.
+Redimensionnement et minimisation utilisent la taille réelle de la swapchain ;
+sans texture, le moteur attend les événements. La présentation VSYNC cadence
+la boucle, avec deux frames en vol et aucun délai artificiel.
 
-Exécution : `build/debug/bin/sandbox` (`sandbox.exe` sous Windows). La fenêtre est
-redimensionnable ; la croix de fermeture quitte proprement. Le mode
-`sandbox --frames 120` termine en envoyant l'événement de fermeture normal.
-La sortie indique frames, pas fixes, coefficient d'interpolation et temps
-abandonné. Aucun device GPU ni rendu n'est créé en phase 0.
+Les shaders sont toujours lus via `platform` sous **`<exécutable>/assets`**,
+indépendamment du répertoire courant. `cmake --install build/debug --prefix <dossier>`
+installe le binaire avec ses artefacts. La lecture boucle sur les retours partiels
+SDL et échoue explicitement en cas d'erreur, d'absence de progression ou de fichier
+supérieur à 256 MiB. Les chemins logiques refusent `..` et les chemins natifs.
 
-Sur Linux sans écran : `xvfb-run -a ctest --preset debug`.
-Pour les tests purement CPU : `ctest --preset debug -LE window`.
-La lecture des fichiers est plafonnée à 256 MiB au MVP et retourne une erreur
-explicite au-delà. Les identifiants relatifs n'acceptent pas de remontée `..`.
-
-| Preset | Build | UI | Tracy | Sanitizers |
+| Preset | Build | UI | Tracy | Validation GPU / sanitizers |
 | --- | --- | --- | --- | --- |
-| `debug` | Debug | ON | OFF | OFF |
+| `debug` | Debug | ON | OFF | Debug GPU |
 | `release` | Release | ON | OFF | OFF |
 | `profiling` | RelWithDebInfo | ON | CPU/mémoire | OFF |
 | `shipping` | Release | OFF | OFF | OFF |
-| `asan-ubsan` | Debug, Linux/macOS | ON | OFF | ASan + UBSan |
+| `asan-ubsan` | Debug, Linux/macOS | ON | OFF | Debug GPU, ASan + UBSan |
 
-Chaque preset a les commandes `cmake --preset <nom>`,
-`cmake --build --preset <nom>` et `ctest --preset <nom>`.
-L'intégration ImGui au moteur appartient à la phase 1 : initialisation,
-façades de coopération et liaison par `debug_ui`. En phase 0, l'option UI
-active seulement la compilation des sources amont, dont les deux backends
-officiels dans `somnium_platform_imgui` et `somnium_gpu_imgui`.
-Les modules sans source n'ont pas de cible factice.
+Chaque preset possède les commandes configure/build/ctest correspondantes.
+L'overlay affiche FPS, temps moyen de frame et compteurs de dessins, soumissions
+et uploads. `debug_ui` pilote les deux intégrations officielles séparées
+`somnium_platform_imgui` et `somnium_gpu_imgui`. Le preset shipping ne construit
+ni ces cibles, ni `somnium_imgui`, ni `somnium_debug_ui` ; la CI inspecte le graphe
+et les unités compilées. Les modules encore sans sources restent sans cible.
 
-## Profilage et mémoire
+## Shaders et preuve de rendu
 
-Le preset profiling active Tracy 0.14.1. Connecter le profiler ou l'outil
-`capture` de **la même version** à `127.0.0.1` pendant l'exécution. La découverte
-réseau et le profilage système sont désactivés. Les zones couvrent la frame,
-les pas fixes, le gameplay et la collecte d'événements. Les hooks mémoire
-instrumentent les objets Engine et Platform ; ils ne prétendent pas couvrir
-les allocations de toutes les dépendances. Hors profiling, les macros
-n'évaluent pas leurs arguments. Pas de mesure de durée GPU au MVP.
+`somnium_add_shaders()` produit SPIR-V, DXIL, MSL **2.3** et manifeste réfléchi,
+avec depfiles sur les includes HLSL transitifs. Entrées `vsMain`/`psMain`, jamais
+`main`. Cible moteur macOS **13.3** minimum pour `std::format` avec la libc++ Apple ;
+un ancien cache doit être reconfiguré avec `-DCMAKE_OSX_DEPLOYMENT_TARGET=13.3`.
+MSL reste explicitement **2.3.0**, compatible avec cette cible. Aucun compilateur HLSL n'est lié
+ou livré au moteur ; le driver compile le MSL. Le `.metallib` reste un prérequis
+de shipping macOS à réaliser au cuiseur de phase 4.
+`SOMNIUM_VERIFY_SHADERCROSS_LIBRARY=OFF` désactive l'ancienne archive de vérification.
 
-Sous Linux :
+D5 crée un device sans fenêtre, rend une scène RGBA8/D32, relit après une fence
+et compare la référence PNG unique sous LFS. Géométrie, seuils et dix sondes
+exactes sont dans `engine/gpu/tests/reference_scene.json`.
+
+```sh
+python tools/gpu/run.py --executable build/debug/bin/somnium_gpu_offscreen --backend vulkan --output .cache/d5-local
+```
+
+Windows : `.exe` et `--backend direct3d12` ; macOS : `--backend metal` ; Linux
+sans écran : préfixer par `xvfb-run -a`. Le [passage D5 validé de l'étape b](https://github.com/FoxTimew/Somnium/actions/runs/39593890450)
+obtient **zéro pixel différent et dix centres exacts** sur lavapipe/Linux,
+Microsoft Basic Render Driver/Windows et Metal/macOS 15, avec couches actives.
+La référence et sa provenance sont inchangées pendant les étapes c–e.
+Le rendu Metal dépend du runner **macos-15** à cause d'un défaut de validation
+shader paravirtualisée sur macOS 26 ; horizon de retrait et procédure de migration
+dans le [plan CI](docs/PHASE_1_CI.md). D5 hors écran et captures de présentation
+sont des preuves distinctes. Sans device/couche disponible, le résultat publié
+est explicitement « non validé ».
+
+## Qualité, logs et profilage
+
+La CI configure, construit et teste **debug, release, shipping et profiling sur
+les trois OS**, puis exécute D5, clang-tidy **18** et ASan/UBSan Linux. Les logs,
+images de rendu et rapports d'analyse sont des artefacts. Les actions GitHub
+sont épinglées par SHA complet.
+
+```sh
+python -m pip install clang-format==18.1.8
+python tools/format.py --check
+python tools/check_architecture.py .
+python tools/run_clang_tidy.py --build build/debug --tool clang-tidy-18
+```
+
+`Log::setLevel` règle le seuil global (Info par défaut).
+`setCategoryLevel("gpu", Level::Debug)` remplace ce seuil pour la catégorie exacte ;
+`clearCategoryLevel` restaure l'héritage, `Off` désactive les messages concernés.
+`Log::write("gpu", Level::Info, "Uploads : {}", count)` utilise `std::format`
+après filtrage. L'interface publique ne dépend pas de spdlog.
+
+Le preset profiling active Tracy **0.14.1** : connecter le profiler de même
+version à `127.0.0.1`. Zones CPU, hooks mémoire Engine/Platform, compteurs GPU et
+groupes de debug SDL sont disponibles ; aucune zone de durée GPU Tracy ni
+marqueur PIX spécifique n'est requis.
+
+Sous Linux, après installation de Mesa/lavapipe :
 
 ```sh
 cmake --preset asan-ubsan -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DSDL_WAYLAND=OFF -DSDL_X11_SHARED=OFF
 cmake --build --preset asan-ubsan --parallel
-ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 UBSAN_OPTIONS=halt_on_error=1 xvfb-run -a ctest --preset asan-ubsan
+ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 UBSAN_OPTIONS=halt_on_error=1 python tools/run_sanitizers.py
 ```
 
-Le test Linux utilise X11 sous Xvfb. Dans ce build sanitizer, SDL lie X11
-normalement au lieu de le charger par `dlopen` : son déchargement ferait
-disparaître les racines des caches globaux Xlib avant le passage de LSan.
-La détection de fuites reste active, sans suppression. Wayland n'est pas couvert
-par cette exécution ; les autres configurations locales peuvent l'activer.
-
-## Outils de shaders — préparation de la phase 1
-
-Phase 0 compile les sources de la bibliothèque SDL_shadercross avec le support
-DXC activé et SPIRV-Cross `vulkan-sdk-1.4.363.0`. L'archive reste hors du moteur ;
-le CLI lié à DXC et la génération HLSL par `somnium_add_shaders()` appartiennent
-à la phase 1. Aucun binaire de shader n'est produit en phase 0.
-
-Pour préparer un CLI complet, installer DXC
-[`v1.9.2609`](https://github.com/microsoft/DirectXShaderCompiler/releases/tag/v1.9.2609)
-et ses bibliothèques `dxcompiler`/`dxil` (DLL et import libraries sous Windows,
-bibliothèques partagées sous Linux). Pour macOS, une construction de DXC depuis
-ses sources est nécessaire ; sa configuration sera vérifiée en phase 1.
-Installer SPIRV-Cross au tag ci-dessus, avec son interface C et ses packages
-CMake, puis SDL3 3.4.18. Configurer le dépôt SDL_shadercross au SHA
-`1ff05bec573988a98ef9e0260b4da44f512b8367` avec les options amont
-`SDLSHADERCROSS_CLI=ON`, `SDLSHADERCROSS_DXC=ON`,
-`SDLSHADERCROSS_VENDORED=OFF`, `SDLSHADERCROSS_SPIRVCROSS_SHARED=OFF`
-et les préfixes des packages installés. Son module
-`FindDirectXShaderCompiler.cmake` décrit les chemins des SDK attendus.
-Les instructions d'installation et la validation du CLI complet seront
-finalisées avec la chaîne de shaders ; elles ne sont pas une preuve actuelle
-de compilation HLSL sur les trois OS.
-
-Au MVP, le MSL généré hors ligne est chargé par SDL et compilé par le driver.
-Le `.metallib` est reporté au cuiseur de phase 4, prérequis de shipping macOS.
-
-## Qualité et CI
-
-```sh
-python tools/format.py --check
-python tools/check_architecture.py .
-```
-
-[GitHub Actions](https://github.com/FoxTimew/Somnium/actions) compile et teste
-Windows/Linux/macOS en debug, shipping et profiling, avec un job Linux ASan/UBSan.
-Les dépendances directes entre modules et leur visibilité sont contrôlées
-au configure ; CTest vérifie également les frontières d'includes.
-Les logs CTest sont conservés comme artefacts. Les tests de dépendances vérifient
-notamment JSON sans exceptions, cgltf/stb sur entrée invalide, EnTT direct et
-projection GLM. Les tests de modules vérifient erreurs, handles, lecture et
-accumulateur. La preuve de rendu hors écran sera introduite en phase 1.
-
-Lors de la validation locale Windows/LLVM-MinGW, le lancement de
-`build/release/bin/somnium_core_tests.exe` a échoué avec le message :
-« Une stratégie de contrôle d’application a bloqué ce fichier. »
-La cause probable relève de la stratégie de contrôle d'application Windows ;
-le test n'a pas démarré et reste **non validé** dans ce preset local. Les cinq
-autres tests release passent, ainsi que les six tests debug, shipping et
-profiling. La CI MSVC couvre ces trois derniers presets. La couverture du
-preset release sera explicitée ou ajoutée à la matrice en phase 1.
+Ce passage utilise X11/Xvfb, lie Xlib et conserve lavapipe chargé jusqu'au contrôle
+LSan pour que les racines de caches natifs restent visibles. La détection des
+fuites reste active, sans suppression. Wayland n'est pas couvert par ce job.

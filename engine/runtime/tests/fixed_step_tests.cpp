@@ -1,6 +1,5 @@
 // Tests time accounting without wall-clock sleeps or SDL devices.
 // Conservation checks detect both duplicated ticks and silently lost fractional time.
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 #include <somnium/core/conventions.hpp>
 #include <somnium/runtime/fixed_step.hpp>
@@ -47,9 +46,9 @@ TEST_CASE("A variable frame sequence conserves time and never leaves alpha outsi
         const auto delta = static_cast<double>((frame * 37) % 400) / 1000.0;
         auto batch = loop.advance(delta);
         REQUIRE(batch);
-        CHECK(batch->steps <= somnium::core::kMaxFixedSteps);
-        CHECK(batch->alpha >= 0.0);
-        CHECK(batch->alpha < 1.0);
+        CHECK_LE(batch->steps, somnium::core::kMaxFixedSteps);
+        CHECK_GE(batch->alpha, 0.0);
+        CHECK_LT(batch->alpha, 1.0);
         elapsed += delta;
         dropped += batch->droppedSeconds;
         steps += batch->steps;

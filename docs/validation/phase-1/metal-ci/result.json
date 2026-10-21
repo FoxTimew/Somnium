@@ -1,0 +1,312 @@
+{
+  "origin": "GitHub Actions macOS runner",
+  "backend": "metal",
+  "commit": "2356c60f8c828ab197c5c3630510778a6b7351aa",
+  "status": "validé",
+  "binary_sha256": "28fda518ef32b56e3e9dd820021abcd692271ca9c2e73bd15c98255924f33ac3",
+  "captures": [
+    "triangle-overlay.png",
+    "resize.png",
+    "minimized-desktop.png",
+    "restore.png"
+  ],
+  "actions": {
+    "resize": {
+      "exit_code": 0,
+      "diagnostic": "",
+      "windows": [
+        {
+          "kCGWindowLayer": 0,
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          },
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowName": "",
+          "kCGWindowOwnerPID": 1230,
+          "kCGWindowSharingState": 1,
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowStoreType": 1,
+          "kCGWindowAlpha": 1,
+          "kCGWindowNumber": 28
+        },
+        {
+          "kCGWindowSharingState": 1,
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 600,
+            "Y": 25,
+            "Width": 960
+          },
+          "kCGWindowAlpha": 1,
+          "kCGWindowOwnerPID": 1230,
+          "kCGWindowIsOnscreen": true,
+          "kCGWindowName": "Somnium - Phase 1",
+          "kCGWindowNumber": 27,
+          "kCGWindowStoreType": 1,
+          "kCGWindowLayer": 0
+        },
+        {
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowOwnerPID": 1230,
+          "kCGWindowStoreType": 1,
+          "kCGWindowName": "",
+          "kCGWindowNumber": 31,
+          "kCGWindowAlpha": 1,
+          "kCGWindowLayer": 0,
+          "kCGWindowSharingState": 1,
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          },
+          "kCGWindowMemoryUsage": 2288
+        },
+        {
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          },
+          "kCGWindowOwnerPID": 1230,
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowSharingState": 1,
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowAlpha": 1,
+          "kCGWindowStoreType": 1,
+          "kCGWindowName": "",
+          "kCGWindowNumber": 30,
+          "kCGWindowLayer": 0
+        },
+        {
+          "kCGWindowName": "",
+          "kCGWindowNumber": 29,
+          "kCGWindowOwnerPID": 1230,
+          "kCGWindowSharingState": 1,
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          },
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowAlpha": 1,
+          "kCGWindowLayer": 0,
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowStoreType": 1
+        }
+      ]
+    },
+    "minimize": {
+      "exit_code": 0,
+      "diagnostic": "",
+      "windows": [
+        {
+          "kCGWindowNumber": 28,
+          "kCGWindowAlpha": 1,
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowStoreType": 1,
+          "kCGWindowSharingState": 1,
+          "kCGWindowName": "",
+          "kCGWindowLayer": 0,
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          },
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowOwnerPID": 1230
+        },
+        {
+          "kCGWindowOwnerPID": 1230,
+          "kCGWindowName": "Somnium - Phase 1",
+          "kCGWindowLayer": 0,
+          "kCGWindowStoreType": 1,
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 600,
+            "Y": 25,
+            "Width": 960
+          },
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowNumber": 27,
+          "kCGWindowAlpha": 1,
+          "kCGWindowSharingState": 1
+        },
+        {
+          "kCGWindowStoreType": 1,
+          "kCGWindowOwnerPID": 1230,
+          "kCGWindowName": "",
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowSharingState": 1,
+          "kCGWindowAlpha": 1,
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowNumber": 31,
+          "kCGWindowLayer": 0,
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          }
+        },
+        {
+          "kCGWindowName": "",
+          "kCGWindowNumber": 30,
+          "kCGWindowAlpha": 1,
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          },
+          "kCGWindowLayer": 0,
+          "kCGWindowSharingState": 1,
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowOwnerPID": 1230,
+          "kCGWindowStoreType": 1
+        },
+        {
+          "kCGWindowNumber": 29,
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowAlpha": 1,
+          "kCGWindowLayer": 0,
+          "kCGWindowOwnerPID": 1230,
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          },
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowName": "",
+          "kCGWindowStoreType": 1,
+          "kCGWindowSharingState": 1
+        }
+      ],
+      "observed_minimized": true
+    },
+    "restore": {
+      "exit_code": 0,
+      "diagnostic": "",
+      "windows": [
+        {
+          "kCGWindowSharingState": 1,
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowNumber": 28,
+          "kCGWindowOwnerPID": 1230,
+          "kCGWindowName": "",
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          },
+          "kCGWindowStoreType": 1,
+          "kCGWindowLayer": 0,
+          "kCGWindowAlpha": 1
+        },
+        {
+          "kCGWindowLayer": 0,
+          "kCGWindowStoreType": 1,
+          "kCGWindowOwnerPID": 1230,
+          "kCGWindowSharingState": 1,
+          "kCGWindowIsOnscreen": true,
+          "kCGWindowName": "Somnium - Phase 1",
+          "kCGWindowAlpha": 1,
+          "kCGWindowNumber": 27,
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 600,
+            "Y": 25,
+            "Width": 960
+          }
+        },
+        {
+          "kCGWindowNumber": 31,
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowName": "",
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowLayer": 0,
+          "kCGWindowSharingState": 1,
+          "kCGWindowAlpha": 1,
+          "kCGWindowOwnerPID": 1230,
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          },
+          "kCGWindowStoreType": 1
+        },
+        {
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowSharingState": 1,
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowNumber": 30,
+          "kCGWindowAlpha": 1,
+          "kCGWindowLayer": 0,
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          },
+          "kCGWindowOwnerPID": 1230,
+          "kCGWindowStoreType": 1,
+          "kCGWindowName": ""
+        },
+        {
+          "kCGWindowAlpha": 1,
+          "kCGWindowNumber": 29,
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowStoreType": 1,
+          "kCGWindowOwnerPID": 1230,
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          },
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowName": "",
+          "kCGWindowLayer": 0,
+          "kCGWindowSharingState": 1
+        }
+      ]
+    }
+  },
+  "window": {
+    "kCGWindowName": "Somnium - Phase 1",
+    "kCGWindowNumber": 27,
+    "kCGWindowBounds": {
+      "X": 0,
+      "Height": 681,
+      "Y": 25,
+      "Width": 1024
+    },
+    "kCGWindowAlpha": 1,
+    "kCGWindowOwnerPID": 1230,
+    "kCGWindowStoreType": 1,
+    "kCGWindowLayer": 0,
+    "kCGWindowOwnerName": "sandbox",
+    "kCGWindowSharingState": 1,
+    "kCGWindowIsOnscreen": true,
+    "kCGWindowMemoryUsage": 2288
+  },
+  "exit_code": 0,
+  "validation_errors": false,
+  "validation_enabled": true
+}

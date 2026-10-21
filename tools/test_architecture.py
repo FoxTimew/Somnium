@@ -1,0 +1,43 @@
+# Exercises forbidden includes as well as the two narrowly scoped integration exceptions.
+# Fixtures ensure a new integration directory cannot hide leaks in other engine modules.
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+import unittest
+
+SCANNER = Path(__file__).with_name("check_architecture.py")
+
+class Boundaries(unittest.TestCase):
+    def check_source(self, path, source, accepted):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            file = root / "engine" / path
+            file.parent.mkdir(parents=True)
+            file.write_text(source, encoding="utf-8")
+            result = subprocess.run([sys.executable, str(SCANNER), str(root)], capture_output=True, text=True)
+            self.assertEqual(result.returncode == 0, accepted, result.stdout + result.stderr)
+
+    def test_debug_ui_only_uses_facades(self):
+        for dependency, accepted in [("core", True), ("scene", True), ("input", True),
+                                     ("platform_imgui", True), ("gpu_imgui", True),
+                                     ("platform", False), ("gpu", False)]:
+            with self.subTest(dependency=dependency):
+                self.check_source("debug_ui/src/overlay.cpp", f"#include <somnium/{dependency}/api.hpp>", accepted)
+
+    def test_base_modules_reject_ui_and_public_native_types(self):
+        for module in ["platform", "gpu"]:
+            for source in ['#include <imgui.h>', '#if SOMNIUM_ENABLE_DEBUG_UI\n#endif', '#ifdef IMGUI_VERSION\n#endif']:
+                with self.subTest(module=module, source=source):
+                    self.check_source(f"{module}/src/base.cpp", source, False)
+            self.check_source(f"{module}/include/api.hpp", "SDL_Window* window;", False)
+
+    def test_adapters_remain_inside_their_boundaries(self):
+        self.check_source("platform/integration/adapter.cpp", '#include <imgui.h>\nSDL_Event event;', True)
+        self.check_source("gpu/integration/adapter.cpp", '#include <imgui.h>\n#include <SDL3/SDL_gpu.h>', True)
+        self.check_source("gpu/integration/adapter.cpp", 'SDL_Event event;', False)
+        self.check_source("debug_ui/integration/adapter.cpp", '#include <somnium/gpu/device.hpp>', False)
+        self.check_source("platform/integration/include/api.hpp", 'SDL_Event event;', False)
+
+if __name__ == "__main__":
+    unittest.main()

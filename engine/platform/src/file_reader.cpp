@@ -1,11 +1,11 @@
 // Reads bounded resources through SDL IO without assuming the working directory.
 // Logical paths are relative slash-separated identifiers; OS roots stay private.
+#include "read_stream.hpp"
 #include <somnium/platform/file_reader.hpp>
 
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_filesystem.h>
 #include <SDL3/SDL_iostream.h>
-#include <somnium/core/conventions.hpp>
 #include <somnium/core/log.hpp>
 #include <somnium/core/profile.hpp>
 
@@ -74,18 +74,9 @@ Result<core::Bytes> FileReader::read(std::string_view logicalPath) const {
     if (!stream) {
         return tl::unexpected(Error{ErrorCode::Io, SDL_GetError()});
     }
-    const auto length = SDL_GetIOSize(stream.get());
-    if (length < 0) {
-        return tl::unexpected(Error{ErrorCode::Io, SDL_GetError()});
-    }
-    if (static_cast<std::uint64_t>(length) > core::kMaxResourceBytes) {
-        return tl::unexpected(
-            Error{ErrorCode::CapacityExceeded, "Resource exceeds the MVP read limit"});
-    }
-    core::Bytes bytes(static_cast<std::size_t>(length));
-    if (!bytes.empty() && SDL_ReadIO(stream.get(), bytes.data(), bytes.size()) != bytes.size()) {
-        return tl::unexpected(Error{ErrorCode::Io, "Resource read was incomplete: " + path});
-    }
+    auto bytes = detail::readStream(*stream);
+    if (!bytes)
+        return bytes;
     if (!SDL_CloseIO(stream.release())) {
         return tl::unexpected(Error{ErrorCode::Io, SDL_GetError()});
     }

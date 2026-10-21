@@ -13,7 +13,7 @@ paths = [
     str(path)
     for folder in ("engine", "game", "sandbox", "tools")
     for path in (root / folder).rglob("*")
-    if path.suffix in {".hpp", ".cpp", ".h", ".c"}
+    if path.suffix in {".hpp", ".cpp", ".h", ".c", ".mm"}
 ]
 flags = ["--dry-run", "--Werror"] if args.check else ["-i"]
 subprocess.run([args.clang_format, *flags, *paths], check=True)

@@ -42,18 +42,37 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif()
 CPMAddPackage(NAME expected GITHUB_REPOSITORY TartanLlama/expected GIT_TAG v1.3.1
     SYSTEM YES OPTIONS "EXPECTED_BUILD_TESTS OFF" "EXPECTED_BUILD_PACKAGE OFF")
+set(somnium_doctest_cxx_flags "${CMAKE_CXX_FLAGS}")
+if(MSVC)
+    string(REGEX REPLACE "(^| )[/-]EHsc( |$)" " " CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+endif()
 CPMAddPackage(NAME doctest GITHUB_REPOSITORY doctest/doctest GIT_TAG v2.5.3
-    SYSTEM YES OPTIONS "DOCTEST_WITH_TESTS OFF" "DOCTEST_WITH_MAIN_IN_STATIC_LIB OFF")
+    SYSTEM YES OPTIONS "DOCTEST_WITH_TESTS OFF" "DOCTEST_WITH_MAIN_IN_STATIC_LIB ${BUILD_TESTING}")
+set(CMAKE_CXX_FLAGS "${somnium_doctest_cxx_flags}")
+unset(somnium_doctest_cxx_flags)
+if(BUILD_TESTING)
+    # Compile the upstream runner once, outside project units analyzed by clang-tidy.
+    # Test/framework allocations remain covered by ASan/LSan; no diagnostic is suppressed.
+    target_compile_definitions(doctest_with_main PUBLIC DOCTEST_CONFIG_NO_EXCEPTIONS_BUT_WITH_ALL_ASSERTS)
+    if(MSVC)
+        target_compile_options(doctest_with_main PRIVATE /GR- /EHs-c-)
+    else()
+        target_compile_options(doctest_with_main PRIVATE -fno-exceptions -fno-rtti)
+    endif()
+    somnium_sanitizers(doctest_with_main)
+endif()
 CPMAddPackage(NAME cgltf GITHUB_REPOSITORY jkuhlmann/cgltf GIT_TAG v1.15 DOWNLOAD_ONLY YES)
 CPMAddPackage(NAME stb GITHUB_REPOSITORY nothings/stb
     GIT_TAG a7d4c2175630e1ea5b6f8dd00ab96fed0b97b96d DOWNLOAD_ONLY YES)
 CPMAddPackage(NAME imgui GITHUB_REPOSITORY ocornut/imgui GIT_TAG v1.93.0 DOWNLOAD_ONLY YES)
-CPMAddPackage(NAME shadercross GITHUB_REPOSITORY libsdl-org/SDL_shadercross
-    GIT_TAG 1ff05bec573988a98ef9e0260b4da44f512b8367 GIT_SUBMODULES "" DOWNLOAD_ONLY YES)
-CPMAddPackage(NAME spirv_cross GITHUB_REPOSITORY KhronosGroup/SPIRV-Cross
-    GIT_TAG vulkan-sdk-1.4.363.0 SYSTEM YES OPTIONS "SPIRV_CROSS_CLI OFF"
-    "SPIRV_CROSS_ENABLE_TESTS OFF" "SPIRV_CROSS_SKIP_INSTALL ON"
-    "SPIRV_CROSS_SHARED OFF" "SPIRV_CROSS_STATIC ON")
+if(SOMNIUM_VERIFY_SHADERCROSS_LIBRARY)
+    CPMAddPackage(NAME shadercross GITHUB_REPOSITORY libsdl-org/SDL_shadercross
+        GIT_TAG 1ff05bec573988a98ef9e0260b4da44f512b8367 GIT_SUBMODULES "" DOWNLOAD_ONLY YES)
+    CPMAddPackage(NAME spirv_cross GITHUB_REPOSITORY KhronosGroup/SPIRV-Cross
+        GIT_TAG vulkan-sdk-1.4.363.0 SYSTEM YES OPTIONS "SPIRV_CROSS_CLI OFF"
+        "SPIRV_CROSS_ENABLE_TESTS OFF" "SPIRV_CROSS_SKIP_INSTALL ON"
+        "SPIRV_CROSS_SHARED OFF" "SPIRV_CROSS_STATIC ON")
+endif()
 
 add_library(somnium_cgltf STATIC "${PROJECT_SOURCE_DIR}/tools/dependencies/cgltf_impl.c")
 target_include_directories(somnium_cgltf SYSTEM PUBLIC "${cgltf_SOURCE_DIR}")

@@ -50,11 +50,12 @@ tailles, offsets et alignements sont contrôlés pour chaque bloc de transfert.
 Les matrices mathématiques ne sont pas confondues avec la disposition d'un
 `float3` dans un buffer uniforme.
 
-### SDL GPU : constat initial, revalidation en phase 1
+### SDL GPU : en-tête épinglé vérifié au point de contrôle de phase 1
 
 L'en-tête
-[`SDL_gpu.h` de `release-3.4.18`](https://github.com/libsdl-org/SDL/blob/release-3.4.18/include/SDL3/SDL_gpu.h)
-a été consulté à distance lors de cette revue. Il décrit :
+[`SDL_gpu.h` de `release-3.4.18`](https://github.com/libsdl-org/SDL/blob/829a65d769d935c4852f8159e964312c0957260a/include/SDL3/SDL_gpu.h)
+a été relu dans le cache CPM le 21 octobre 2026, au commit
+`829a65d769d935c4852f8159e964312c0957260a`. Il décrit :
 
 - NDC : coin bas gauche (-1, -1), coin haut droit (1, 1), profondeur 0..1.
 - Viewport : origine en haut à gauche, +Y vers le bas.
@@ -71,11 +72,19 @@ donnent x = x0 + (ndcX + 1) × W/2 et y = y0 + (1 - ndcY) × H/2. La dimension
 provient des pixels de la cible de rendu, sans supposer qu'elle égale les
 dimensions logiques de la fenêtre.
 
-Le choix final du front face sera dérivé et testé **au début de la phase 1**,
-après lecture de l'en-tête du cache CPM épinglé, comme demandé. Un triangle
-orienté connu, puis le cube glTF de référence, vérifieront culling, profondeur,
-faces et orientation des textures. Aucun enum de culling n'est figé ici sur
-la seule intuition du sens d'un axe.
+Les enums lus sont `SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE` / `CLOCKWISE` et
+`SDL_GPU_CULLMODE_NONE` / `FRONT` / `BACK`. Choix accepté avec l'ADR-0004 :
+front face COUNTER_CLOCKWISE, culling BACK, profondeur LESS et clear à 1. Les
+backends épinglés traduisent directement ces choix en leurs conventions natives ;
+le résultat est vérifié par le [test de référence](../GPU_VALIDATION.md)
+hors écran : triangle CCW asymétrique, winding opposé rejeté, texture à quatre
+couleurs, repères UV/NDC et recouvrement à deux profondeurs. La lecture de l'en-tête
+est acquise. D5 confirme ces choix sur **Vulkan/lavapipe, D3D12/WARP et Metal**, avec
+zéro pixel différent et les dix centres exacts dans le
+[run de preuve](https://github.com/FoxTimew/Somnium/actions/runs/39592617094).
+Metal est validé sous macOS 15 avec les couches API et shader actives ; le défaut
+du runner macOS 26 est documenté dans le protocole. Le cube glTF complète cette
+preuve en phase 2.
 
 Les bindings SDL GPU seront documentés avec l'ADR-0003 et un en-tête HLSL commun.
 Ils ne seront pas inventés depuis les conventions d'un backend natif.
@@ -259,4 +268,4 @@ Le preset release garde l’UI, shipping l’exclut. Les licences permissives sa
 copyleft sont admises ; les compilateurs/SDK de plateforme sont hors de cette règle.
 Le socle initial main et la branche de phase suivent la procédure Git autorisée.
 
-Preuves : conventions NDC/UV/culling et rendu GPU en phase 1 ; hiérarchie, persistance et interpolation aux phases concernées.
+Preuves : hiérarchie, persistance et interpolation aux phases concernées.

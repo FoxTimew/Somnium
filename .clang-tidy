@@ -1,8 +1,10 @@
-# Checks project-owned C++ for correctness and consistent identifiers.
-# Dependency diagnostics are excluded by their SYSTEM include directories.
-Checks: '-*,bugprone-*,performance-*,portability-*,modernize-use-nullptr,modernize-use-override,readability-identifier-naming'
-WarningsAsErrors: ''
-HeaderFilterRegex: '(engine|game|sandbox)/.*'
+# Checks project-owned C++ for correctness, portability, performance and identifier conventions.
+# Dependency headers stay excluded; every project diagnostic is blocking in CI.
+Checks: '-*,clang-analyzer-*,bugprone-*,performance-*,portability-*,modernize-use-nullptr,modernize-use-override,readability-identifier-naming'
+WarningsAsErrors: '*'
+HeaderFilterRegex: '(^|/)(engine|game|sandbox|tools)/'
+SystemHeaders: false
+FormatStyle: file
 CheckOptions:
   readability-identifier-naming.ClassCase: CamelCase
   readability-identifier-naming.StructCase: CamelCase

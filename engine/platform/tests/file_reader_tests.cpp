@@ -1,6 +1,5 @@
 // Verifies injected file access and diagnostics without creating a window.
 // Data is resolved from a test root rather than the process working directory.
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 #include <somnium/platform/file_reader.hpp>
 

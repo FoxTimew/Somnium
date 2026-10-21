@@ -1,6 +1,5 @@
 // Exercises public error and identity contracts independently of SDL.
 // Reuse tests check the stale-handle failure that resource consumers must rely on.
-#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 #include <somnium/core/assert.hpp>
 #include <somnium/core/handle.hpp>

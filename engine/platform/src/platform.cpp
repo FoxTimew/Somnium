@@ -1,5 +1,7 @@
 // Contains SDL initialization, window ownership and native event collection.
 // No GPU device, ImGui include or UI-specific conditional belongs here.
+#include <somnium/platform/events.hpp>
+#include <somnium/platform/native.hpp>
 #include <somnium/platform/platform.hpp>
 
 #include <somnium/core/assert.hpp>
@@ -21,6 +23,8 @@ namespace somnium::platform {
 struct Platform::Impl {
     SDL_Window* window = nullptr;
     bool initialized = false;
+    void* observerContext = nullptr;
+    void (*observer)(void*, const SDL_Event&) = nullptr;
     std::thread::id owner = std::this_thread::get_id();
 
     ~Impl() {
@@ -47,6 +51,20 @@ Result<std::unique_ptr<Platform>> Platform::create(const WindowConfig& config) {
         config.title.find('\0') != std::string_view::npos) {
         return tl::unexpected(Error{ErrorCode::InvalidArgument, "Invalid window configuration"});
     }
+    auto session = createHeadless();
+    if (!session) {
+        return tl::unexpected(session.error());
+    }
+    const std::string title(config.title);
+    (*session)->m_impl->window =
+        SDL_CreateWindow(title.c_str(), config.width, config.height, SDL_WINDOW_RESIZABLE);
+    if (!(*session)->m_impl->window) {
+        return tl::unexpected(Error{ErrorCode::Platform, SDL_GetError()});
+    }
+    return session;
+}
+
+Result<std::unique_ptr<Platform>> Platform::createHeadless() {
     if (SDL_WasInit(0) != 0) {
         return tl::unexpected(Error{ErrorCode::InvalidState, "SDL session already owned"});
     }
@@ -54,12 +72,6 @@ Result<std::unique_ptr<Platform>> Platform::create(const WindowConfig& config) {
     SDL_SetMainReady();
     impl->initialized = true; // SDL_Quit also cleans up a partially failed initialization.
     if (!SDL_Init(SDL_INIT_VIDEO)) {
-        return tl::unexpected(Error{ErrorCode::Platform, SDL_GetError()});
-    }
-    const std::string title(config.title);
-    impl->window =
-        SDL_CreateWindow(title.c_str(), config.width, config.height, SDL_WINDOW_RESIZABLE);
-    if (!impl->window) {
         return tl::unexpected(Error{ErrorCode::Platform, SDL_GetError()});
     }
     return std::unique_ptr<Platform>(new Platform(std::move(impl)));
@@ -71,9 +83,12 @@ Events Platform::pollEvents() {
     Events result;
     SDL_Event event{};
     while (SDL_PollEvent(&event)) {
+        if (m_impl->observer)
+            m_impl->observer(m_impl->observerContext, event);
         if (event.type == SDL_EVENT_QUIT) {
             result.quitRequested = true;
-        } else if (event.type >= SDL_EVENT_WINDOW_FIRST && event.type <= SDL_EVENT_WINDOW_LAST &&
+        } else if (m_impl->window && event.type >= SDL_EVENT_WINDOW_FIRST &&
+                   event.type <= SDL_EVENT_WINDOW_LAST &&
                    event.window.windowID == SDL_GetWindowID(m_impl->window)) {
             if (event.type == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
                 result.quitRequested = true;
@@ -87,8 +102,22 @@ Events Platform::pollEvents() {
     return result;
 }
 
-void Platform::wait(std::uint32_t milliseconds) const {
-    SDL_Delay(milliseconds);
+Result<void> Platform::waitEvents() const {
+    SOMNIUM_VERIFY(m_impl->owner == std::this_thread::get_id());
+    if (!SDL_WaitEvent(nullptr))
+        return tl::unexpected(Error{ErrorCode::Platform, SDL_GetError()});
+    return {};
+}
+
+SDL_Window* detail::Access::window(Platform& platform) {
+    SOMNIUM_VERIFY(platform.m_impl->owner == std::this_thread::get_id());
+    return platform.m_impl->window;
+}
+void detail::EventAccess::setObserver(Platform& platform, void* context,
+                                      void (*observer)(void*, const SDL_Event&)) {
+    SOMNIUM_VERIFY(platform.m_impl->owner == std::this_thread::get_id());
+    platform.m_impl->observerContext = context;
+    platform.m_impl->observer = observer;
 }
 
 Result<void> Platform::requestQuit() {

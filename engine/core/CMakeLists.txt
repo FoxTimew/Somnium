@@ -11,4 +11,8 @@ if(SOMNIUM_ENABLE_PROFILING)
 endif()
 if(BUILD_TESTING)
     somnium_add_test(somnium_core_tests tests/core_tests.cpp core)
+    target_sources(somnium_core_tests PRIVATE tests/log_tests.cpp)
+    add_test(NAME somnium_log_output
+        COMMAND "${Python3_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/tools/test_log.py"
+            $<TARGET_FILE:somnium_core_tests>)
 endif()

@@ -1,0 +1,5 @@
+{
+  "origin": "Initial expected image authored analytically from the versioned scene contract; this is not a GPU measurement. Actual D5 capture must independently match it.",
+  "scene_sha256": "8f8bd58c4c3ef44e44cd003b34d5de60b2f1f81e15ae7bc917ff72b1552fa292",
+  "image_sha256": "cb88b4b571fc5b7216bb775ba458386fc0d8e0f224aad5a941faa9fcd93b20c6"
+}
