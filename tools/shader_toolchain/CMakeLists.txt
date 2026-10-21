@@ -1,0 +1,71 @@
+# Builds the pinned upstream offline CLI in isolation from the engine.
+# DXC is mandatory; installation never enables upstream runtime auto-downloads.
+cmake_minimum_required(VERSION 3.28)
+project(SomniumShaderToolchain LANGUAGES C CXX)
+foreach(source SDL SPIRV_CROSS SHADERCROSS)
+    if(NOT EXISTS "${SOMNIUM_${source}_SOURCE}/CMakeLists.txt")
+        message(FATAL_ERROR "Missing pinned ${source} source: run tools/shader_toolchain/build.py")
+    endif()
+endforeach()
+if(NOT IS_DIRECTORY "${SOMNIUM_DXC_ROOT}")
+    message(FATAL_ERROR "SOMNIUM_DXC_ROOT must contain the pinned DXC libraries and headers")
+endif()
+find_path(DirectXShaderCompiler_INCLUDE_PATH dxcapi.h
+    PATHS "${SOMNIUM_DXC_ROOT}/inc" "${SOMNIUM_DXC_ROOT}/include/dxc"
+          "${SOMNIUM_DXC_ROOT}/include" NO_DEFAULT_PATH REQUIRED)
+find_library(DirectXShaderCompiler_dxcompiler_LIBRARY NAMES dxcompiler
+    PATHS "${SOMNIUM_DXC_ROOT}/lib/x64" "${SOMNIUM_DXC_ROOT}/lib"
+    NO_DEFAULT_PATH REQUIRED)
+if(WIN32)
+    find_file(DirectXShaderCompiler_dxcompiler_BINARY dxcompiler.dll
+        PATHS "${SOMNIUM_DXC_ROOT}/bin/x64" "${SOMNIUM_DXC_ROOT}/bin" NO_DEFAULT_PATH REQUIRED)
+    find_file(DirectXShaderCompiler_dxil_BINARY dxil.dll
+        PATHS "${SOMNIUM_DXC_ROOT}/bin/x64" "${SOMNIUM_DXC_ROOT}/bin" NO_DEFAULT_PATH REQUIRED)
+    set(dxc_runtime "${DirectXShaderCompiler_dxcompiler_BINARY}" "${DirectXShaderCompiler_dxil_BINARY}")
+    set(dxc_destination bin)
+else()
+    find_library(DirectXShaderCompiler_dxil_LIBRARY NAMES dxil
+        PATHS "${SOMNIUM_DXC_ROOT}/lib" NO_DEFAULT_PATH REQUIRED)
+    set(dxc_runtime "${DirectXShaderCompiler_dxcompiler_LIBRARY}" "${DirectXShaderCompiler_dxil_LIBRARY}")
+    set(dxc_destination lib)
+endif()
+
+set(SDL_SHARED OFF CACHE BOOL "" FORCE)
+set(SDL_STATIC ON CACHE BOOL "" FORCE)
+set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
+set(SDL_TESTS OFF CACHE BOOL "" FORCE)
+set(SDL_INSTALL OFF CACHE BOOL "" FORCE)
+set(SDL_X11 OFF CACHE BOOL "" FORCE)
+set(SDL_WAYLAND OFF CACHE BOOL "" FORCE)
+set(SDL_UNIX_CONSOLE_BUILD ON CACHE BOOL "" FORCE)
+add_subdirectory("${SOMNIUM_SDL_SOURCE}" sdl EXCLUDE_FROM_ALL)
+if(CMAKE_C_COMPILER_ID STREQUAL "Clang" AND CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 23)
+    target_compile_options(SDL3-static PRIVATE -Wno-unused-but-set-global)
+endif()
+set(SPIRV_CROSS_CLI OFF CACHE BOOL "" FORCE)
+set(SPIRV_CROSS_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
+# Shadercross exports its static target even with installation disabled.
+# SPIRV-Cross must register its export sets for that upstream export to resolve.
+set(SPIRV_CROSS_SKIP_INSTALL OFF CACHE BOOL "" FORCE)
+set(SPIRV_CROSS_SHARED OFF CACHE BOOL "" FORCE)
+set(SPIRV_CROSS_STATIC ON CACHE BOOL "" FORCE)
+add_subdirectory("${SOMNIUM_SPIRV_CROSS_SOURCE}" spirv-cross EXCLUDE_FROM_ALL)
+# Upstream shadercross checks the package name before using the hyphenated target.
+add_library(spirv_cross_c ALIAS spirv-cross-c)
+set(SDLSHADERCROSS_DXC ON CACHE BOOL "" FORCE)
+set(SDLSHADERCROSS_SHARED OFF CACHE BOOL "" FORCE)
+set(SDLSHADERCROSS_STATIC ON CACHE BOOL "" FORCE)
+set(SDLSHADERCROSS_CLI ON CACHE BOOL "" FORCE)
+set(SDLSHADERCROSS_CLI_STATIC ON CACHE BOOL "" FORCE)
+set(SDLSHADERCROSS_SPIRVCROSS_SHARED OFF CACHE BOOL "" FORCE)
+set(SDLSHADERCROSS_VENDORED OFF CACHE BOOL "" FORCE)
+set(SDLSHADERCROSS_INSTALL OFF CACHE BOOL "" FORCE)
+set(SDLSHADERCROSS_INSTALL_RUNTIME OFF CACHE BOOL "" FORCE)
+add_subdirectory("${SOMNIUM_SHADERCROSS_SOURCE}" shadercross EXCLUDE_FROM_ALL)
+if(APPLE)
+    set_property(TARGET shadercross PROPERTY INSTALL_RPATH "@loader_path/../lib")
+elseif(UNIX)
+    set_property(TARGET shadercross PROPERTY INSTALL_RPATH "$ORIGIN/../lib")
+endif()
+install(TARGETS shadercross RUNTIME DESTINATION bin)
+install(FILES ${dxc_runtime} DESTINATION ${dxc_destination})
