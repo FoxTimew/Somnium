@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-24.04, macos-15]
+        os: [windows-latest, ubuntu-24.04, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -204,7 +204,7 @@ jobs:
     uses: ./.github/workflows/gpu-validation.yml
     with:
       # macOS 26's paravirtual shader validator fails even the independent SDK probe.
-      # Exercise the same deployment-compatible binary on macOS 15 with full validation.
+      # Consume the macos-latest binary targeting 13.3; only validation stays on macOS 15.
       os: macos-15
       backend: metal
       required: false

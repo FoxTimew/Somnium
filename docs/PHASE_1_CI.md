@@ -34,9 +34,15 @@ Le défaut d'instrumentation Metal est documenté dans le
 [protocole](GPU_VALIDATION.md). Le job Metal utilise **macos-15** avec le même binaire
 arm64 ciblant alors macOS 11, validation API **et** shader exigée. L’étape e relève
 le minimum moteur à **13.3**, décision acceptée pour conserver `std::format` avec
-libc++ Apple ; MSL 2.3 reste compatible et explicite. Les builds et outils
-ciblent aussi explicitement `macos-15`, après trois échecs d’allocation arm64
-sur `macos-latest` pendant l’étape c. Image de rendu observée : `macos-15-arm64/20260907.0337`,
+libc++ Apple ; MSL 2.3 reste compatible et explicite. À la clôture de phase 1,
+**desktop et chaîne d'outils reviennent sur `macos-latest`** : le compilateur et
+le SDK courants construisent les quatre presets avec
+`CMAKE_OSX_DEPLOYMENT_TARGET=13.3`. **Seul `gpu-macos` reste sur `macos-15`** : il
+consomme l'artefact `gpu-binary-macOS` du job desktop, avec ses shaders, sans
+recompiler sur l'ancien runner. Les outils DXC/shadercross restent dans les jobs
+de build et ne sont pas nécessaires à ce job de rendu. Le passage temporaire
+de tous les jobs à `macos-15` après les erreurs d'allocation de l'étape c est clos.
+Image de rendu observée : `macos-15-arm64/20260907.0337`,
 Xcode 16.4 (16F6). Aucun diagnostic API seul ne peut rendre D5 vert. Les trois
 captures ont le même SHA-256 que la référence commune ; celle-ci n'a pas changé.
 
@@ -50,8 +56,10 @@ aucun jour de retrait propre au label arm64. La date **août 2027** du [ticket I
 concerne `macos-15-intel` et ne doit pas être présentée comme date arm64 confirmée.
 La migration du job Metal exige d'abord un probe SDK indépendant et D5 verts
 avec validations API **et** shader sur le nouveau runner ; ne pas désactiver
-l’instrumentation pour changer de label. Les jobs de compilation et d’outils utilisent également `macos-15` ; leur cache
-est invalidé par le changement d’image/compilateur.
+l’instrumentation pour changer de label. Cette dépendance concerne uniquement
+la validation GPU, pas les jobs de compilation et d'outils sur `macos-latest`.
+Le cache des outils est invalidé par le changement d'image/compilateur ; CPM
+ne conserve que les sources et aucun build moteur n'est restauré entre images.
 
 Toutes les actions des workflows sont épinglées par SHA complet :
 checkout 7.0.1, setup-python 7.0.0, cache 6.1.0, upload-artifact 7.0.2, download-artifact 8.0.2,

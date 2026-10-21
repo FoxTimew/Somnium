@@ -127,8 +127,10 @@ Le même binaire arm64 et les mêmes shaders passent ensuite D5 sous macOS 15.7.
 Xcode 16.4 (16F6), image `macos-15-arm64/20260907.0337`, avec **API et GPU shader
 validation actives**, zéro pixel différent et les dix centres exacts :
 [capture et journal Metal](https://github.com/FoxTimew/Somnium/actions/runs/39592617094/artifacts/12342870817).
-Le job de rendu est donc fixé à `macos-15` ; builds et chaîne d’outils ciblent désormais aussi `macos-15`
-après les échecs d’allocation du runner `macos-latest` pendant l’étape c. Aucune validation désactivée ni référence adaptée au backend.
+Seul le job de rendu reste fixé à `macos-15`. À la clôture de phase 1, builds et
+chaîne d'outils reviennent sur `macos-latest` ; le job Metal consomme leur binaire
+arm64 ciblant macOS 13.3 et leurs shaders, sans recompilation. Aucune validation
+désactivée ni référence adaptée au backend.
 
 Sur Windows, les avertissements de clear optimisé ont été supprimés. L'absence
 de `WinPixEventRuntime.dll` reste signalée : les marqueurs SDL D3D12 ne sont pas
