@@ -32,9 +32,10 @@ et une caméra orbitale, sans scène/ECS ni cuiseur, dans les frontières des AD
   Options non prises en charge (MASK/BLEND, doubleSided, COLOR_n, UV1+, autres textures)
   ignorées, un avertissement Log par modèle et repli opaque/culling arrière.
 - **Textures.** stb_image : RGBA8 sans flip vertical ; baseColor sRGB, facteur/alpha
-  linéaires, éclairage Lambert en linéaire. Sortie : `SDR_LINEAR` si les trois probes
-  CI le supportent, sinon encodage shader ; jamais les deux. SDL_gpu.h 3.4.18 impose
-  d'interroger la fenêtre. Hors écran : RGBA8 UNORM, encodage shader et référence
+  linéaires, éclairage Lambert en linéaire. Sortie : **`SDR_LINEAR`**, confirmé sur les
+  trois backends par les [probes CI](https://github.com/FoxTimew/Somnium/actions/runs/39726628021) ;
+  aucun encodage shader à l'écran. SDL_gpu.h 3.4.18 impose d'interroger la fenêtre ;
+  absence de support : erreur explicite. Hors écran : RGBA8 UNORM, shader et référence
   identiques : `12.92*x` si `x <= 0.0031308`, sinon `1.055*x^(1/2.4)-0.055`.
   Aucun mipmap ; sampler min/mag nearest/linear, U/V repeat/clamp, défaut linear/repeat.
   Mip réduit à LOD 0, mirrored-repeat replié sur repeat avec avertissement ; texture
@@ -73,4 +74,4 @@ Phase 4 remplace loaders/conditionnement sans changer identité/états. Ordre : 
 assets/tests CPU → renderer/cube hors écran **avec point de contrôle** →
 input/caméra/sandbox → documentation et bilan.
 
-Preuves : racines ordonnées et isolation shipping ; fixtures CPU/handles ; uniformes et bindings multiples ; cube D5 sur trois backends ; caméra orbitale.
+Preuves : racines ordonnées, isolation shipping et fixtures CPU/handles sur trois OS ; cube D5 sur trois backends ; caméra orbitale.
