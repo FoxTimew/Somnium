@@ -87,6 +87,24 @@ jobs:
           else
             python tools/gpu/run.py "${args[@]}"
           fi
+      - name: Probe SDR_LINEAR on the actual presentation surface
+        if: steps.capture.outputs.validation == 'validé'
+        shell: bash
+        env:
+          BACKEND: ${{ inputs.backend }}
+          MTL_DEBUG_LAYER: '1'
+          MTL_SHADER_VALIDATION: '1'
+          MTL_SHADER_VALIDATION_REPORT_TO_STDERR: '1'
+        run: |
+          executable=.cache/gpu-bin/somnium_gpu_capabilities
+          if [[ "$RUNNER_OS" == Windows ]]; then executable="$executable.exe"; else chmod +x "$executable"; fi
+          if [[ "$RUNNER_OS" == Linux ]]; then
+            xvfb-run -a "$executable" "$BACKEND" .cache/gpu-validation/composition.json > .cache/gpu-validation/composition.log 2>&1
+          else
+            "$executable" "$BACKEND" .cache/gpu-validation/composition.json > .cache/gpu-validation/composition.log 2>&1
+          fi
+          cat .cache/gpu-validation/composition.json
+          python -c "import sys; from pathlib import Path; sys.path.insert(0, 'tools/gpu'); from run import native_validation_error; assert not native_validation_error(Path('.cache/gpu-validation/composition.log').read_text(errors='replace')), 'Composition validation error'"
       - name: Diagnose Metal validation independently (primary failure preserved)
         if: failure() && runner.os == 'macOS' && steps.capture.outcome == 'failure'
         run: python tools/gpu/diagnose_metal.py

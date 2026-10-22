@@ -110,7 +110,8 @@ Result<std::unique_ptr<Engine>> Engine::create(const EngineConfig& config) {
     auto texels = (*device)->upload(*texture, std::as_bytes(std::span(white)));
     if (!texels)
         return tl::unexpected(texels.error());
-    auto sampler = (*device)->createNearestSampler();
+    auto sampler = (*device)->createSampler({gpu::Filter::Nearest, gpu::Filter::Nearest,
+                                             gpu::AddressMode::Clamp, gpu::AddressMode::Clamp});
     if (!sampler)
         return tl::unexpected(sampler.error());
     Log::write("gpu", Log::Level::Info, (*device)->info().driver + ": " + (*device)->info().name);
@@ -229,8 +230,11 @@ Result<RunStats> Engine::run(Gameplay& game, RunOptions options) {
         if (!prepared)
             return tl::unexpected(prepared.error());
 #endif
-        const gpu::Draw draw{
-            m_impl->pipeline, m_impl->vertices, m_impl->texture, m_impl->sampler, 0, 3};
+        const std::array bindings = {gpu::TextureBinding{m_impl->texture, m_impl->sampler}};
+        const gpu::Draw draw{.pipeline = m_impl->pipeline,
+                             .vertices = m_impl->vertices,
+                             .vertexCount = 3,
+                             .textures = bindings};
         auto rendered =
             m_impl->gpu->recordPass({{}, {}, {0.025F, 0.035F, 0.065F, 1}}, std::span(&draw, 1));
         if (!rendered)

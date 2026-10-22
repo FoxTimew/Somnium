@@ -9,10 +9,19 @@ if(BUILD_TESTING)
     somnium_add_test(somnium_gpu_tests tests/shader_tests.cpp gpu)
     target_include_directories(somnium_gpu_tests PRIVATE src)
     target_link_libraries(somnium_gpu_tests PRIVATE nlohmann_json::nlohmann_json)
-    add_executable(somnium_gpu_offscreen tests/offscreen.cpp)
+    add_executable(somnium_gpu_offscreen tests/offscreen.cpp tests/extensions.cpp)
     target_link_libraries(somnium_gpu_offscreen PRIVATE somnium::gpu SDL3::SDL3 nlohmann_json::nlohmann_json)
     target_compile_definitions(somnium_gpu_offscreen PRIVATE SOMNIUM_GPU_DEBUG=$<IF:$<CONFIG:Debug>,1,0>)
     somnium_configure_target(somnium_gpu_offscreen)
+    add_executable(somnium_gpu_capabilities tests/capabilities.cpp)
+    target_link_libraries(somnium_gpu_capabilities PRIVATE somnium::gpu nlohmann_json::nlohmann_json)
+    somnium_configure_target(somnium_gpu_capabilities)
+    somnium_add_shaders(TARGET somnium_gpu_offscreen NAME extensionsVertex
+        SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/tests/shaders/extensions.vert.hlsl"
+        STAGE vertex ENTRYPOINT vsMain INCLUDE_DIRECTORY "${PROJECT_SOURCE_DIR}/assets/shaders")
+    somnium_add_shaders(TARGET somnium_gpu_offscreen NAME extensionsFragment
+        SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/tests/shaders/extensions.frag.hlsl"
+        STAGE fragment ENTRYPOINT psMain INCLUDE_DIRECTORY "${PROJECT_SOURCE_DIR}/assets/shaders")
     somnium_add_shaders(TARGET somnium_gpu_offscreen NAME d5Vertex
         SOURCE "${PROJECT_SOURCE_DIR}/assets/shaders/passthrough.vert.hlsl"
         STAGE vertex ENTRYPOINT vsMain INCLUDE_DIRECTORY "${PROJECT_SOURCE_DIR}/assets/shaders")

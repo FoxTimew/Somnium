@@ -1,5 +1,6 @@
 // Executes the versioned D5 scene without a window, then saves raw RGBA for the Python comparator.
 // FileReader injects data access; no shader compiler or reflection library is linked here.
+#include "extensions.hpp"
 #include <somnium/gpu/device.hpp>
 #include <somnium/platform/file_reader.hpp>
 #include <somnium/platform/platform.hpp>
@@ -72,6 +73,7 @@ Result<void> execute(gpu::Device& device, const TestFiles& files) {
     SOMNIUM_TEST_TRY(sceneReader, platform::FileReader::create(scenePath.parent_path().string()));
     SOMNIUM_TEST_TRY(scene, loadJson(*sceneReader, scenePath.filename().string()));
     SOMNIUM_TEST_TRY(shaderReader, platform::FileReader::create(shaderRoot.string()));
+    SOMNIUM_TEST_TRY(extensions, checkExtensions(device, *shaderReader));
     SOMNIUM_TEST_TRY(
         vertex,
         device.loadShader(*shaderReader, scene->at("shaders").at("vertex").get<std::string>()));
@@ -101,7 +103,9 @@ Result<void> execute(gpu::Device& device, const TestFiles& files) {
                                            textureConfig.at("height").get<std::uint32_t>()}));
     const auto texels = textureConfig.at("rgba").get<std::vector<std::uint8_t>>();
     SOMNIUM_TEST_TRY(uploadedTexture, device.upload(*texture, std::as_bytes(std::span(texels))));
-    SOMNIUM_TEST_TRY(sampler, device.createNearestSampler());
+    SOMNIUM_TEST_TRY(sampler,
+                     device.createSampler({gpu::Filter::Nearest, gpu::Filter::Nearest,
+                                           gpu::AddressMode::Clamp, gpu::AddressMode::Clamp}));
     std::vector<gpu::Vertex> vertices;
     for (const auto& item : scene->at("vertices")) {
         vertices.push_back({item.at("position").get<std::array<float, 3>>(),
@@ -112,10 +116,13 @@ Result<void> execute(gpu::Device& device, const TestFiles& files) {
     SOMNIUM_TEST_TRY(buffer, device.createVertexBuffer(static_cast<std::uint32_t>(bytes.size())));
     SOMNIUM_TEST_TRY(uploadedVertices, device.upload(*buffer, bytes));
     std::vector<gpu::Draw> draws;
+    const std::array bindings = {gpu::TextureBinding{*texture, *sampler}};
     for (const auto& item : scene->at("draws")) {
-        draws.push_back({*pipeline, *buffer, *texture, *sampler,
-                         item.at("first").get<std::uint32_t>(),
-                         item.at("count").get<std::uint32_t>()});
+        draws.push_back({.pipeline = *pipeline,
+                         .vertices = *buffer,
+                         .firstVertex = item.at("first").get<std::uint32_t>(),
+                         .vertexCount = item.at("count").get<std::uint32_t>(),
+                         .textures = bindings});
     }
     const gpu::RenderPass pass{*color, *depth, scene->at("clear_rgba").get<std::array<float, 4>>(),
                                scene->at("clear_depth").get<float>()};

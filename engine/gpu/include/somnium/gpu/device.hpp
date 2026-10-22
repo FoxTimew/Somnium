@@ -31,7 +31,17 @@ using Pipeline = Handle<struct PipelineTag>;
 enum class Backend : std::uint8_t { Vulkan, D3D12, Metal };
 enum class ShaderFormat : std::uint8_t { Spirv, Dxil, Msl };
 enum class ShaderStage : std::uint8_t { Vertex, Fragment };
-enum class TextureKind : std::uint8_t { SampledRgba8, ColorRgba8, Depth32 };
+enum class TextureKind : std::uint8_t { SampledRgba8, SampledRgba8Srgb, ColorRgba8, Depth32 };
+enum class IndexFormat : std::uint8_t { Uint16, Uint32 };
+enum class Filter : std::uint8_t { Nearest, Linear };
+enum class AddressMode : std::uint8_t { Repeat, Clamp };
+enum class Composition : std::uint8_t { Sdr, SdrLinear };
+struct SamplerDescription {
+    Filter min = Filter::Linear;
+    Filter mag = Filter::Linear;
+    AddressMode u = AddressMode::Repeat;
+    AddressMode v = AddressMode::Repeat;
+};
 enum class ColorFormat : std::uint8_t { Rgba8, Bgra8, Rgba8Srgb, Bgra8Srgb };
 enum class DepthFormat : std::uint8_t { None, Depth32 };
 enum class CullMode : std::uint8_t { None, Front, Back };
@@ -107,13 +117,24 @@ struct Statistics {
     std::uint64_t uploads = 0;
     std::uint64_t pendingReleases = 0;
 };
+struct TextureBinding {
+    Texture texture;
+    Sampler sampler;
+};
+using UniformData = std::span<const std::byte>;
 struct Draw {
     Pipeline pipeline;
     Buffer vertices;
-    Texture texture;
-    Sampler sampler;
-    std::uint32_t firstVertex;
-    std::uint32_t vertexCount;
+    std::uint32_t firstVertex = 0;
+    std::uint32_t vertexCount = 0;
+    // Dense fragment slots, matching reflected shader counts. Borrowed until recordPass returns.
+    std::span<const TextureBinding> textures{};
+    std::span<const UniformData> vertexUniforms{};
+    std::span<const UniformData> fragmentUniforms{};
+    Buffer indices{};
+    std::uint32_t firstIndex = 0;
+    std::uint32_t indexCount = 0;
+    std::int32_t baseVertex = 0;
 };
 struct RenderPass {
     // An empty color handle selects the acquired swapchain; empty depth disables depth.
@@ -131,14 +152,17 @@ class Device final {
     Device& operator=(const Device&) = delete;
     [[nodiscard]] const DeviceInfo& info() const;
     [[nodiscard]] Result<Buffer> createVertexBuffer(std::uint32_t bytes);
+    [[nodiscard]] Result<Buffer> createIndexBuffer(std::uint32_t bytes, IndexFormat format);
     [[nodiscard]] Result<Texture> createTexture(TextureDescription description);
-    [[nodiscard]] Result<Sampler> createNearestSampler();
+    [[nodiscard]] Result<Sampler> createSampler(SamplerDescription description = {});
     [[nodiscard]] Result<Shader> createShader(const ShaderDescription& description);
     [[nodiscard]] Result<Shader> loadShader(const core::ByteReader& reader,
                                             std::string_view manifest);
     // Triangle lists, one color target, explicit vertex/depth/rasterizer state.
     [[nodiscard]] Result<Pipeline> createPipeline(const PipelineDescription& description);
-    [[nodiscard]] Result<ColorFormat> attachWindow(platform::Platform& window);
+    [[nodiscard]] Result<ColorFormat> attachWindow(platform::Platform& window,
+                                                   Composition composition = Composition::Sdr);
+    [[nodiscard]] Result<bool> supportsComposition(Composition composition) const;
     [[nodiscard]] Result<void> beginFrame();
     // Blocking VSYNC acquisition. A zero extent means no drawable (e.g. minimized).
     [[nodiscard]] Result<FrameSize> acquireSwapchain();
