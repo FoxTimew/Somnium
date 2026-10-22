@@ -4,6 +4,7 @@
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 #include <somnium/gpu/device.hpp>
+#include <somnium/renderer/camera.hpp>
 
 namespace somnium::renderer {
 using Mesh = Handle<struct MeshTag>;
@@ -19,10 +20,6 @@ struct MaterialData {
     Texture texture;
     std::array<float, 4> baseColor{1, 1, 1, 1};
     gpu::SamplerDescription sampler{};
-};
-struct Camera {
-    glm::vec3 eye, target, up;
-    float verticalFov, nearPlane, farPlane;
 };
 struct FrameData {
     glm::mat4 view{1}, projection{1};

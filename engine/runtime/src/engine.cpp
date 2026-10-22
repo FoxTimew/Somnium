@@ -146,10 +146,14 @@ Result<RunStats> Engine::run(Gameplay& game, RunOptions options) {
     core::Clock clock;
     FixedStep accumulator;
     RunStats stats;
+    input::Input input;
     gpu::FrameSize previousSize;
     for (;;) {
         SOMNIUM_PROFILE_SCOPE("runtime.frame");
-        const auto events = m_impl->platform->pollEvents();
+        const auto events = m_impl->platform->pollEvents(stats.fixedSteps);
+        auto queued = input.enqueue(events.input);
+        if (!queued)
+            return tl::unexpected(queued.error());
         if (events.quitRequested) {
             break;
         }
@@ -164,7 +168,10 @@ Result<RunStats> Engine::run(Gameplay& game, RunOptions options) {
         }
         for (std::uint32_t step = 0; step < batch->steps; ++step) {
             SOMNIUM_PROFILE_SCOPE("runtime.fixed_update");
-            game.fixedUpdate({core::kFixedStepSeconds, stats.fixedSteps});
+            auto state = input.advance(stats.fixedSteps);
+            if (!state)
+                return tl::unexpected(state.error());
+            game.fixedUpdate({core::kFixedStepSeconds, stats.fixedSteps, *state});
             ++stats.fixedSteps;
         }
         auto begun = m_impl->gpu->beginFrame();
@@ -189,7 +196,10 @@ Result<RunStats> Engine::run(Gameplay& game, RunOptions options) {
             if (!quit)
                 return tl::unexpected(quit.error());
         }
-        const auto afterAcquire = m_impl->platform->pollEvents();
+        const auto afterAcquire = m_impl->platform->pollEvents(stats.fixedSteps);
+        queued = input.enqueue(afterAcquire.input);
+        if (!queued)
+            return tl::unexpected(queued.error());
         if (afterAcquire.quitRequested) {
             frame.active = false;
             auto submitted = m_impl->gpu->submitFrame();

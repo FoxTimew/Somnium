@@ -30,3 +30,16 @@ Leurs axes sont additionnés puis bornés. La file réserve 128 événements et 
 grandir lors d'une rafale ; les états et les quatre slots n'allouent pas au pas fixe.
 Le mapping JSON configurable est reporté à la phase 3. `input` ne dépend que de
 `core` ; aucun include SDL ni type natif, vérifié par le scanner et ses tests négatifs.
+
+La caméra orbitale est dans `game::OrbitCamera`. `Gameplay::fixedUpdate` emprunte
+un `input::State` portant le même indice de pas ; `Gameplay::camera()` fournit une
+`renderer::Camera` par valeur. `GameContext::requestModel` enregistre un chemin
+logique sans I/O. Runtime réalise ensuite le chargement et le rendu.
+
+Souris : 0,5 radian pour 100 pixels ; stick : 1,5 radian/seconde. Le yaw est ramené
+modulo 2π, le pitch borné à ±80°, la distance à [4,30] m. La molette multiplie
+la distance par `exp(-unités/5)` ; les gâchettes appliquent ce zoom en continu avec
+le temps du pas. R/bouton sud réinitialise yaw 0,65 rad, pitch 0,45 rad, distance
+10 m. La cible est l'origine, up = +Y, FOV vertical π/3, near 0,1 et far 100 m.
+La pose est reconstruite en coordonnées sphériques ; elle n'atteint jamais les
+pôles singuliers de `lookAtRH`. L'aspect reste calculé par renderer depuis l'extent.

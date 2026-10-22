@@ -1,9 +1,9 @@
 # Wires the active subsystems and owns the fixed-step loop.
 # Later scene/render extraction is absent until its phase supplies real data.
-add_library(somnium_runtime STATIC src/engine.cpp src/fixed_step.cpp src/model_rendering.cpp)
+add_library(somnium_runtime STATIC src/engine.cpp src/fixed_step.cpp src/model_rendering.cpp src/gameplay.cpp)
 add_library(somnium::runtime ALIAS somnium_runtime)
 target_include_directories(somnium_runtime PUBLIC include)
-target_link_libraries(somnium_runtime PUBLIC somnium::core PRIVATE somnium::platform somnium::gpu somnium::assets somnium::renderer)
+target_link_libraries(somnium_runtime PUBLIC somnium::core somnium::input somnium::renderer PRIVATE somnium::platform somnium::gpu somnium::assets)
 target_compile_definitions(somnium_runtime PRIVATE SOMNIUM_GPU_DEBUG=$<IF:$<CONFIG:Debug>,1,0>)
 somnium_configure_target(somnium_runtime)
 if(SOMNIUM_ENABLE_DEBUG_UI)
