@@ -409,6 +409,18 @@ recense uniquement les validations restantes.
 
 ## 9. Extensions réservées
 
+Le [point de contrôle de phase 2](CUBE_VALIDATION.md) implémente déjà les extensions
+GPU (indices, bindings, uniforms, formats sRGB), les loaders CPU et AssetManager,
+puis renderer et l'adaptateur privé `runtime::ModelRendering`. Le renderer possède
+meshes, textures et matériaux derrière des handles avec génération ; le runtime
+produit la DrawList depuis les primitives et matrices monde importées. Sa capacité
+de scratch est réservée au chargement ; aucun accroissement implicite dans record.
+`FileReader` résout les racines ordonnées et ne replie que sur NotFound ; le preset
+shipping sélectionne COOKED et exclut la racine du dépôt. Tests CPU et vérification
+du graphe shipping passent sur les trois OS. Le cube hors écran constitue le jalon
+avant remplacement du triangle, input minimal et caméra orbitale ; `scene` reste
+prévu en phase 3. L'[ADR-0005](adr/0005-pipeline-assets.md) fixe ces contrats.
+
 | Extension hors MVP | Frontière préservée dès maintenant |
 | --- | --- |
 | Jobs et rendu sur un autre thread | Possession explicite, données extraites autonomes, aucune lecture de World par renderer |

@@ -51,6 +51,8 @@ et une caméra orbitale, sans scène/ECS ni cuiseur, dans les frontières des AD
   Push SDL des uniformes : frame VS b0 vue/projection, PS b0 direction lumineuse ;
   draw VS b1 monde/normale inverse-transposée, PS b1 facteur baseColor. Espaces ADR-0003,
   std140 contrôlé, column-major sans transposition ; durée de vie ADR-0004.
+  Instances miroir : variante CW si le déterminant monde est négatif (glTF §3.7.4),
+  CCW sinon ; culling BACK conservé, sans modifier les données source.
 - **Caméra/input.** `perspectiveRH_ZO`, aspect de l'extent de swapchain ; FOV vertical
   π/3 rad, near 0,1 m/far 100 m initiaux, explicites ; extent nul sans rendu.
   Input actions/axes d'orbite, zoom/déplacement ; mapping en code, JSON en phase 3.
@@ -74,4 +76,4 @@ Phase 4 remplace loaders/conditionnement sans changer identité/états. Ordre : 
 assets/tests CPU → renderer/cube hors écran **avec point de contrôle** →
 input/caméra/sandbox → documentation et bilan.
 
-Preuves : racines ordonnées, isolation shipping et fixtures CPU/handles sur trois OS ; cube D5 sur trois backends ; caméra orbitale.
+Preuves : présentation SDR_LINEAR dans le sandbox, input et caméra orbitale.

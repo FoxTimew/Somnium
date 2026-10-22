@@ -122,6 +122,11 @@ est explicitement « non validé ».
 
 ## Qualité, logs et profilage
 
+Le [point de contrôle cube de phase 2](docs/CUBE_VALIDATION.md) ajoute les loaders
+glTF/stb_image, des handles d'assets et un renderer indexé avec uniforms et textures
+sRGB. Sa référence analytique hors écran est distincte de D5. Le sandbox conserve
+le triangle jusqu'à la validation de ce jalon, avant input et caméra orbitale.
+
 La CI configure, construit et teste **debug, release, shipping et profiling sur
 les trois OS**, puis exécute D5, clang-tidy **18** et ASan/UBSan Linux. Les logs,
 images de rendu et rapports d'analyse sont des artefacts. Les actions GitHub

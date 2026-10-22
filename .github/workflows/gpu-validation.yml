@@ -24,6 +24,7 @@ jobs:
     timeout-minutes: 10
     outputs:
       validation: ${{ steps.capture.outputs.validation }}
+      cube: ${{ steps.cube.outputs.validation }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -87,6 +88,29 @@ jobs:
           else
             python tools/gpu/run.py "${args[@]}"
           fi
+      - name: Cube glTF offscreen capture, comparison and validation
+        id: cube
+        if: always() && steps.capture.outcome != 'skipped'
+        shell: bash
+        env:
+          BACKEND: ${{ inputs.backend }}
+          REQUIRED: ${{ inputs.required }}
+        run: |
+          executable=.cache/gpu-bin/somnium_renderer_offscreen
+          if [[ "$RUNNER_OS" == Windows ]]; then executable="$executable.exe"; else chmod +x "$executable"; fi
+          args=(--test cube --executable "$executable" --backend "$BACKEND" --output .cache/cube-validation)
+          if [[ "$REQUIRED" != true ]]; then args+=(--allow-unavailable); fi
+          if [[ "$RUNNER_OS" == Linux ]]; then
+            xvfb-run -a python tools/gpu/run.py "${args[@]}"
+          else
+            python tools/gpu/run.py "${args[@]}"
+          fi
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: cube-${{ inputs.backend }}
+          path: .cache/cube-validation/
+          if-no-files-found: error
       - name: Probe SDR_LINEAR on the actual presentation surface
         if: steps.capture.outputs.validation == 'validé'
         shell: bash
@@ -124,7 +148,7 @@ jobs:
           path: .cache/gpu-validation/
           if-no-files-found: error
   result:
-    name: D5 ${{ inputs.backend }} — ${{ needs.probe.outputs.validation || 'échec' }}
+    name: D5 ${{ inputs.backend }} — ${{ needs.probe.outputs.validation || 'échec' }} / cube — ${{ needs.probe.outputs.cube || 'échec' }}
     needs: probe
     if: always()
     runs-on: ubuntu-24.04
@@ -135,6 +159,7 @@ jobs:
           STATE: ${{ needs.probe.outputs.validation }}
           RESULT: ${{ needs.probe.result }}
           BACKEND: ${{ inputs.backend }}
+          CUBE: ${{ needs.probe.outputs.cube }}
         run: |
           python3 - <<'PY'
           import json, os, urllib.request
@@ -149,15 +174,26 @@ jobs:
             headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json'}, method='POST')
           with urllib.request.urlopen(request) as response:
               print('D5 check:', response.status, conclusion)
+          state = os.environ['CUBE'] or 'échec'
+          conclusion = ('success' if state == 'validé' else 'neutral') if success and state in ['validé', 'non validé'] else 'failure'
+          payload.update(name=f"Cube {os.environ['BACKEND']} — {state}", conclusion=conclusion,
+            output=dict(title=f"Cube glTF : {state}", summary='Référence analytique unique, sondes exactes et validation native ; consulter cube-' + os.environ['BACKEND']))
+          request = urllib.request.Request(f'https://api.github.com/repos/{repo}/check-runs', data=json.dumps(payload).encode(),
+            headers={'Authorization': 'Bearer ' + os.environ['GH_TOKEN'], 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json'}, method='POST')
+          with urllib.request.urlopen(request) as response:
+              print('Cube check:', response.status, conclusion)
           PY
       - name: Publish explicit validation state
         env:
           STATE: ${{ needs.probe.outputs.validation }}
           RESULT: ${{ needs.probe.result }}
           BACKEND: ${{ inputs.backend }}
+          CUBE: ${{ needs.probe.outputs.cube }}
         run: |
           printf 'D5 %s : **%s**\n' "$BACKEND" "${STATE:-échec}" >> "$GITHUB_STEP_SUMMARY"
+          printf 'Cube %s : **%s**\n' "$BACKEND" "${CUBE:-échec}" >> "$GITHUB_STEP_SUMMARY"
           if [[ "$RESULT" != success ]]; then exit 1; fi
+          if [[ "$CUBE" != 'validé' && "$CUBE" != 'non validé' ]]; then exit 1; fi
           if [[ "$STATE" == 'non validé' ]]; then
             echo '::notice title=D5 non validé::Capture et journal de validation locaux requis avant clôture de phase.'
           elif [[ "$STATE" != 'validé' ]]; then exit 1; fi
