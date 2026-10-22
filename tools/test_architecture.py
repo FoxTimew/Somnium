@@ -39,5 +39,11 @@ class Boundaries(unittest.TestCase):
         self.check_source("debug_ui/integration/adapter.cpp", '#include <somnium/gpu/device.hpp>', False)
         self.check_source("platform/integration/include/api.hpp", 'SDL_Event event;', False)
 
+    def test_input_is_entirely_native_free(self):
+        for source in ['SDL_Event event;', '#include <SDL3/SDL_keyboard.h>',
+                       '#include <somnium/platform/platform.hpp>']:
+            self.check_source("input/src/mapping.cpp", source, False)
+        self.check_source("input/include/input.hpp", '#include <somnium/core/input_event.hpp>', True)
+
 if __name__ == "__main__":
     unittest.main()

@@ -2,10 +2,12 @@
 // The object must be created, polled and destroyed on the window thread.
 #pragma once
 
+#include <somnium/core/input_event.hpp>
 #include <somnium/core/result.hpp>
 
 #include <cstdint>
 #include <memory>
+#include <span>
 #include <string_view>
 
 namespace somnium::platform {
@@ -22,6 +24,8 @@ struct WindowConfig {
 struct Events {
     bool quitRequested = false;
     bool clockResetRequested = false;
+    // Borrowed until the next poll; copy into input before polling again.
+    std::span<const core::InputEvent> input;
 };
 
 class Platform final {
@@ -32,7 +36,7 @@ class Platform final {
     ~Platform();
     Platform(const Platform&) = delete;
     Platform& operator=(const Platform&) = delete;
-    [[nodiscard]] Events pollEvents();
+    [[nodiscard]] Events pollEvents(std::uint64_t nextStep = 0);
     [[nodiscard]] Result<void> requestQuit();
     // Waits for events only while presentation has no drawable; does not consume the event.
     [[nodiscard]] Result<void> waitEvents() const;
