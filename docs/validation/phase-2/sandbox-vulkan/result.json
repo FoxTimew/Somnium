@@ -1,0 +1,34 @@
+{
+  "origin": "local Linux (Docker/Xvfb)",
+  "backend": "vulkan",
+  "commit": "9dc073342c7255ff87c6ffe7df3fe6b803c64441",
+  "binary_sha256": "4b159d9e939db560d30b6dc2ebaa14dc4596fc98e1b9b85c22e42b958b0efbb4",
+  "captures": [
+    "model-overlay.png",
+    "orbit.png",
+    "zoom.png",
+    "reset.png",
+    "resize.png"
+  ],
+  "actions": [
+    "Right-button drag: +60,-24 client pixels",
+    "Wheel: +2 units",
+    "Reset: physical R key",
+    "Resize: 960x600, recreating the depth target"
+  ],
+  "status": "validé",
+  "code_worktree_dirty": false,
+  "source_model_sha256": "6cd95ff987472a80dc3fe0a49ed7920aeea04b1cbc48cc1facd3cef7d1efb305",
+  "model_region_different_pixels": {
+    "orbit": 38878,
+    "zoom": 94035,
+    "reset": 0
+  },
+  "resized_extent": [
+    960,
+    600
+  ],
+  "exit_code": 0,
+  "validation_errors": false,
+  "validation_enabled": true
+}

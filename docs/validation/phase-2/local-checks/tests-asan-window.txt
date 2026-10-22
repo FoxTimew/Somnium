@@ -1,0 +1,11 @@
+Internal ctest changing into directory: /work/build/asan-ubsan
+Test project /work/build/asan-ubsan
+    Start 14: somnium_window_smoke
+1/1 Test #14: somnium_window_smoke .............   Passed    3.50 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+window    =   3.50 sec*proc (1 test)
+
+Total Test time (real) =   3.93 sec

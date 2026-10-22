@@ -1,6 +1,9 @@
 <!-- Pièces du point de contrôle renderer ; aucune capture GPU ne sert d'oracle. -->
 # Phase 2 — cube hors écran, point de contrôle
 
+Ce jalon est **validé**. La suite input/caméra/sandbox et ses limites de validation
+figurent dans le [bilan de fin de phase préparé localement](FIN_DE_PHASE.md).
+
 La [CI de preuve](https://github.com/FoxTimew/Somnium/actions/runs/39739082282)
 est entièrement verte au commit `073413d1466096dc8ce49528b79013c386dd9b78`.
 Les captures CI ci-dessous sont ses artefacts originaux, sans retouche. Le rapport
@@ -35,8 +38,8 @@ Les étapes précédentes ont leurs CI vertes :
 [extensions GPU](https://github.com/FoxTimew/Somnium/actions/runs/39726628021),
 [assets](https://github.com/FoxTimew/Somnium/actions/runs/39730251136).
 Le probe de composition a confirmé SDR_LINEAR sur les trois surfaces ; le
-renderer désactive son encodage shader pour une cible sRGB. Son emploi dans le
-sandbox attend l'étape suivante.
+renderer désactive son encodage shader pour une cible sRGB. Le sandbox de fin de
+phase l'utilise désormais ; ses preuves sont séparées dans le bilan ci-dessus.
 
 **Limite locale Windows.** Le binaire CI de l'étape assets a été bloqué avant
 exécution : `[WinError 4551] Une stratégie de contrôle d’application a bloqué ce fichier`.
@@ -48,6 +51,6 @@ comme substitut local ; il consomme le binaire macos-latest ciblant macOS 13.3.
 La dépendance au runner macos-15 et son horizon de retrait restent documentés
 dans [PHASE_1_CI.md](../../PHASE_1_CI.md).
 
-**Arrêt demandé.** GPU, assets et renderer/cube sont livrés. Input minimal,
-caméra orbitale et remplacement du triangle dans le sandbox attendent la
-validation intermédiaire. Aucun merge dans main ni tag de phase 2.
+**Historique.** Ce point de contrôle a précédé l'implémentation input, caméra
+orbitale et sandbox. Les captures ci-dessus restent les pièces de ce jalon,
+et ne constituent pas une preuve du nouveau sandbox. Aucun merge ni tag de phase 2.

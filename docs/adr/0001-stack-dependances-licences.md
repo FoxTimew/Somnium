@@ -59,7 +59,7 @@ D2 : les backends officiels sont compilés dans `somnium_platform_imgui` et
 `somnium_gpu_imgui`, cibles d’intégration séparées, liées par `debug_ui`, ayant
 accès aux en-têtes privés de coopération et construites seulement avec
 `SOMNIUM_ENABLE_DEBUG_UI=ON`. Aucun include ImGui ou condition UI dans les
-sources de `platform`/`gpu`. `SDL_Event` reste dans platform et input ; aucun
+sources de `platform`/`gpu`. `SDL_Event` reste dans platform et son adaptateur privé ; input reçoit des événements neutres, aucun
 type SDL dans les interfaces publiques.
 
 D3 : les HLSL Shader Model 6 sont transformés au build par le CLI shadercross

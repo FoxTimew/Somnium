@@ -1,19 +1,24 @@
 <!--
-Décrit le moteur implémenté en phase 1 et les commandes de vérification reproductibles.
+Décrit le moteur implémenté en phase 2 et les commandes de vérification reproductibles.
 Les résultats de rendu et les limites de l'environnement restent explicitement identifiés.
 -->
 # Somnium
 
 Moteur de jeu 3D C++20 pour Windows, Linux et macOS. La branche
-`phase/1-gpu-shaders` ajoute les shaders hors ligne, le device et les ressources
-GPU, un triangle présenté en VSYNC et un overlay ImGui. La fusion de phase 1 et
-son tag restent soumis à la validation de fin de phase.
+`phase/2-assets-renderer` charge un modèle glTF texturé et le présente en VSYNC
+avec profondeur, caméra orbitale et overlay ImGui. Les phases 0 et 1 sont fusionnées
+et taguées ; la fusion/tag de phase 2 attendent la validation finale.
+
+État au 22 octobre : implémentation et preuves locales préparées, clôture en attente. GitHub Actions est bloqué
+par le compte de facturation ; les commits après input et leurs preuves finales
+multiplateformes restent à publier/valider à sa reprise. Voir le
+[bilan de phase 2](docs/validation/phase-2/FIN_DE_PHASE.md).
 
 - [Architecture](docs/ARCHITECTURE.md) et [conventions](docs/adr/0002-conventions.md)
 - [Dépendances et licences](docs/adr/0001-stack-dependances-licences.md)
 - [Chaîne de shaders](docs/adr/0003-chaine-shaders.md), [frame GPU](docs/adr/0004-frame-synchronisation-gpu.md)
 - [Plan et résultats CI](docs/PHASE_1_CI.md), [protocole D5](docs/GPU_VALIDATION.md)
-- [Captures de présentation et journaux](docs/validation/phase-1/README.md) : Windows local, Metal CI identifié
+- [Pipeline d’assets](docs/adr/0005-pipeline-assets.md), [contrôles](docs/INPUT.md) et [preuves de phase 2](docs/validation/phase-2/README.md)
 
 ## Prérequis et bootstrap
 
@@ -69,11 +74,30 @@ Redimensionnement et minimisation utilisent la taille réelle de la swapchain ;
 sans texture, le moteur attend les événements. La présentation VSYNC cadence
 la boucle, avec deux frames en vol et aucun délai artificiel.
 
-Les shaders sont toujours lus via `platform` sous **`<exécutable>/assets`**,
-indépendamment du répertoire courant. `cmake --install build/debug --prefix <dossier>`
-installe le binaire avec ses artefacts. La lecture boucle sur les retours partiels
-SDL et échoue explicitement en cas d'erreur, d'absence de progression ou de fichier
-supérieur à 256 MiB. Les chemins logiques refusent `..` et les chemins natifs.
+Le sandbox affiche le cube original CC0 sous `assets/models/orbit-cube.glb`
+([licence](assets/LICENSES.md)). Bouton droit + souris ou stick droit : orbite ;
+molette ou gâchettes : zoom ; R ou bouton sud de manette : reset. Pitch borné à
+±80°, distance 4–30 m. L’overlay est passif et ne capte pas les commandes.
+
+Les chemins sont **logiques et indépendants du répertoire courant**. En mode
+DEVELOPMENT (debug/release/profiling), platform cherche `<exécutable>/assets`
+d’abord — les shaders compilés du build — puis `<dépôt>/assets`. Aucun asset
+source n’est copié dans le build. Shipping utilise COOKED : **une seule racine**
+`<exécutable>/assets`, sans repli vers le dépôt. Un fichier absent ou invalide
+provoque un diagnostic, jamais un modèle factice.
+
+`cmake --install build/debug --prefix <dossier>` installe binaire et shaders ;
+il ne conditionne pas les modèles. Avant le cuiseur de phase 4, constituer
+explicitement un package de démonstration hors du build avec le GLB sous
+`bin/assets/models/orbit-cube.glb`. Le test shipping vérifie d’abord l’échec sans
+modèle, puis ce paquet temporaire depuis un répertoire courant sans rapport.
+Ce staging de test ne remplace pas le cuiseur, ni le `.metallib` requis pour shipping macOS.
+
+La chaîne actuelle est glTF/GLB + PNG/JPEG → loaders CPU cgltf/stb_image →
+AssetManager typé (Unloaded/Loading/Ready/Failed) → préparation renderer par runtime
+→ DrawList indexée. Les sources restent l’autorité ; KTX2/BC, mipmaps, formats cuits,
+jobs et hot-reload sont reportés. La lecture boucle sur les retours partiels,
+limite chaque fichier à 256 MiB et interdit les chemins natifs ou sortant des racines.
 
 | Preset | Build | UI | Tracy | Validation GPU / sanitizers |
 | --- | --- | --- | --- | --- |
@@ -122,10 +146,11 @@ est explicitement « non validé ».
 
 ## Qualité, logs et profilage
 
-Le [point de contrôle cube de phase 2](docs/CUBE_VALIDATION.md) ajoute les loaders
-glTF/stb_image, des handles d'assets et un renderer indexé avec uniforms et textures
-sRGB. Sa référence analytique hors écran est distincte de D5. Le sandbox conserve
-le triangle jusqu'à la validation de ce jalon, avant input et caméra orbitale.
+Le [test cube de phase 2](docs/CUBE_VALIDATION.md) rend le même glTF normal puis
+miroir X sur les trois backends. Sa référence analytique est distincte de D5 ;
+l’ambiant y reste nul, référence et provenance inchangées. Le sandbox ajoute un
+ambiant de 0,15 dans une variante shader et utilise SDR_LINEAR : un seul encodage
+sRGB à la sortie. Les tests input/caméra sont entièrement CPU.
 
 La CI configure, construit et teste **debug, release, shipping et profiling sur
 les trois OS**, puis exécute D5, clang-tidy **18** et ASan/UBSan Linux. Les logs,

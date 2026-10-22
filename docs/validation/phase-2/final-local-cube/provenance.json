@@ -1,0 +1,13 @@
+{
+  "method": "Independent double precision ray/plane intersections; IEC 61966-2-1 sRGB, Lambert 0/1; never GPU capture",
+  "inputs": {
+    "assets/shaders/color.hlsli": "e079a4a92311b53716af9363d4f44b7abd9cdc93b4b1761624ddebb7507d1e55",
+    "assets/shaders/conventions.hlsli": "d6bc748cc6472bd62834cad5cc0f33ab09cdf25e21fb043de11fcea92dde13c5",
+    "assets/shaders/model.frag.hlsl": "dea330351406960cb86293d477614b078ae7190d6ac23f16ddb83940b2198bc0",
+    "assets/shaders/model.vert.hlsl": "a8b1d608a2c7b061da5bd5c9fb1c41f91cd32c5079b534bca223edd668155a01",
+    "engine/renderer/tests/reference_scene.json": "ea4c2cbe36bf1484008ca25a14eb118369a5f383cf4880518618de628c172260",
+    "tools/gpu/cube_reference.py": "c1b85df1277a6cadd574564671c5515fb67f8c0af9e97b9d89ef33e1522b655b"
+  },
+  "fixture_sha256": "6cd95ff987472a80dc3fe0a49ed7920aeea04b1cbc48cc1facd3cef7d1efb305",
+  "image_sha256": "dedd7662f51f2b6baeee2fa3f41c1d1e3a2cedfd6eb7d0c1a3b657a40be22af5"
+}

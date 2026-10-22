@@ -1,79 +1,70 @@
-<!-- Décision de phase 2 validée ; preuve intermédiaire avant input/sandbox. -->
-# ADR-0005 — Assets sources, préparation GPU et rendu de modèle
+<!-- Décision acceptée de phase 2 ; détails dans INPUT et CUBE_VALIDATION. -->
+# ADR-0005 — Assets sources et rendu de modèle
 
 Date : 22 octobre 2026. Statut : **accepté**.
 
 ## Contexte
 
-Remplacer le triangle par un modèle [glTF 2.0](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html)
-et une caméra orbitale, sans scène/ECS ni cuiseur, dans les frontières des ADR-0001 à 0004.
+Afficher un glTF texturé avec caméra orbitale, sans scène/ECS ni cuiseur. Préserver
+les frontières CPU/GPU et les preuves D5 communes aux trois backends.
 
 ## Décision
 
-- **Sources.** Lecture directe au MVP. Racines `platform` ordonnées :
-  `<build>/bin/assets` (shaders), puis `<dépôt>/assets` en développement ;
-  aucune copie des sources ni dépendance au répertoire courant. Shipping :
-  seule racine cuite `<exécutable>/assets`, produite par le cuiseur de phase 4.
-  Mode choisi par preset, indépendamment de l'UI. `core::ByteReader` injecté par
-  `runtime` ; chemins logiques normalisés, bornés aux racines ; repli uniquement si absent.
-- **AssetManager.** Données CPU immuables, handles typés index/génération ; identité
-  `(type, chemin logique)` ; primitive identifiée par `(index mesh, index primitive)`,
-  stable pour un fichier donné : **une primitive = un draw = un matériau**. Demande puis
-  consultation : Unloaded → Loading → Ready/Failed ; synchrone aujourd'hui,
-  sans présumer Ready au retour. Demande irrecevable : `Result` ; échec : Failed
-  et diagnostic. Loader par type, dépendances prêtes avant Ready. Déchargement explicite
-  à frontière sûre, génération invalidée ; aucun job/éviction.
-- **glTF.** cgltf épinglé : `.gltf`/`.glb`, buffers/images externes ou embarqués ;
-  triangles indexés uint16/uint32, POSITION/NORMAL/TEXCOORD_0, baseColor facteur ×
-  texture opaque. Hiérarchie aplatie en instances mesh + matrices monde, sans
-  conversion de repère. Failed pour donnée requise absente/invalide (POSITION),
-  non-triangles, extension requise non supportée ou accesseur sparse. NORMAL absent :
-  normale géométrique ; UV0 absent : zéro. Skins/animations/caméras/lumières exclus.
-  Options non prises en charge (MASK/BLEND, doubleSided, COLOR_n, UV1+, autres textures)
-  ignorées, un avertissement Log par modèle et repli opaque/culling arrière.
-- **Textures.** stb_image : RGBA8 sans flip vertical ; baseColor sRGB, facteur/alpha
-  linéaires, éclairage Lambert en linéaire. Sortie : **`SDR_LINEAR`**, confirmé sur les
-  trois backends par les [probes CI](https://github.com/FoxTimew/Somnium/actions/runs/39726628021) ;
-  aucun encodage shader à l'écran. SDL_gpu.h 3.4.18 impose d'interroger la fenêtre ;
-  absence de support : erreur explicite. Hors écran : RGBA8 UNORM, shader et référence
-  identiques : `12.92*x` si `x <= 0.0031308`, sinon `1.055*x^(1/2.4)-0.055`.
-  Aucun mipmap ; sampler min/mag nearest/linear, U/V repeat/clamp, défaut linear/repeat.
-  Mip réduit à LOD 0, mirrored-repeat replié sur repeat avec avertissement ; texture
-  absente blanche 1×1. KTX2/BC reportés au cuiseur.
-- **Rendu.** `runtime` adapte les données CPU de `assets` aux vues neutres de
-  `renderer`, propriétaire des ressources GPU, sans lien renderer → assets.
-  Upload avant rendu. DrawList produite par `runtime` depuis modèle/caméra : matrices
-  et handles renderer ; aucun contenu de rendu dans runtime, triangle supprimé,
-  `scene` seulement en phase 3.
-- **GPU.** Vertex position/normale/UV0 float3/float3/float2 : 32 octets, offsets 0/12/24.
-  Buffers d'indices uint16/uint32, upload/binding, `Draw` indexé (plage/baseVertex),
-  bindings texture/sampler multiples, samplers décrits et RGBA8 sRGB échantillonné.
-  Push SDL des uniformes : frame VS b0 vue/projection, PS b0 direction lumineuse ;
-  draw VS b1 monde/normale inverse-transposée, PS b1 facteur baseColor. Espaces ADR-0003,
-  std140 contrôlé, column-major sans transposition ; durée de vie ADR-0004.
-  Instances miroir : variante CW si le déterminant monde est négatif (glTF §3.7.4),
-  CCW sinon ; culling BACK conservé, sans modifier les données source.
-- **Caméra/input.** `perspectiveRH_ZO`, aspect de l'extent de swapchain ; FOV vertical
-  π/3 rad, near 0,1 m/far 100 m initiaux, explicites ; extent nul sans rendu.
-  Input actions/axes d'orbite, zoom/déplacement ; mapping en code, JSON en phase 3.
-- **Test cube.** D5 étendu : glTF texturé à couleurs plates par face, lumière alignée
-  sur un axe du cube (Lambert fermé), caméra connue, faces attendues, UV/profondeur.
-  Référence et sondes analytiques, éloignées des arêtes ; fixtures `.glb`/`.bin`
-  sous `engine/<module>/tests/` en LFS.
-  PNG LFS commun, sondes/paramètres/provenance versionnés ; centres exacts,
-  seuils 2/255 et 0,1 %, régénération explicite. CI Vulkan/lavapipe, D3D12 et Metal
-  avec validation, images/journaux ; indisponibilité « non validé » selon D5.
-  Tests CPU : indices 16/32, hiérarchie, chemins/dépendances, erreurs et générations.
+- **Sources et identité.** Lecture directe au MVP : platform cherche
+  `<exécutable>/assets` (shaders compilés), puis `<dépôt>/assets` en développement.
+  Shipping : seule première racine, conditionnée explicitement avant le cuiseur
+  de phase 4. Aucune copie automatique des assets sources dans le build ; aucun
+  recours au répertoire courant. `core::ByteReader` injecté par runtime ; chemin
+  logique canonique borné aux racines, repli uniquement sur NotFound.
+- **AssetManager.** Handles typés index/génération ; identité `(type, chemin)` ;
+  états Unloaded/Loading/Ready/Failed. Demande puis consultation, synchrone
+  aujourd’hui derrière un contrat compatible asynchrone. Loader par type,
+  données CPU immuables ; échec conservé, déchargement explicite invalidant le
+  handle, aucun job/éviction. Primitive identifiée par `(mesh, primitive)`, stable
+  pour un fichier : **une primitive = un draw = un matériau**.
+- **glTF 2.0.** cgltf épinglé ; glTF/GLB, buffers/images externes ou embarqués,
+  triangles indexés uint16/32, POSITION/NORMAL/UV0, baseColor facteur × texture.
+  Hiérarchie aplatie en matrices monde sans conversion de repère. Failed pour
+  donnée requise absente/invalide, topologie hors périmètre, extension requise
+  non supportée ou sparse. NORMAL absent : normales géométriques ; UV0 absent :
+  zéro. Skins/animations/caméras/lumières exclus. Options non supportées
+  (MASK/BLEND, doubleSided, COLOR_n, UV1+, autres textures) ignorées avec un seul
+  avertissement par modèle ; repli opaque/BACK.
+- **Textures et lumière.** stb_image RGBA8 sans flip ni mipmaps ; min/mag
+  nearest/linear, U/V repeat/clamp, défaut linear/repeat ; mirrored-repeat devient
+  repeat avec avertissement, texture absente blanche. BaseColor échantillonné
+  en sRGB, facteur × (Lambert + ambiant) en linéaire. Présentation **SDR_LINEAR**,
+  support vérifié sur les trois backends ; absence : erreur explicite. Hors écran
+  UNORM : encodage shader IEC sRGB, même formule dans l’oracle. Ambiant 0 dans le
+  cube, shader/référence/provenance inchangés ; variante ambiante à 0,15 dans le
+  sandbox. KTX2/BC et mipmaps au cuiseur.
+- **Rendu.** Vertex position/normale/UV0 : 32 octets, offsets 0/12/24. GPU fournit
+  index buffers, draws indexés, bindings multiples, samplers décrits, textures
+  sRGB et push d’uniformes. VS b0 vue/projection, b1 monde/inverse-transposée ;
+  PS b0 lumière/encodage, b1 facteur, b2 ambiant dans sa variante. Espaces ADR-0003,
+  column-major/std140. BACK/LESS/clear 1 ; CCW, ou CW pour déterminant monde négatif.
+  Renderer possède les ressources GPU ; runtime adapte les données CPU et produit
+  la DrawList, sans contenu de rendu propre. Triangle supprimé ; scene en phase 3.
+- **Gameplay/input.** Platform traduit SDL en événements neutres bruts horodatés
+  par pas dans core ; input, sans SDL, mappe actions/axes en code ([détails](../INPUT.md)).
+  Gameplay reçoit l’état dans fixedUpdate, demande le modèle via GameContext et
+  fournit `renderer::Camera` par valeur. Orbite dans game, pitch/zoom bornés ;
+  `perspectiveRH_ZO`, aspect de l’extent, FOV vertical π/3, near 0,1/far 100.
+  Mapping JSON en phase 3 ; modèle original CC0 sous assets/models en LFS.
+- **Preuve cube.** [Protocole](../CUBE_VALIDATION.md) : glTF à couleurs plates,
+  Lambert fermé, sondes hors arêtes, référence analytique unique, miroir X et
+  témoin de profondeur. Fixtures GLB/BIN et PNG sous `engine/<module>/tests/`,
+  LFS ; centres exacts, seuils 2/255 et 0,1 %. Régénération explicite ; tests CPU
+  des loaders/handles, rendu avec validation Vulkan, D3D12 et Metal selon D5.
 
 ## Alternatives
 
-Cuiseur immédiat : coût prématuré. GPU dans assets ou renderer couplé aux assets :
-frontières rompues. Retour direct de ressource : incompatible avec l'évolution asynchrone.
+Cuiseur immédiat : coût prématuré. GPU dans assets ou lien renderer → assets :
+frontières rompues. Caméra dans runtime : couplage au gameplay.
 
 ## Conséquences
 
-Phase 4 remplace loaders/conditionnement sans changer identité/états. Ordre : GPU →
-assets/tests CPU → renderer/cube hors écran **avec point de contrôle** →
-input/caméra/sandbox → documentation et bilan.
+Phase 4 change loaders/conditionnement sans changer identité/états. Ordre réalisé :
+GPU → assets/tests CPU → renderer/cube (jalon validé) → input/caméra/sandbox.
 
-Preuves : présentation SDR_LINEAR dans le sandbox, input et caméra orbitale.
+Preuves : CI finale et nouvelles captures Metal de présentation en attente du rétablissement de GitHub Actions.
