@@ -64,7 +64,7 @@ Result<void> Overlay::prepare(double frameSeconds) {
     ImGui::SetNextWindowBgAlpha(0.92F);
     constexpr auto flags = ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoResize |
                            ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-                           ImGuiWindowFlags_NoCollapse;
+                           ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoInputs;
     if (ImGui::Begin("Somnium diagnostics", nullptr, flags)) {
         ImGui::TextUnformatted(m_impl->label.c_str());
         ImGui::Separator();

@@ -1,5 +1,5 @@
 # Wires the active subsystems and owns the fixed-step loop.
-# Later scene/render extraction is absent until its phase supplies real data.
+# The model adapter supplies draws; scene/ECS extraction remains in phase 3.
 add_library(somnium_runtime STATIC src/engine.cpp src/fixed_step.cpp src/model_rendering.cpp src/gameplay.cpp)
 add_library(somnium::runtime ALIAS somnium_runtime)
 target_include_directories(somnium_runtime PUBLIC include)

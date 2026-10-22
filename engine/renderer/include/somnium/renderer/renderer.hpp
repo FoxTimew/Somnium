@@ -24,6 +24,7 @@ struct MaterialData {
 struct FrameData {
     glm::mat4 view{1}, projection{1};
     glm::vec3 lightDirection{0, 0, 1};
+    float ambient = 0;
 };
 struct Draw {
     Mesh mesh;

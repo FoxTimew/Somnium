@@ -1,5 +1,6 @@
 // Drives bounded simulation and VSYNC presentation on the window thread.
 // An initialized game's stop hook runs on both successful and failed exits.
+#include "model_rendering.hpp"
 #include <somnium/runtime/engine.hpp>
 
 #include <somnium/core/assert.hpp>
@@ -23,10 +24,19 @@ struct Engine::Impl {
     std::unique_ptr<platform::Platform> platform;
     platform::FileReader resources;
     std::unique_ptr<gpu::Device> gpu;
-    gpu::Pipeline pipeline;
-    gpu::Buffer vertices;
-    gpu::Texture texture;
-    gpu::Sampler sampler;
+    std::unique_ptr<renderer::Renderer> renderer;
+    assets::ModelLoader loader;
+    assets::AssetManager<assets::Model> models;
+    std::unique_ptr<ModelRendering> model;
+    gpu::Texture depth{};
+    Impl(std::unique_ptr<platform::Platform> window, platform::FileReader reader,
+         std::unique_ptr<gpu::Device> device, std::unique_ptr<renderer::Renderer> rendering)
+        : platform(std::move(window)), resources(std::move(reader)), gpu(std::move(device)),
+          renderer(std::move(rendering)), models(resources, loader) {}
+    ~Impl() {
+        if (depth)
+            (void)gpu->destroy(depth);
+    }
 #if defined(SOMNIUM_ENABLE_DEBUG_UI)
     std::unique_ptr<debug_ui::Overlay> overlay = nullptr;
 #endif
@@ -71,53 +81,15 @@ Result<std::unique_ptr<Engine>> Engine::create(const EngineConfig& config) {
     auto device = gpu::Device::create({backend, SOMNIUM_GPU_DEBUG != 0});
     if (!device)
         return tl::unexpected(device.error());
-    auto format = (*device)->attachWindow(**platform);
+    auto format = (*device)->attachWindow(**platform, gpu::Composition::SdrLinear);
     if (!format)
         return tl::unexpected(format.error());
-    auto vertex = (*device)->loadShader(*resources, "shaders/passthrough.vsMain.vert.json");
-    if (!vertex)
-        return tl::unexpected(vertex.error());
-    auto fragment = (*device)->loadShader(*resources, "shaders/textured.psMain.frag.json");
-    if (!fragment)
-        return tl::unexpected(fragment.error());
-    gpu::PipelineDescription pipelineDescription{*vertex, *fragment};
-    pipelineDescription.color = *format;
-    pipelineDescription.depth = gpu::DepthFormat::None;
-    pipelineDescription.depthTest = pipelineDescription.depthWrite = false;
-    auto pipeline = (*device)->createPipeline(pipelineDescription);
-    if (!pipeline)
-        return tl::unexpected(pipeline.error());
-    auto retiredVertex = (*device)->destroy(*vertex);
-    if (!retiredVertex)
-        return tl::unexpected(retiredVertex.error());
-    auto retiredFragment = (*device)->destroy(*fragment);
-    if (!retiredFragment)
-        return tl::unexpected(retiredFragment.error());
-    const std::array vertices = {gpu::Vertex{{-0.7F, -0.65F, 0.5F}, {1, 0.15F, 0.1F, 1}, {-1, -1}},
-                                 gpu::Vertex{{0.7F, -0.65F, 0.5F}, {0.1F, 1, 0.25F, 1}, {-1, -1}},
-                                 gpu::Vertex{{0, 0.75F, 0.5F}, {0.15F, 0.4F, 1, 1}, {-1, -1}}};
-    const auto bytes = std::as_bytes(std::span(vertices));
-    auto buffer = (*device)->createVertexBuffer(static_cast<std::uint32_t>(bytes.size()));
-    if (!buffer)
-        return tl::unexpected(buffer.error());
-    auto uploaded = (*device)->upload(*buffer, bytes);
-    if (!uploaded)
-        return tl::unexpected(uploaded.error());
-    auto texture = (*device)->createTexture({gpu::TextureKind::SampledRgba8, 1, 1});
-    if (!texture)
-        return tl::unexpected(texture.error());
-    const std::array<std::uint8_t, 4> white{255, 255, 255, 255};
-    auto texels = (*device)->upload(*texture, std::as_bytes(std::span(white)));
-    if (!texels)
-        return tl::unexpected(texels.error());
-    auto sampler = (*device)->createSampler({gpu::Filter::Nearest, gpu::Filter::Nearest,
-                                             gpu::AddressMode::Clamp, gpu::AddressMode::Clamp});
-    if (!sampler)
-        return tl::unexpected(sampler.error());
+    auto renderer = renderer::Renderer::create(**device, *resources, *format);
+    if (!renderer)
+        return tl::unexpected(renderer.error());
     Log::write("gpu", Log::Level::Info, (*device)->info().driver + ": " + (*device)->info().name);
-    auto impl =
-        std::make_unique<Impl>(Impl{std::move(*platform), std::move(*resources), std::move(*device),
-                                    *pipeline, *buffer, *texture, *sampler});
+    auto impl = std::make_unique<Impl>(std::move(*platform), std::move(*resources),
+                                       std::move(*device), std::move(*renderer));
 #if defined(SOMNIUM_ENABLE_DEBUG_UI)
     auto overlay = debug_ui::Overlay::create(*impl->platform, *impl->gpu);
     if (!overlay)
@@ -143,11 +115,44 @@ Result<RunStats> Engine::run(Gameplay& game, RunOptions options) {
             game.stop();
         }
     } stopGame{game};
+    if (context.modelPath().empty())
+        return tl::unexpected(Error{ErrorCode::InvalidState, "Gameplay did not request a model"});
+    const auto requested = m_impl->models.request(context.modelPath());
+    if (!requested)
+        return tl::unexpected(requested.error());
+    const auto prepareModel = [&]() -> Result<bool> {
+        if (m_impl->model)
+            return false;
+        const auto state = m_impl->models.state(*requested);
+        if (!state)
+            return tl::unexpected(state.error());
+        if (*state == assets::State::Failed) {
+            const auto error = m_impl->models.error(*requested);
+            if (!error)
+                return tl::unexpected(error.error());
+            return tl::unexpected(
+                Error{error->code, "Model load failed: " + std::string(context.modelPath()) + ": " +
+                                       error->message});
+        }
+        if (*state != assets::State::Ready)
+            return false;
+        const auto asset = m_impl->models.get(*requested);
+        if (!asset)
+            return tl::unexpected(asset.error());
+        auto prepared = ModelRendering::create(*m_impl->renderer, asset->get());
+        if (!prepared)
+            return tl::unexpected(prepared.error());
+        m_impl->model = std::move(*prepared);
+        Log::write("runtime", Log::Level::Info, "Model ready: {} ({} draws)", context.modelPath(),
+                   m_impl->model->draws().size());
+        return true;
+    };
     core::Clock clock;
     FixedStep accumulator;
     RunStats stats;
     input::Input input;
     gpu::FrameSize previousSize;
+    bool firstModelFrame = true;
     for (;;) {
         SOMNIUM_PROFILE_SCOPE("runtime.frame");
         const auto events = m_impl->platform->pollEvents(stats.fixedSteps);
@@ -158,6 +163,13 @@ Result<RunStats> Engine::run(Gameplay& game, RunOptions options) {
             break;
         }
         if (events.clockResetRequested) {
+            clock.reset();
+            accumulator.reset();
+        }
+        auto preparedModel = prepareModel();
+        if (!preparedModel)
+            return tl::unexpected(preparedModel.error());
+        if (*preparedModel) {
             clock.reset();
             accumulator.reset();
         }
@@ -233,6 +245,18 @@ Result<RunStats> Engine::run(Gameplay& game, RunOptions options) {
             Log::write("runtime", Log::Level::Info,
                        "Swapchain extent " + std::to_string(size->width) + "x" +
                            std::to_string(size->height));
+            auto depth =
+                m_impl->gpu->createTexture({gpu::TextureKind::Depth32, size->width, size->height});
+            if (!depth)
+                return tl::unexpected(depth.error());
+            if (m_impl->depth) {
+                auto retired = m_impl->gpu->destroy(m_impl->depth);
+                if (!retired) {
+                    (void)m_impl->gpu->destroy(*depth);
+                    return tl::unexpected(retired.error());
+                }
+            }
+            m_impl->depth = *depth;
             previousSize = *size;
         }
 #if defined(SOMNIUM_ENABLE_DEBUG_UI)
@@ -240,13 +264,16 @@ Result<RunStats> Engine::run(Gameplay& game, RunOptions options) {
         if (!prepared)
             return tl::unexpected(prepared.error());
 #endif
-        const std::array bindings = {gpu::TextureBinding{m_impl->texture, m_impl->sampler}};
-        const gpu::Draw draw{.pipeline = m_impl->pipeline,
-                             .vertices = m_impl->vertices,
-                             .vertexCount = 3,
-                             .textures = bindings};
+        auto uniforms = renderer::cameraFrame(game.camera(), *size);
+        if (!uniforms)
+            return tl::unexpected(uniforms.error());
+        uniforms->lightDirection = context.lightDirection;
+        uniforms->ambient = context.ambient;
+        const std::span<const renderer::Draw> draws =
+            m_impl->model ? std::span<const renderer::Draw>(m_impl->model->draws())
+                          : std::span<const renderer::Draw>{};
         auto rendered =
-            m_impl->gpu->recordPass({{}, {}, {0.025F, 0.035F, 0.065F, 1}}, std::span(&draw, 1));
+            m_impl->renderer->record({{}, m_impl->depth, context.clearColor}, *uniforms, draws);
         if (!rendered)
             return tl::unexpected(rendered.error());
 #if defined(SOMNIUM_ENABLE_DEBUG_UI)
@@ -259,6 +286,11 @@ Result<RunStats> Engine::run(Gameplay& game, RunOptions options) {
         if (!submitted)
             return tl::unexpected(submitted.error());
         ++stats.frames;
+        if (firstModelFrame && m_impl->model) {
+            Log::write("runtime", Log::Level::Info, "First model frame presented");
+            Log::flush();
+            firstModelFrame = false;
+        }
         stats.interpolationAlpha = batch->alpha;
         stats.droppedSeconds += batch->droppedSeconds;
         SOMNIUM_PROFILE_FRAME();

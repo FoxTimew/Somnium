@@ -87,7 +87,8 @@ struct Scratch {
     DrawUniform object;
     MaterialUniform material;
     std::array<gpu::TextureBinding, 1> textures;
-    std::array<gpu::UniformData, 2> vertex, fragment;
+    std::array<gpu::UniformData, 2> vertex;
+    std::array<gpu::UniformData, 3> fragment;
 };
 template <class T> gpu::UniformData bytes(const T& value) {
     return std::as_bytes(std::span(&value, 1));
@@ -106,8 +107,8 @@ Error invalid(std::string message) {
 
 struct Renderer::Impl {
     gpu::Device& device;
-    gpu::Pipeline pipeline{};
-    gpu::Pipeline mirroredPipeline{};
+    // Normal/mirrored winding, first Lambert then Lambert + ambient.
+    std::array<gpu::Pipeline, 4> pipelines{};
     bool encode;
     Store<RenderTextureTag, TextureResource> textures;
     Store<MaterialTag, MaterialResource> materials;
@@ -116,10 +117,9 @@ struct Renderer::Impl {
     std::vector<gpu::Draw> draws;
     explicit Impl(gpu::Device& value, bool encodeOutput) : device(value), encode(encodeOutput) {}
     ~Impl() {
-        if (mirroredPipeline)
-            (void)device.destroy(mirroredPipeline);
-        if (pipeline)
-            (void)device.destroy(pipeline);
+        for (auto pipeline : pipelines)
+            if (pipeline)
+                (void)device.destroy(pipeline);
     }
 };
 Renderer::Renderer(std::unique_ptr<Impl> impl) : m_impl(std::move(impl)) {}
@@ -132,30 +132,35 @@ Renderer::create(gpu::Device& device, const core::ByteReader& reader, gpu::Color
     auto vertex = device.loadShader(reader, "shaders/modelVertex.vsMain.vert.json");
     if (!vertex)
         return tl::unexpected(vertex.error());
-    auto fragment = device.loadShader(reader, "shaders/modelFragment.psMain.frag.json");
-    if (!fragment) {
-        (void)device.destroy(*vertex);
-        return tl::unexpected(fragment.error());
-    }
     constexpr std::array attributes = {gpu::VertexAttribute{0, gpu::VertexFormat::Float3, 0},
                                        gpu::VertexAttribute{1, gpu::VertexFormat::Float3, 12},
                                        gpu::VertexAttribute{2, gpu::VertexFormat::Float2, 24}};
-    gpu::PipelineDescription description{*vertex, *fragment};
-    description.color = color;
-    description.vertexStride = 32;
-    description.attributes = attributes;
-    auto pipeline = device.createPipeline(description);
-    if (pipeline) {
-        impl->pipeline = *pipeline;
-        description.frontFace = gpu::FrontFace::Clockwise;
-        pipeline = device.createPipeline(description);
-        if (pipeline)
-            impl->mirroredPipeline = *pipeline;
+    constexpr std::array shaders = {"shaders/modelFragment.psMain.frag.json",
+                                    "shaders/modelAmbient.psMain.frag.json"};
+    for (std::size_t lighting = 0; lighting < shaders.size(); ++lighting) {
+        auto fragment = device.loadShader(reader, shaders[lighting]);
+        if (!fragment) {
+            (void)device.destroy(*vertex);
+            return tl::unexpected(fragment.error());
+        }
+        gpu::PipelineDescription description{*vertex, *fragment};
+        description.color = color;
+        description.vertexStride = 32;
+        description.attributes = attributes;
+        for (std::size_t winding = 0; winding < 2; ++winding) {
+            description.frontFace =
+                winding == 0 ? gpu::FrontFace::CounterClockwise : gpu::FrontFace::Clockwise;
+            auto pipeline = device.createPipeline(description);
+            if (!pipeline) {
+                (void)device.destroy(*fragment);
+                (void)device.destroy(*vertex);
+                return tl::unexpected(pipeline.error());
+            }
+            impl->pipelines[lighting * 2 + winding] = *pipeline;
+        }
+        (void)device.destroy(*fragment);
     }
-    (void)device.destroy(*fragment);
     (void)device.destroy(*vertex);
-    if (!pipeline)
-        return tl::unexpected(pipeline.error());
     return std::unique_ptr<Renderer>(new Renderer(std::move(impl)));
 }
 Result<Mesh> Renderer::createMesh(const MeshData& data) {
@@ -236,11 +241,13 @@ Result<void> Renderer::record(const gpu::RenderPass& pass, const FrameData& fram
             Error{ErrorCode::CapacityExceeded, "Call reserveDraws while loading"});
     const float length = glm::length(frame.lightDirection);
     if (!finite(frame.view) || !finite(frame.projection) || !std::isfinite(length) ||
-        length < 1e-6F)
+        length < 1e-6F || !std::isfinite(frame.ambient) || frame.ambient < 0 || frame.ambient > 1)
         return tl::unexpected(invalid("Invalid frame uniforms"));
     const FrameUniform camera{frame.view, frame.projection};
     const FragmentFrame lighting{
         glm::vec4(frame.lightDirection / length, m_impl->encode ? 1.0F : 0.0F)};
+    const glm::vec4 ambient{frame.ambient, 0, 0, 0};
+    const bool ambientEnabled = frame.ambient != 0;
     for (std::size_t i = 0; i < draws.size(); ++i) {
         const auto& source = draws[i];
         const auto* mesh = m_impl->meshes.get(source.mesh);
@@ -257,15 +264,15 @@ Result<void> Renderer::record(const gpu::RenderPass& pass, const FrameData& fram
         scratch.material = {material->factor};
         scratch.textures = {gpu::TextureBinding{material->image.texture, material->sampler}};
         scratch.vertex = {bytes(camera), bytes(scratch.object)};
-        scratch.fragment = {bytes(lighting), bytes(scratch.material)};
-        m_impl->draws[i] = {.pipeline =
-                                determinant < 0 ? m_impl->mirroredPipeline : m_impl->pipeline,
-                            .vertices = mesh->vertices,
-                            .textures = scratch.textures,
-                            .vertexUniforms = scratch.vertex,
-                            .fragmentUniforms = scratch.fragment,
-                            .indices = mesh->indices,
-                            .indexCount = mesh->count};
+        scratch.fragment = {bytes(lighting), bytes(scratch.material), bytes(ambient)};
+        m_impl->draws[i] = {
+            .pipeline = m_impl->pipelines[(ambientEnabled ? 2U : 0U) + (determinant < 0 ? 1U : 0U)],
+            .vertices = mesh->vertices,
+            .textures = scratch.textures,
+            .vertexUniforms = scratch.vertex,
+            .fragmentUniforms = std::span(scratch.fragment).first(ambientEnabled ? 3U : 2U),
+            .indices = mesh->indices,
+            .indexCount = mesh->count};
     }
     return m_impl->device.recordPass(pass, std::span(m_impl->draws).first(draws.size()));
 }

@@ -7,6 +7,7 @@
 #include <somnium/input/input.hpp>
 #include <somnium/renderer/camera.hpp>
 
+#include <array>
 #include <cstdint>
 #include <string>
 
@@ -15,6 +16,9 @@ class GameContext {
   public:
     explicit GameContext(core::ByteReader& reader) : resources(reader) {}
     core::ByteReader& resources;
+    glm::vec3 lightDirection{0, 0, 1};
+    float ambient = 0;
+    std::array<float, 4> clearColor{0, 0, 0, 1};
     [[nodiscard]] Result<void> requestModel(std::string_view logicalPath);
     [[nodiscard]] std::string_view modelPath() const {
         return m_modelPath;

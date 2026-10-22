@@ -11,7 +11,7 @@
 
 namespace somnium::runtime {
 struct EngineConfig {
-    std::string_view title = "Somnium - Phase 1";
+    std::string_view title = "Somnium - Phase 2";
     int width = 1280;
     int height = 720;
     std::string_view resourceRoot;

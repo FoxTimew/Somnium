@@ -40,9 +40,9 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y mesa-vulkan-drivers vulkan-validationlayers vulkan-tools xvfb
+          sudo apt-get install -y mesa-vulkan-drivers vulkan-validationlayers vulkan-tools xvfb xdotool imagemagick
           mkdir -p .cache/gpu-validation
-          dpkg-query -W mesa-vulkan-drivers vulkan-validationlayers vulkan-tools > .cache/gpu-validation/runner.txt
+          dpkg-query -W mesa-vulkan-drivers vulkan-validationlayers vulkan-tools xdotool imagemagick > .cache/gpu-validation/runner.txt
           python - <<'PY'
           import os
           from pathlib import Path
@@ -135,6 +135,17 @@ jobs:
       - name: Capture Metal presentation and window lifecycle on the CI desktop
         if: runner.os == 'macOS' && steps.capture.outputs.validation == 'validé'
         run: python tools/presentation/capture_macos.py --executable .cache/gpu-bin/sandbox --output .cache/presentation-metal
+      - name: Capture Vulkan model, orbit, zoom and reset through native input
+        if: runner.os == 'Linux' && steps.capture.outputs.validation == 'validé'
+        run: |
+          chmod +x .cache/gpu-bin/sandbox
+          xvfb-run -a -s '-screen 0 1600x1000x24' python tools/presentation/capture_linux.py --executable .cache/gpu-bin/sandbox --output .cache/presentation-vulkan
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always() && runner.os == 'Linux'
+        with:
+          name: presentation-vulkan
+          path: .cache/presentation-vulkan/
+          if-no-files-found: error
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always() && runner.os == 'macOS'
         with:

@@ -20,5 +20,6 @@ class FoundationGame final : public runtime::Gameplay {
     double m_simulatedSeconds = 0.0;
     bool m_running = false;
     OrbitCamera m_camera;
+    bool m_cameraMoving = false;
 };
 } // namespace somnium::game

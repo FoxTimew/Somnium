@@ -48,7 +48,15 @@ with (output / "validation.log").open("w", encoding="utf-8") as log:
         if not window:
             raise RuntimeError("No sandbox window available on the runner desktop")
         result["window"] = window
-        time.sleep(1)
+        for _ in range(300):
+            if process.poll() is not None:
+                raise RuntimeError("Sandbox exited before its first presented model frame")
+            if "First model frame presented" in (output / "validation.log").read_text(encoding="utf-8", errors="replace"):
+                break
+            time.sleep(.1)
+        else:
+            raise RuntimeError("Timed out waiting for the first presented model frame")
+        time.sleep(.2)
 
         def capture(name):
             path = output / f"{name}.png"
@@ -57,7 +65,14 @@ with (output / "validation.log").open("w", encoding="utf-8") as log:
                 raise RuntimeError("Screen capture unavailable: " + command.stderr.strip())
             result["captures"].append(path.name)
 
-        capture("triangle-overlay")
+        capture("model-overlay")
+        for operation in ["orbit", "zoom", "reset"]:
+            action = run(helper, process.pid, operation)
+            result["actions"][operation] = {"exit_code": action.returncode, "diagnostic": action.stderr.strip()}
+            if action.returncode:
+                raise RuntimeError(f"Input action unavailable: {operation}: {action.stderr}")
+            time.sleep(1)
+            capture(operation)
         for operation in ["resize", "minimize", "restore"]:
             action = run(helper, process.pid, operation)
             result["actions"][operation] = {"exit_code": action.returncode, "diagnostic": action.stderr.strip()}
@@ -101,6 +116,10 @@ with (output / "validation.log").open("w", encoding="utf-8") as log:
             result["reason"] = "Sandbox failed to close after SDL quit event"
 
 log = (output / "validation.log").read_text(encoding="utf-8")
+result["camera_poses"] = [line.split("Orbit pose:", 1)[1].strip() for line in log.splitlines() if "Orbit pose:" in line]
+if result["status"] == "validé" and (len(set(result["camera_poses"])) < 3 or result["camera_poses"][-1] != result["camera_poses"][0]):
+    result["status"] = "échec"
+    result["reason"] = "Orbit/zoom/reset must produce three camera poses and restore the initial pose"
 errors = any(marker in log for marker in ["Validation Error", "Texture usage flags mismatch", "Assertion failure", "VUID-", "SYNC-HAZARD"])
 if result["exit_code"] != 0 or errors:
     result["status"] = "échec"

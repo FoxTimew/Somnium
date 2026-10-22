@@ -8,8 +8,16 @@
 
 #include <array>
 #include <cstdio>
+#include <glm/geometric.hpp>
 
 namespace somnium::game {
+namespace {
+void logCamera(const renderer::Camera& camera) {
+    const auto eye = camera.eye;
+    Log::write("game", Log::Level::Info, "Orbit pose: eye=({:.4f},{:.4f},{:.4f}) distance={:.4f}",
+               eye.x, eye.y, eye.z, glm::length(eye));
+}
+} // namespace
 Result<void> FoundationGame::start(runtime::GameContext& context) {
     if (m_running) {
         return tl::unexpected(Error{ErrorCode::InvalidState, "Game already started"});
@@ -18,6 +26,11 @@ Result<void> FoundationGame::start(runtime::GameContext& context) {
     if (!requested)
         return requested;
     m_camera.reset();
+    logCamera(m_camera.camera());
+    m_cameraMoving = false;
+    context.lightDirection = {0, 0, 1};
+    context.ambient = .15F;
+    context.clearColor = {.025F, .035F, .065F, 1};
     m_steps = 0;
     m_simulatedSeconds = 0.0;
     m_running = true;
@@ -32,7 +45,15 @@ void FoundationGame::fixedUpdate(const runtime::FixedUpdate& update) {
     SOMNIUM_PROFILE_SCOPE("game.fixed_update");
     ++m_steps;
     m_simulatedSeconds += update.seconds;
+    const auto before = m_camera.camera().eye;
     m_camera.update(update.inputs, update.seconds);
+    const auto eye = m_camera.camera().eye;
+    if (before != eye)
+        m_cameraMoving = true;
+    else if (m_cameraMoving) {
+        logCamera(m_camera.camera());
+        m_cameraMoving = false;
+    }
 }
 
 void FoundationGame::stop() {
