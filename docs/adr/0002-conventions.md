@@ -43,7 +43,7 @@ pas une injection de flags incompatibles dans toutes les dépendances.
 Les unités n'effectuent pas de conversion de repère à l'import glTF. Les angles
 d'API internes sont en radians. Le schéma JSON/UI annoncera explicitement son
 unité d'Euler ; aucune convention d'ordre Euler implicite ne sera ajoutée avant
-l'ADR-0006.
+l'ADR-0007.
 
 Les layouts GPU ne reposent pas sur le padding implicite d'une struct C++ :
 tailles, offsets et alignements sont contrôlés pour chaque bloc de transfert.

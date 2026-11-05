@@ -9,9 +9,10 @@ Moteur de jeu 3D C++20 pour Windows, Linux et macOS. La branche
 avec profondeur, caméra orbitale et overlay ImGui. Les phases 0 et 1 sont fusionnées
 et taguées ; la fusion/tag de phase 2 attendent la validation finale.
 
-État au 22 octobre : implémentation et preuves locales préparées, clôture en attente. GitHub Actions est bloqué
-par le compte de facturation ; les commits après input et leurs preuves finales
-multiplateformes restent à publier/valider à sa reprise. Voir le
+État au 5 novembre : les commits de phase 2 sont publiés ; migration de la CI vers
+Windows/Radeon et Linux/WSL2 auto-hébergés en cours. macOS devient manuel et
+best effort ; WARP n'est plus couvert. Installation et commandes dans
+[CI_RUNNER.md](docs/CI_RUNNER.md). La clôture attend les nouvelles preuves. Voir le
 [bilan de phase 2](docs/validation/phase-2/FIN_DE_PHASE.md).
 
 - [Architecture](docs/ARCHITECTURE.md) et [conventions](docs/adr/0002-conventions.md)
@@ -152,10 +153,11 @@ l’ambiant y reste nul, référence et provenance inchangées. Le sandbox ajout
 ambiant de 0,15 dans une variante shader et utilise SDR_LINEAR : un seul encodage
 sRGB à la sortie. Les tests input/caméra sont entièrement CPU.
 
-La CI configure, construit et teste **debug, release, shipping et profiling sur
-les trois OS**, puis exécute D5, clang-tidy **18** et ASan/UBSan Linux. Les logs,
-images de rendu et rapports d'analyse sont des artefacts. Les actions GitHub
-sont épinglées par SHA complet.
+La CI requise configure, construit et teste **debug, release, shipping et profiling
+sur Windows et Linux**, puis vérifie D5/cube et la présentation ; clang-tidy **18**
+et ASan/UBSan tournent sous Linux. macOS est un workflow manuel best effort.
+Logs, binaires et images restent sur le disque du runner par run, pendant 14 jours ;
+le résumé GitHub indique leurs chemins. Les actions restantes sont épinglées par SHA.
 
 ```sh
 python -m pip install clang-format==18.1.8

@@ -24,7 +24,7 @@ def digest(path):
 
 
 def native_validation_error(log):
-    return re.search(r"Validation Error|SYNC-HAZARD|VUID-|failed assertion|Texture usage flags mismatch|Metal.*[Vv]alidation.*[Ee]rror", log) is not None
+    return re.search(r"Validation Error|SYNC-HAZARD|VUID-|D3D12 (?:ERROR|CORRUPTION):|failed assertion|Texture usage flags mismatch|Metal.*[Vv]alidation.*[Ee]rror", log) is not None
 
 
 def load_scene():

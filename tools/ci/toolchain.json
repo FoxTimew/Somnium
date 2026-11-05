@@ -1,0 +1,74 @@
+{
+  "python": "3.12.12",
+  "cmake": "3.31.6",
+  "ninja": "1.11.1.3",
+  "clang_format": "18.1.8",
+  "clang_tidy_windows": "18.1.8",
+  "clang_linux": "18.1.3",
+  "llvm_deb": "1:18.1.3-1ubuntu1",
+  "sccache": "0.18.0",
+  "git_lfs": "3.7.0",
+  "vulkan_sdk": "1.4.363.0",
+  "msvc": "14.51.36231",
+  "visual_studio": "18.11.12315.225",
+  "windows_sdk": "10.0.26100.0",
+  "retention_days": 14,
+  "Windows": {
+    "python": {
+      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20251014/cpython-3.12.12%2B20251014-x86_64-pc-windows-msvc-install_only_stripped.tar.gz",
+      "sha256": "3c8b9b10a933909c98b9916297e2093b24a9c2abaa23df1c2622c2bfe052cb94"
+    },
+    "sccache": {
+      "url": "https://github.com/mozilla/sccache/releases/download/v0.18.0/sccache-v0.18.0-x86_64-pc-windows-msvc.zip",
+      "sha256": "8965c74d5e8a225244f741e18ad2f3f504f48228dc1bac948fc22761a348363d"
+    },
+    "git_lfs": {
+      "url": "https://github.com/git-lfs/git-lfs/releases/download/v3.7.0/git-lfs-windows-amd64-v3.7.0.zip",
+      "sha256": "10be221ee5a76c6f4fc4d5b0c84d9b6f97b0db4815fb39a1b9579f04d37379ec"
+    },
+    "llvm": {
+      "url": "https://github.com/llvm/llvm-project/releases/download/llvmorg-18.1.8/LLVM-18.1.8-win64.exe",
+      "sha256": "94af030060d88cc17e9f00ef1663ebdc1126b35e16bebdfa1e807984b70abd8f"
+    },
+    "vulkan": {
+      "url": "https://sdk.lunarg.com/sdk/download/1.4.363.0/windows/vulkansdk-windows-X64-1.4.363.0.exe",
+      "sha256": "94a82d378f7a5e3e54c9db7d2fb7016af136e14ac0a18dbf0f2f67a36352d141"
+    },
+    "msvc": {
+      "url": "https://download.visualstudio.microsoft.com/download/pr/e07fb79d-d4ec-45bc-b19d-200bc819ee8d/3b21743cfbd0458e7f4dba87981fb8b99602a974c7439b857878cfa3e9fba5f2/vs_BuildTools.exe",
+      "sha256": "3b21743cfbd0458e7f4dba87981fb8b99602a974c7439b857878cfa3e9fba5f2"
+    }
+  },
+  "Linux": {
+    "python": {
+      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20251014/cpython-3.12.12%2B20251014-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz",
+      "sha256": "c74addcd1b033a6e4d60ead3ab47fcc995569027e01d3061c4a934f363c4a0cf"
+    },
+    "sccache": {
+      "url": "https://github.com/mozilla/sccache/releases/download/v0.18.0/sccache-v0.18.0-x86_64-unknown-linux-musl.tar.gz",
+      "sha256": "45f1447fbe231e3037bde351ef70677dd212216c8d62ae7ca409fecc4d6acc89"
+    },
+    "git_lfs": {
+      "url": "https://github.com/git-lfs/git-lfs/releases/download/v3.7.0/git-lfs-linux-amd64-v3.7.0.tar.gz",
+      "sha256": "e7ebba491af8a54e560be3a00666fa97e4cf2bbbb223178a0934b8ef74cf9bed"
+    },
+    "vulkan": {
+      "url": "https://sdk.lunarg.com/sdk/download/1.4.363.0/linux/vulkansdk-linux-x86_64-1.4.363.0.tar.xz",
+      "sha256": "197962f5cbf80baf2775a03336a01cee7c8745686c65aaa70d3f751ade4d7e43"
+    }
+  },
+  "Darwin": {
+    "python": {
+      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20251014/cpython-3.12.12%2B20251014-aarch64-apple-darwin-install_only_stripped.tar.gz",
+      "sha256": "84cb7acbf75264982c8bdd818bfa1ff0f1eb76007b48a5f3e01d28633b46afdf"
+    },
+    "sccache": {
+      "url": "https://github.com/mozilla/sccache/releases/download/v0.18.0/sccache-v0.18.0-aarch64-apple-darwin.tar.gz",
+      "sha256": "308184519b646f5125289e8515b36f6ca65a13a041923994aebe702348674e8e"
+    },
+    "git_lfs": {
+      "url": "https://github.com/git-lfs/git-lfs/releases/download/v3.7.0/git-lfs-darwin-arm64-v3.7.0.zip",
+      "sha256": "34ca9df7031061b8471d53076cb76a974768937a209c3fcaa3de6270ec6465ea"
+    }
+  }
+}

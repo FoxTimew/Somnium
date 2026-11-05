@@ -1,10 +1,11 @@
 <!-- Bilan local de la phase 2 ; les preuves du SHA final restent distinctes du jalon validé. -->
 # Phase 2 — bilan local et validation finale en attente
 
-État au 22 octobre 2026 : implémentation terminée localement, **phase non clôturée**.
-GitHub Actions refuse de démarrer les nouveaux jobs pour une raison de facturation.
-Le propriétaire indique une reprise dans dix jours. Aucun push supplémentaire,
-merge dans main ni tag de phase 2 n'est effectué pendant ce blocage.
+État au 5 novembre 2026 : les trois commits locaux sont désormais poussés sur
+`phase/2-assets-renderer`, à la demande du propriétaire. **Phase non clôturée** :
+migration en cours sur `feat/ci-self-hosted`, Windows/Radeon et Linux/WSL2 requis,
+macOS manuel best effort, WARP non couvert. Le blocage de facturation du 22 octobre
+reste historique. Aucun merge dans main ni tag de phase 2.
 
 ## Livraison
 
@@ -32,9 +33,9 @@ merge dans main ni tag de phase 2 n'est effectué pendant ce blocage.
 | --- | --- | --- |
 | GPU / assets / renderer-cube | `e5e765a` / `f6d71cf` / `3edbfce` | Publiés, CI verte, jalon validé |
 | Input neutre | `adeeae5` | Publié ; CI PR verte, workflow push bloqué à son démarrage GPU |
-| Contrat Gameplay et caméra | `98ce7bf` | Local, non poussé |
-| Sandbox glTF et captures | `9dc0733` | Local, non poussé |
-| Documentation et pièces | Commit de ce bilan | Local, non poussé |
+| Contrat Gameplay et caméra | `98ce7bf` | Publié le 5 novembre |
+| Sandbox glTF et captures | `9dc0733` | Publié le 5 novembre |
+| Documentation et pièces | `806961c` | Publié le 5 novembre |
 
 La [CI PR input](https://github.com/FoxTimew/Somnium/actions/runs/39755226013) est
 entièrement verte. Dans le [workflow push](https://github.com/FoxTimew/Somnium/actions/runs/39755216717),
@@ -82,15 +83,15 @@ La nouvelle chaîne n'a **pas** de validation finale Windows/macOS : les capture
 D3D12/Metal du [jalon](README.md) prouvent ce jalon seulement. L'exécution native
 Windows d'un précédent binaire a rencontré WinError 4551 (journal archivé au jalon) ;
 aucune modification de politique n'a été faite et le test core release déjà validé
-n'est pas remis en cause. La preuve Metal CI acceptée comme substitut local reste
-à obtenir pour ce sandbox ; son script est préparé mais non exécuté ici.
+n'est pas remis en cause. La preuve Metal CI du sandbox reste à obtenir en best
+effort ; elle ne bloque plus la clôture depuis l'ADR-0006.
 
 ## Captures
 
 Captures Vulkan réelles sous Xvfb/lavapipe du commit **9dc0733**, code propre :
 [rapport avec SHA binaire/modèle](sandbox-vulkan/result.json) et
 [journal de validation](sandbox-vulkan/validation.txt). Elles sont conservées
-localement sous LFS ; leur publication dans la PR attend la reprise de la CI.
+sous LFS et sont publiées dans la branche de phase depuis le 5 novembre.
 
 | Modèle et overlay | Orbite | Zoom |
 | --- | --- | --- |
@@ -110,16 +111,14 @@ Les [outils de capture](../../../tools/presentation/) gardent les originaux sans
 
 ## Reprise et sortie de phase
 
-1. Rétablir GitHub Actions puis relancer les jobs en échec de `39755216717`.
-2. Pousser **uniquement le commit caméra** vers la branche de phase, attendre les
-   deux CI vertes ; pousser ensuite le commit sandbox, puis attendre sa CI verte.
-3. Vérifier D5/cube sur les trois backends et joindre les nouvelles captures
-   Vulkan/Metal à la PR, avec journaux. Une capture Metal indisponible reste
-   explicitement non validée ; deux backends de présentation sont requis.
-4. Actualiser ce bilan/ADR-0005 avec les preuves finales, puis publier le commit
-   documentaire après la CI de l'étape précédente. Demander la validation de fin
-   de phase ; fusion/tag ne sont pas autorisés par le seul jalon intermédiaire.
+1. Achever le provisionnement/enregistrement des runners décrits dans [CI_RUNNER.md](../../CI_RUNNER.md).
+2. Obtenir la CI auto-hébergée verte sur `feat/ci-self-hosted`, puis fusionner cette
+   branche dans la branche de phase. Aucun merge dans main ni tag.
+3. Joindre les preuves D3D12/Vulkan Radeon et Linux/lavapipe du nouveau SHA,
+   captures sandbox et mesure du test shader. WARP n'est plus une preuve requise ;
+   macOS est best effort. Demander ensuite la validation finale de phase 2.
 
-Seul `gpu-macos` dépend de `macos-15`, avec binaire macos-latest ciblant macOS 13.3.
+Le workflow macOS manuel conserve un job de validation Metal sur `macos-15`,
+construit sur place pour macOS 13.3 ; macos-latest a son build indépendant.
 L'horizon de retrait annoncé est l'automne 2027, sans jour arm64 confirmé dans la
 source documentée ; [détails et condition de migration](../../PHASE_1_CI.md).

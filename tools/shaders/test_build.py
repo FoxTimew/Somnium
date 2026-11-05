@@ -4,6 +4,8 @@ import argparse
 import json
 from pathlib import Path
 import subprocess
+import shutil
+import sys
 import time
 
 
@@ -12,6 +14,8 @@ def main():
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--work", type=Path, required=True)
     parser.add_argument("--compiler", required=True)
+    parser.add_argument("--cmake", default=shutil.which("cmake"), help="Native CMake executable, supplied by CTest")
+    parser.add_argument("--ninja", default=shutil.which("ninja"))
     args = parser.parse_args()
     # Work is a dedicated test output directory; do not remove a caller-supplied tree.
     args.work.mkdir(parents=True, exist_ok=True)
@@ -34,18 +38,21 @@ somnium_add_shaders(TARGET consumer NAME probe SOURCE probe.hlsl STAGE vertex EN
         build = root / "build"
 
         def run(command, fail=False):
+            started = time.monotonic()
             result = subprocess.run(list(map(str, command)), capture_output=True, text=True)
+            print(f"Shader contract: {command[1]} {time.monotonic() - started:.3f}s", flush=True)
             if (result.returncode != 0) != fail:
                 raise RuntimeError(result.stdout + result.stderr)
             return result.stdout + result.stderr
 
         def configure(entry="vsMain", scale="1", compiler=args.compiler):
-            return run(["cmake", "-S", source, "-B", build, "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Debug",
+            return run([args.cmake, "-S", source, "-B", build, "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Debug",
+                        f"-DCMAKE_MAKE_PROGRAM={args.ninja}", f"-DPython3_EXECUTABLE={sys.executable}",
                         f"-DSOMNIUM_SHADERCROSS_EXECUTABLE={compiler}", f"-DENTRY={entry}", f"-DSCALE={scale}"],
                        fail=entry != "vsMain" or compiler != args.compiler)
 
         def compile_all():
-            return run(["cmake", "--build", build, "--", "-d", "explain"])
+            return run([args.cmake, "--build", build, "--", "-d", "explain"])
 
         configure()
         compile_all()
@@ -75,7 +82,7 @@ somnium_add_shaders(TARGET consumer NAME probe SOURCE probe.hlsl STAGE vertex EN
         (source / "nested.hlsli").write_text("#define TEST_DEPTH 0.125\n")
         (source / "new.hlsli").unlink()
         compile_all()
-        run(["cmake", "--install", build, "--prefix", root / "installed"])
+        run([args.cmake, "--install", build, "--prefix", root / "installed"])
         data = json.loads(manifest.read_text())
         for item in data["formats"].values():
             assert (root / "installed/bin/assets/shaders" / item["file"]).stat().st_size == item["bytes"]
@@ -85,7 +92,7 @@ somnium_add_shaders(TARGET consumer NAME probe SOURCE probe.hlsl STAGE vertex EN
         assert "Bootstrap explicitly" in " ".join(missing_tool.split()), missing_tool
         configure()
         (source / "probe.hlsl").write_text("deliberate invalid HLSL\n")
-        run(["cmake", "--build", build], fail=True)
+        run([args.cmake, "--build", build], fail=True)
         print("Shader build contract: no-op, transitive/add/remove includes, defines, products, install, names and failures OK")
 
 

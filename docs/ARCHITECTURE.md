@@ -237,13 +237,13 @@ draw packet. Les matériaux de rendu regroupent données et handle de pipeline.
 une abstraction d'ECS. Les composants restent des structs plates dans
 `somnium`. Les opérations de hiérarchie vérifient les cycles et les parents
 invalides ; la destruction d'un parent doit appliquer une politique explicite,
-précisée avec l'ADR-0006 avant l'implémentation de scène.
+précisée avec l'ADR-0007 avant l'implémentation de scène.
 
 Le JSON porte `"version": 1` et des versions de composants. Les références
 persistées utilisent des identités de scène et des identifiants logiques
 d'assets, jamais les bits des handles runtime ni les valeurs brutes d'EnTT.
 Les détails du schéma et la politique de migration seront soumis avec
-l'ADR-0006 en phase 3.
+l'ADR-0007 en phase 3.
 
 Pour l'interpolation, les positions et échelles locales sont interpolées
 linéairement, les quaternions par interpolation sphérique normalisée. Les
@@ -279,7 +279,7 @@ de D2 ; la CI shipping vérifie les cibles et la base de compilation.
 Les événements de relâchement, perte de focus et déconnexion sont conservés.
 L’overlay de phase 2 est passif (`NoInputs`) ; aucune capture UI ne masque le
 gameplay. Le routage d’une UI interactive et le mapping JSON appartiennent
-à la phase 3/ADR-0007. Le mapping actuel est décrit dans [INPUT.md](INPUT.md).
+à la phase 3/ADR-0008. Le mapping actuel est décrit dans [INPUT.md](INPUT.md).
 
 ## 7. Boucle et flux d'une frame
 
@@ -342,9 +342,12 @@ sans changer le contenu des packets.
 | 0 | CMake/CPM, conventions codées, core, platform, boucle runtime, game et sandbox | Build sans warning, tests Result/handles/accumulateur, fenêtre locale et fermeture, matrice CI et sanitizers Linux verts |
 | 1 | GPU, chaîne de shaders hors ligne, triangle, UI | Backends réellement exécutés, validation GPU, tests de ressources et shaders, ADR-0003/0004 |
 | 2 | Assets CPU, rendu de mesh texturé, caméra via input | Modèle de référence, orientation et textures correctes, Tracy CPU/mémoire, compteurs et marqueurs GPU selon D4, ADR-0005 |
-| 3 | World, hiérarchie, JSON, extraction, interpolation, mapping complet, gameplay de référence | Tests de hiérarchie/round-trip/extraction/interpolation, personnage bloqué par les murs, portes à pivot et inspecteur, ADR-0006/0007 |
+| 3 | World, hiérarchie, JSON, extraction, interpolation, mapping complet, gameplay de référence | Tests de hiérarchie/round-trip/extraction/interpolation, personnage bloqué par les murs, portes à pivot et inspecteur, ADR-0007/0008 |
 
 Chaque module implémenté dispose de sa cible de tests doctest sous `tests/`.
+L'[ADR-0006](adr/0006-ci-auto-hebergee.md) fixe la CI : Windows/Radeon et
+Linux/WSL2/lavapipe requis, macOS manuel best effort, WARP non couvert. Les mêmes
+scripts locaux/CI conservent caches et preuves sur disque, avec rétention de 14 jours.
 Les tests n'instancient pas de GPU pour vérifier les contrats purement CPU.
 Le test de fenêtre borné en CI ne remplace pas le contrôle visuel local ;
 l'exécution ASan doit couvrir les chemins réellement exercés, sans prétendre

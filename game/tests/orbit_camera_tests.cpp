@@ -3,6 +3,7 @@
 #include <cmath>
 #include <doctest/doctest.h>
 #include <glm/geometric.hpp>
+#include <ostream>
 #include <somnium/game/foundation_game.hpp>
 #include <somnium/game/orbit_camera.hpp>
 #include <somnium/renderer/renderer.hpp>
