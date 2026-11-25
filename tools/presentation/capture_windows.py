@@ -58,6 +58,7 @@ window_rect = api(user, "GetWindowRect", w.BOOL, w.HWND, c.POINTER(w.RECT))
 client_origin = api(user, "ClientToScreen", w.BOOL, w.HWND, c.POINTER(w.POINT))
 foreground = api(user, "SetForegroundWindow", w.BOOL, w.HWND)
 get_foreground = api(user, "GetForegroundWindow", w.HWND)
+window_at = api(user, "WindowFromPoint", w.HWND, w.POINT)
 cursor = api(user, "SetCursorPos", w.BOOL, c.c_int, c.c_int)
 send_input = api(user, "SendInput", w.UINT, w.UINT, c.POINTER(Input), c.c_int)
 position = api(user, "SetWindowPos", w.BOOL, w.HWND, w.HWND, c.c_int, c.c_int, c.c_int, c.c_int, w.UINT)
@@ -97,6 +98,31 @@ def extent(window):
     require(client_rect(window, c.byref(rect)), "Client bounds unavailable")
     require(client_origin(window, c.byref(origin)), "Client origin unavailable")
     return rect.right, rect.bottom, origin
+
+
+def activate(window):
+    foreground(window)
+    time.sleep(.25)
+    if get_foreground() == window:
+        return "SetForegroundWindow"
+    # A scheduled runner cannot always steal foreground permission. Expose only
+    # our own window, verify the click target, and activate it with a real click.
+    # Never inject Alt into the previous foreground application or change policy.
+    flags = 0x0001 | 0x0002 | 0x0010  # NOSIZE | NOMOVE | NOACTIVATE
+    require(position(window, w.HWND(-1), 0, 0, 0, 0, flags), "Cannot expose sandbox")
+    try:
+        time.sleep(.25)
+        width, height, origin = extent(window)
+        point = w.POINT(origin.x + width * 3 // 4, origin.y + height * 3 // 4)
+        require(cursor(point.x, point.y), "Cannot position activation pointer")
+        require(window_at(point) == window, "Sandbox activation point is covered; refusing input")
+        events = (Input * 2)(*[Input(0, InputUnion(mouse=Mouse(0, 0, 0, flag, 0, 0))) for flag in [0x0002, 0x0004]])
+        require(send_input(2, events, c.sizeof(Input)) == 2, "Sandbox activation click failed")
+        time.sleep(.25)
+        require(get_foreground() == window, "Sandbox did not receive focus after activation click")
+    finally:
+        require(position(window, w.HWND(-2), 0, 0, 0, 0, flags), "Cannot restore sandbox window order")
+    return "verified client click"
 
 
 def capture(window, path):
@@ -162,7 +188,7 @@ def main():
                 time.sleep(.1)
             else:
                 raise RuntimeError("No presented sandbox window within 30 seconds")
-            foreground(window)
+            report["activation"] = activate(window)
             time.sleep(.5)
             def shot(name):
                 capture(window, output / (name + ".png"))

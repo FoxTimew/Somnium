@@ -197,6 +197,8 @@ class Runner:
         self.py("architecture", "tools/check_architecture.py", ROOT)
         self.py("architecture-rules", "tools/test_architecture.py")
         self.py("ci-contract", "tools/ci/test_ci.py")
+        if SYSTEM == "Windows":
+            self.py("capture-focus-contract", "tools/presentation/test_capture_windows.py")
 
     def compiler_cache(self):
         self.py("compiler-cache-dependencies", "tools/ci/test_compiler_cache.py", "--cmake", self.cmake, "--work", self.run)
