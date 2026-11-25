@@ -56,12 +56,16 @@ Il **n'injecte ni souris ni clavier**. Les captures du modèle, orbite, zoom, re
 et resize injectent de vrais événements dans le bureau : garder la session
 déverrouillée et laisser souris/clavier libres pendant le job manuel.
 
-Dans Actions → CI self-hosted → Run workflow : choisir la branche à prouver et
-cocher presentation. Ou, depuis un terminal disposant de GitHub CLI :
+Depuis un terminal disposant de GitHub CLI, sélectionner explicitement la branche :
 
 ```sh
 gh workflow run ci.yml --repo FoxTimew/Somnium --ref phase/2-assets-renderer -f presentation=true
 ```
+
+Le bouton Actions → CI self-hosted → Run workflow sera disponible lorsque la
+version de `ci.yml` sur la branche par défaut déclarera workflow_dispatch. Choisir
+alors la branche à prouver et cocher presentation. Ne pas fusionner dans main
+uniquement pour faire apparaître ce bouton.
 
 Le job windows-presentation attend le build Windows du même run, utilise ses
 binaires debug puis conserve les captures dans

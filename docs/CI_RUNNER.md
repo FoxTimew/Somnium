@@ -141,12 +141,12 @@ Les pièces de phase retenues sont copiées explicitement dans `docs/validation/
 
 Configurer Settings → Actions → General → approbation des workflows de fork pour
 **tous les contributeurs externes**, permissions du token en lecture seule.
-Sur ce dépôt **privé**, GitHub n'expose pas le réglage public « all outside
-collaborators » : l'API dédiée répond 422. Vérification du 5 novembre : workflows
-de PR de forks désactivés, envoi de tokens write et de secrets désactivés ; garder
-cette interdiction. Si les workflows de forks privés sont un jour autorisés,
-activer « Require approval for fork pull request workflows » avant toute exécution.
-Le token par défaut est déjà en lecture, sans approbation de PR par Actions.
+Le dépôt est désormais **public** (vérifié le 25 novembre) ; la note du 5 novembre
+sur les réglages de forks privés est obsolète. Le réglage public a été aligné sur
+`all_external_contributors`, puis relu par l'API. Cette approbation préalable ne
+remplace pas le refus des PR de forks dans les jobs. Avant d'accepter une PR externe
+sur ce dépôt public, appliquer l'obligation de compte dédié ci-dessous.
+Le token par défaut est vérifié en lecture, sans approbation de PR par Actions.
 Chaque workflow garde aussi l'égalité du dépôt source d'une PR avec le dépôt
 cible ; aucun `pull_request_target`. Checkout ne conserve pas son credential.
 Aucun secret n'est injecté dans les jobs. Les credentials d'enregistrement du runner

@@ -6,7 +6,8 @@ Date : 5 novembre 2026, amendé le 25 novembre 2026. Statut : **accepté**.
 ## Contexte
 
 Le poste personnel héberge Windows x64/Radeon RX 6600M et Ubuntu 24.04/WSL2.
-Le propriétaire est le seul contributeur ayant le droit de pousser. Utiliser ses
+Le dépôt est public ; avant d'accepter une contribution externe, le compte dédié
+devient obligatoire. Le propriétaire est le seul contributeur ayant le droit de pousser. Utiliser ses
 comptes existants simplifie l'exploitation de cette machine personnelle.
 
 ## Décision
@@ -53,4 +54,4 @@ Le risque d'accès aux données personnelles est accepté dans le périmètre ci
 Installation : [CI_RUNNER.md](../CI_RUNNER.md) ; démarrage : [guide](../DEMARRER_RUNNERS.md).
 Les futurs ADR scène/input prennent les numéros 0007/0008.
 
-Preuves : installation des deux runners vérifiée le 25 novembre ; passage local Windows complet et D5/cube/captures Radeon acquis ; CI des deux runners et capture D3D12 par job manuel à confirmer sur le SHA final.
+Preuves : CI des deux runners verte le 25 novembre (run 45615817195, D5/cube Radeon et lavapipe, fenêtre, tidy, ASan/UBSan) ; capture D3D12 par job manuel encore à obtenir après fusion dans la branche de phase.
