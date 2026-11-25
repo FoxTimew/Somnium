@@ -55,6 +55,8 @@ def exclusive(path):
 
 def clean_runs(root, current, days):
     runs = (root / "runs").resolve()
+    # Compare physical paths on both sides, including macOS temporary aliases.
+    current = current.resolve()
     if not runs.is_dir():
         return
     cutoff = time.time() - days * 86400

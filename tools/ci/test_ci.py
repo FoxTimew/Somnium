@@ -63,6 +63,32 @@ class DownloadTests(unittest.TestCase):
 
 
 class InfrastructureTests(unittest.TestCase):
+    def assert_current_survives_alias(self, root, current):
+        for name in ["current", "old"]:
+            directory = root / "runs" / name
+            directory.mkdir(parents=True)
+            marker = directory / "run.json"
+            marker.write_text('{"owner":"somnium-ci"}')
+            os.utime(marker, (0, 0))
+        run.clean_runs(root, current, 14)
+        self.assertTrue((root / "runs/current/run.json").is_file())
+        self.assertFalse((root / "runs/old").exists())
+
+    def test_retention_normalizes_current_path(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            self.assert_current_survives_alias(root, root / "runs/../runs/current")
+
+    @unittest.skipIf(os.name == "nt", "Creating symlinks requires a privilege on Windows")
+    def test_retention_preserves_current_through_temporary_directory_alias(self):
+        # Model macOS /var -> /private/var without depending on the host TMPDIR.
+        with tempfile.TemporaryDirectory() as folder:
+            physical = Path(folder).resolve() / "physical"
+            physical.mkdir()
+            alias = Path(folder) / "temporary-alias"
+            alias.symlink_to(physical, target_is_directory=True)
+            self.assert_current_survives_alias(alias, alias / "runs/current")
+
     def test_retention_preserves_current_unowned_recent_and_cache(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
