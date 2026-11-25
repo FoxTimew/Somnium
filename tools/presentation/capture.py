@@ -22,7 +22,7 @@ def main():
     parser.add_argument("--executable", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--backend", choices=["direct3d12", "vulkan", "metal"])
-    parser.add_argument("--scenario", type=Path, default=Path(__file__).with_name("orbit.json"))
+    parser.add_argument("--scenario", type=Path, default=Path(__file__).with_name("courtyard.json"))
     args = parser.parse_args()
     system = platform.system()
     backend = args.backend or {"Windows": "direct3d12", "Linux": "vulkan", "Darwin": "metal"}[system]
@@ -36,8 +36,8 @@ def main():
               "source_commit": os.getenv("GITHUB_SHA") or subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
               "source_dirty": bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=ROOT, text=True).strip()),
               "binary_sha256": hashlib.sha256(executable.read_bytes()).hexdigest(),
-              "replay_sha256": hashlib.sha256(replay.read_bytes()).hexdigest(),
-              "scenario_sha256": hashlib.sha256(args.scenario.read_bytes()).hexdigest(),
+              "replay_sha256": hashlib.sha256(replay.read_bytes().replace(b"\r\n", b"\n")).hexdigest(),
+              "scenario_sha256": hashlib.sha256(args.scenario.read_bytes().replace(b"\r\n", b"\n")).hexdigest(),
               "input_source": "platform fixed-step replay (no OS input)", "status": "échec", "captures": []}
     environment = dict(os.environ, SDL_ASSERT="abort", SDL_LOGGING="*=verbose")
     if system == "Darwin":
@@ -85,6 +85,9 @@ def main():
                         raise RuntimeError(f"{name}: expected Radeon RX 6600M")
                     if f"fixed_steps={steps} " not in text:
                         raise RuntimeError(f"{name}: simulation continued past the capture boundary")
+                    for marker in case.get("markers", []):
+                        if marker not in text:
+                            raise RuntimeError(f"{name}: missing gameplay evidence: {marker}")
                     report["captures"].append({"name": path.name, "steps": steps, "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})
                 finally:
                     if process.poll() is None:
@@ -96,9 +99,10 @@ def main():
             bw, bh, b = read_png(output / (comparison["b"] + ".png"), allow_rgb=True)
             if (width, height) != (bw, bh):
                 raise RuntimeError("Capture dimensions differ")
-            # Exclude timing overlay; inspect the central/lower model region.
-            count = sum(a[i:i+3] != b[i:i+3] for y in range(height // 3, height * 9 // 10)
-                        for x in range(width // 3, width * 9 // 10) for i in [4 * (y * width + x)])
+            # The versioned region excludes diagnostic/inspector panels.
+            left, top, right, bottom = scenario.get("region", [.25, .3, .68, .9])
+            count = sum(a[i:i+3] != b[i:i+3] for y in range(int(height * top), int(height * bottom))
+                        for x in range(int(width * left), int(width * right)) for i in [4 * (y * width + x)])
             differences.append(dict(comparison, different_pixels=count))
             if count < comparison.get("minimum", 0) or count > comparison.get("maximum", width * height):
                 raise RuntimeError(f"Replay image comparison failed: {differences[-1]}")

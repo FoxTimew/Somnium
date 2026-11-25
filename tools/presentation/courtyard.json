@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "replay": "replays/courtyard.json",
+  "region": [
+    0.25,
+    0.3,
+    0.68,
+    0.9
+  ],
+  "cases": [
+    {
+      "name": "initial",
+      "steps": 1
+    },
+    {
+      "name": "movement",
+      "steps": 45
+    },
+    {
+      "name": "wall",
+      "steps": 205,
+      "markers": ["GAMEPLAY_PLAYER position=(3.00000,0.00000,-1.45000)", "GAMEPLAY_DOOR id=door-west degrees=0.00000 open=false"]
+    },
+    {
+      "name": "door-open",
+      "steps": 345,
+      "markers": ["GAMEPLAY_DOOR id=door-west degrees=90.00000 open=true", "GAMEPLAY_DOOR id=door-east degrees=0.00000 open=false"]
+    },
+    {
+      "name": "orbit",
+      "steps": 415
+    }
+  ],
+  "comparisons": [
+    {
+      "a": "initial",
+      "b": "movement",
+      "minimum": 1000
+    },
+    {
+      "a": "movement",
+      "b": "wall",
+      "minimum": 1000
+    },
+    {
+      "a": "wall",
+      "b": "door-open",
+      "minimum": 1000
+    },
+    {
+      "a": "door-open",
+      "b": "orbit",
+      "minimum": 1000
+    }
+  ]
+}

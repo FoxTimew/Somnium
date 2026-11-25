@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "step": 0,
+      "kind": "key",
+      "control": "D",
+      "down": true
+    },
+    {
+      "step": 60,
+      "kind": "key",
+      "control": "D",
+      "down": false
+    },
+    {
+      "step": 60,
+      "kind": "key",
+      "control": "W",
+      "down": true
+    },
+    {
+      "step": 200,
+      "kind": "key",
+      "control": "W",
+      "down": false
+    },
+    {
+      "step": 210,
+      "kind": "key",
+      "control": "A",
+      "down": true
+    },
+    {
+      "step": 270,
+      "kind": "key",
+      "control": "A",
+      "down": false
+    },
+    {
+      "step": 280,
+      "kind": "key",
+      "control": "E",
+      "down": true
+    },
+    {
+      "step": 281,
+      "kind": "key",
+      "control": "E",
+      "down": false
+    },
+    {
+      "step": 340,
+      "kind": "key",
+      "control": "W",
+      "down": true
+    },
+    {
+      "step": 400,
+      "kind": "key",
+      "control": "W",
+      "down": false
+    },
+    {
+      "step": 410,
+      "kind": "mouseButton",
+      "control": "Right",
+      "down": true
+    },
+    {
+      "step": 411,
+      "kind": "mouseMotion",
+      "x": -40,
+      "y": -20
+    },
+    {
+      "step": 412,
+      "kind": "mouseButton",
+      "control": "Right",
+      "down": false
+    }
+  ]
+}

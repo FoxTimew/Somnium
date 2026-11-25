@@ -40,9 +40,9 @@ Result<OrbitControls> OrbitControls::resolve(const input::Configuration& mapping
     return result;
 }
 void OrbitCamera::reset() {
-    m_yaw = .65F;
-    m_pitch = .45F;
-    m_distance = 10.F;
+    m_state.yaw = .65F;
+    m_state.pitch = .45F;
+    m_state.distance = 10.F;
 }
 void OrbitCamera::update(const input::State& input, const OrbitControls& controls, double seconds) {
     if (input.action(controls.reset).pressed) {
@@ -50,19 +50,22 @@ void OrbitCamera::update(const input::State& input, const OrbitControls& control
         return;
     }
     const auto delta = static_cast<float>(seconds);
-    m_yaw += .5F * input.axis(controls.mouseYaw) + 1.5F * delta * input.axis(controls.stickYaw);
-    m_yaw = std::remainder(m_yaw, 2.F * std::numbers::pi_v<float>);
-    m_pitch -=
+    m_state.yaw +=
+        .5F * input.axis(controls.mouseYaw) + 1.5F * delta * input.axis(controls.stickYaw);
+    m_state.yaw = std::remainder(m_state.yaw, 2.F * std::numbers::pi_v<float>);
+    m_state.pitch -=
         .5F * input.axis(controls.mousePitch) + 1.5F * delta * input.axis(controls.stickPitch);
     constexpr float limit = 80.F * std::numbers::pi_v<float> / 180.F;
-    m_pitch = std::clamp(m_pitch, -limit, limit);
+    m_state.pitch = std::clamp(m_state.pitch, -limit, limit);
     const auto zoom = input.axis(controls.wheelZoom) + delta * input.axis(controls.triggerZoom);
-    m_distance = std::clamp(m_distance * std::exp(-zoom), 4.F, 30.F);
+    m_state.distance = std::clamp(m_state.distance * std::exp(-zoom), 4.F, 30.F);
 }
-Trs OrbitCamera::pose() const {
-    const auto horizontal = m_distance * std::cos(m_pitch);
-    const glm::vec3 eye{horizontal * std::sin(m_yaw), m_distance * std::sin(m_pitch),
-                        horizontal * std::cos(m_yaw)};
-    return {eye, glm::quatLookAtRH(glm::normalize(-eye), glm::vec3(0, 1, 0)), glm::vec3(1)};
+Trs OrbitCamera::pose(glm::vec3 target) const {
+    const auto horizontal = m_state.distance * std::cos(m_state.pitch);
+    const glm::vec3 eye{horizontal * std::sin(m_state.yaw),
+                        m_state.distance * std::sin(m_state.pitch),
+                        horizontal * std::cos(m_state.yaw)};
+    return {target + eye, glm::quatLookAtRH(glm::normalize(-eye), glm::vec3(0, 1, 0)),
+            glm::vec3(1)};
 }
 } // namespace somnium::game

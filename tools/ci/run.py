@@ -338,8 +338,8 @@ class Runner:
             self.summary("Metal: **non validé** on this build-only host; the independent macos-15 job probes Metal")
         for backend in backends:
             self.gpu(backend)
-            # Windows capture injects real desktop input; only an explicit manual
-            # operation may invoke it. Xvfb/hosted macOS have isolated sessions.
+            # Windows replay captures still open visible presentation windows; keep
+            # them manual. Xvfb/hosted macOS have isolated desktop sessions.
             if SYSTEM != "Windows":
                 self.captures(backend)
         if SYSTEM == "Windows":

@@ -92,6 +92,33 @@ Le contrat Gameplay emprunte World et les inputs ; aucun type renderer n’est
 visible du jeu. Runtime → renderer est PRIVATE, vérifié au configure et par le
 scanner d’architecture (en-têtes publics runtime et sources du jeu).
 
+### Gameplay de référence
+
+`SandboxGame` charge ses paramètres depuis les composants `game.Character`,
+`game.AabbCollider`, `game.Door` et `game.FollowCamera` de `scenes/courtyard.json`.
+Leurs codecs utilisent les lecteurs vérifiés et la seconde passe de références
+de scene. Les identifiants d’actions/axes sont résolus dans `start`, jamais dans
+le pas fixe. Le personnage se déplace à 3 unités/s, diagonale normalisée ; son
+mesh enfant pivote sans faire tourner son volume de collision.
+
+Les AABB appartiennent uniquement à `game/`, sur des entités racines. La résolution
+balaie X puis Z jusqu’au premier plan d’entrée, même pour un grand déplacement ;
+elle conserve ainsi le glissement. Une téléportation dans un obstacle est corrigée
+par la plus courte sortie horizontale, avec un nombre borné de passes et une
+erreur explicite si les volumes restent incompatibles. Aucun module physique moteur.
+
+Une porte conserve son AABB **fermée pendant toute l’ouverture**. `Interact`
+sélectionne la porte fermée la plus proche dans sa portée ; le pivot tourne de
+90° en une seconde (60 pas). Le collider disparaît des obstacles uniquement à
+l’état `Open`. Le battant ouvert est décoratif : aucune collision rotative, fermeture
+ou poussée de personnage au MVP. Cette règle est couverte par les tests CPU.
+
+La caméra de suivi est une entité racine pilotée par le jeu, à distance 4–30 unités,
+pitch 5–75°, avec orbite souris conditionnée au bouton maintenu et stick droit.
+Scene fournit son interpolation comme pour toute entité. Runtime ne contient
+ni comportement de caméra ni contenu du jeu. Les modèles originaux CC0 et leur
+générateur reproductible sont recensés dans `assets/LICENSES.md`.
+
 Le graphe moteur, lu dans le sens « dépend de », est :
 
 ```mermaid

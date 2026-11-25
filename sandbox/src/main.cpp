@@ -1,7 +1,8 @@
 // Assembles the concrete game and engine without exposing SDL to the launcher.
 // Bounded runs exercise the ordinary event-driven shutdown path for CI.
 #include <somnium/core/log.hpp>
-#include <somnium/game/foundation_game.hpp>
+#include <somnium/game/codecs.hpp>
+#include <somnium/game/sandbox_game.hpp>
 #include <somnium/runtime/engine.hpp>
 
 #include <charconv>
@@ -11,8 +12,8 @@
 int main(int argc, char** argv) {
     somnium::runtime::RunOptions options;
     somnium::runtime::EngineConfig config;
-    config.scenePath = "scenes/orbit.json";
-    config.inputPath = "input/orbit.json";
+    config.scenePath = "scenes/courtyard.json";
+    config.inputPath = "input/courtyard.json";
     for (int index = 1; index < argc; index += 2) {
         if (index + 1 >= argc) {
             std::fputs("Usage: sandbox [--frames N] [--backend vulkan|direct3d12|metal] [--replay "
@@ -33,7 +34,7 @@ int main(int argc, char** argv) {
         } else
             return 2;
     }
-    somnium::game::FoundationGame game;
+    somnium::game::SandboxGame game;
     auto engine = somnium::runtime::Engine::create(config);
     if (!engine) {
         somnium::Log::write("sandbox", somnium::Log::Level::Error, engine.error().message);
@@ -41,6 +42,11 @@ int main(int argc, char** argv) {
     }
     somnium::scene::CodecRegistry codecs;
     auto registered = somnium::scene::registerBuiltinCodecs(codecs);
+    if (!registered) {
+        somnium::Log::write("sandbox", somnium::Log::Level::Error, registered.error().message);
+        return 1;
+    }
+    registered = somnium::game::registerCodecs(codecs);
     if (!registered) {
         somnium::Log::write("sandbox", somnium::Log::Level::Error, registered.error().message);
         return 1;

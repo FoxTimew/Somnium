@@ -5,7 +5,6 @@
 #include <glm/geometric.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <ostream>
-#include <somnium/game/foundation_game.hpp>
 #include <somnium/game/orbit_camera.hpp>
 
 namespace {

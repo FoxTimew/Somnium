@@ -1,0 +1,153 @@
+{
+  "version": 1,
+  "actions": [
+    {
+      "name": "Orbit",
+      "bindings": [
+        {
+          "source": "mouseButton",
+          "control": "Right"
+        }
+      ]
+    },
+    {
+      "name": "Reset",
+      "bindings": [
+        {
+          "source": "key",
+          "control": "R"
+        },
+        {
+          "source": "gamepadButton",
+          "control": "North"
+        }
+      ]
+    },
+    {
+      "name": "Interact",
+      "bindings": [
+        {
+          "source": "key",
+          "control": "E"
+        },
+        {
+          "source": "gamepadButton",
+          "control": "South"
+        }
+      ]
+    }
+  ],
+  "axes": [
+    {
+      "name": "MouseYaw",
+      "mode": "delta",
+      "bindings": [
+        {
+          "source": "mouseX",
+          "scale": 0.01,
+          "held": "Orbit"
+        }
+      ]
+    },
+    {
+      "name": "MousePitch",
+      "mode": "delta",
+      "bindings": [
+        {
+          "source": "mouseY",
+          "scale": 0.01,
+          "held": "Orbit"
+        }
+      ]
+    },
+    {
+      "name": "WheelZoom",
+      "mode": "delta",
+      "bindings": [
+        {
+          "source": "wheelY",
+          "scale": 0.2
+        }
+      ]
+    },
+    {
+      "name": "StickYaw",
+      "mode": "rate",
+      "bindings": [
+        {
+          "source": "gamepadAxis",
+          "scale": 1,
+          "control": "RightX",
+          "deadzone": 0.15
+        }
+      ]
+    },
+    {
+      "name": "StickPitch",
+      "mode": "rate",
+      "bindings": [
+        {
+          "source": "gamepadAxis",
+          "scale": 1,
+          "control": "RightY",
+          "deadzone": 0.15
+        }
+      ]
+    },
+    {
+      "name": "TriggerZoom",
+      "mode": "rate",
+      "bindings": [
+        {
+          "source": "gamepadAxis",
+          "control": "RightTrigger"
+        },
+        {
+          "source": "gamepadAxis",
+          "control": "LeftTrigger",
+          "invert": true
+        }
+      ]
+    },
+    {
+      "name": "MoveX",
+      "mode": "rate",
+      "bindings": [
+        {
+          "source": "key",
+          "control": "A",
+          "scale": -1
+        },
+        {
+          "source": "key",
+          "control": "D"
+        },
+        {
+          "source": "gamepadAxis",
+          "control": "LeftX",
+          "deadzone": 0.15
+        }
+      ]
+    },
+    {
+      "name": "MoveZ",
+      "mode": "rate",
+      "bindings": [
+        {
+          "source": "key",
+          "control": "W",
+          "scale": -1
+        },
+        {
+          "source": "key",
+          "control": "S"
+        },
+        {
+          "source": "gamepadAxis",
+          "control": "LeftY",
+          "deadzone": 0.15
+        }
+      ]
+    }
+  ]
+}
