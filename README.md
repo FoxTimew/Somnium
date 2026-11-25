@@ -4,22 +4,26 @@ Les résultats de rendu et les limites de l'environnement restent explicitement 
 -->
 # Somnium
 
-Moteur de jeu 3D C++20 pour Windows, Linux et macOS. La branche
-`phase/2-assets-renderer` charge un modèle glTF texturé et le présente en VSYNC
-avec profondeur, caméra orbitale et overlay ImGui. Les phases 0 et 1 sont fusionnées
-et taguées ; la fusion/tag de phase 2 attendent la validation finale.
+Moteur de jeu 3D C++20 pour Windows, Linux et macOS. `main` charge un modèle glTF
+texturé et le présente en VSYNC avec profondeur, caméra orbitale et overlay ImGui.
+Les phases 0 à 2 sont validées, fusionnées et taguées ; `main` est la branche
+par défaut. `phase/3-scene` prépare le jalon documentaire scène et inputs.
 
-État au 25 novembre : phase 2 livrée, infrastructure auto-hébergée fusionnée dans
-la branche de phase. Windows/Radeon et Linux/WSL2 sont requis ; macOS est manuel
+État au 25 novembre : phase 2 clôturée, tag `phase-2` sur `bf0976a`.
+Windows/Radeon et Linux/WSL2 sont requis ; macOS est manuel
 best effort et WARP n'est plus couvert. Installation et commandes dans
 [CI_RUNNER.md](docs/CI_RUNNER.md). Captures, journaux, CI et limites dans le
 [bilan de phase 2](docs/validation/phase-2/FIN_DE_PHASE.md).
+Le lancement macOS sur `main` a échoué au test de rétention, avant compilation :
+aucune nouvelle preuve Metal. Les ADR de phase 3 restent **proposés**, sans code
+de scène ni modification du module input avant leur validation.
 
 - [Architecture](docs/ARCHITECTURE.md) et [conventions](docs/adr/0002-conventions.md)
 - [Dépendances et licences](docs/adr/0001-stack-dependances-licences.md)
 - [Chaîne de shaders](docs/adr/0003-chaine-shaders.md), [frame GPU](docs/adr/0004-frame-synchronisation-gpu.md)
 - [Plan et résultats CI](docs/PHASE_1_CI.md), [protocole D5](docs/GPU_VALIDATION.md)
 - [Pipeline d’assets](docs/adr/0005-pipeline-assets.md), [contrôles](docs/INPUT.md) et [preuves de phase 2](docs/validation/phase-2/README.md)
+- Propositions de phase 3 : [scène et sérialisation](docs/adr/0007-scene-entites-serialisation.md), [inputs configurables](docs/adr/0008-inputs-configurables.md)
 
 ## Prérequis et bootstrap
 

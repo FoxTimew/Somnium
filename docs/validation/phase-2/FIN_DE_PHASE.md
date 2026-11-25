@@ -1,11 +1,15 @@
-<!-- Pièces vérifiables ; accord du propriétaire requis avant fusion dans main. -->
+<!--
+Bilan et pièces vérifiables de la phase 2 validée par le propriétaire.
+Le lancement macOS après fusion est consigné séparément des preuves requises.
+-->
 # Phase 2 — assets, renderer et caméra orbitale
 
-État au 25 novembre 2026 : fonctionnalités livrées, CI auto-hébergée validée et
-[PR #5](https://github.com/FoxTimew/Somnium/pull/5) fusionnée dans
-`phase/2-assets-renderer` par `892895320de846696888a3b7cda365b5e0a60b7a`.
-La [PR de phase #4](https://github.com/FoxTimew/Somnium/pull/4) attend la validation
-du propriétaire. **Aucune fusion dans main, aucun tag de phase 2.**
+État au 25 novembre 2026 : **phase 2 validée par le propriétaire et clôturée**.
+Après intégration de la [PR #5](https://github.com/FoxTimew/Somnium/pull/5), rebase
+sur `main` et CI verte, la [PR de phase #4](https://github.com/FoxTimew/Somnium/pull/4)
+est fusionnée sans fast-forward. Commit de fusion et tag annoté `phase-2` :
+`bf0976aded532668946ad71b92847ff8ca7b3a2c`. La branche `phase/3-scene` part de ce
+commit ; `main` est devenue la branche par défaut avec l'accord du propriétaire.
 
 ## Livraison
 
@@ -44,8 +48,16 @@ Le [workflow manuel corrigé](https://github.com/FoxTimew/Somnium/actions/runs/4
 est entièrement vert sur `36f18248b7ab05b3cec598a68c5b8ac4d33d6133` : les deux
 pipelines et les captures D3D12 passent. [Métadonnées du run](self-hosted/workflow.json),
 [résumé Windows](self-hosted/windows/SUMMARY.md), [résumé Linux](self-hosted/linux/SUMMARY.md).
-Le commit suivant de clôture ne modifie que documentation et pièces ; la PR
-porte le lien de la CI du dernier SHA documentaire.
+Le commit documentaire de clôture `c4ede9c` passe la
+[CI finale avant rebase](https://github.com/FoxTimew/Somnium/actions/runs/45624431353).
+Les identifiants ci-dessus désignent l'historique avant rebase ; celui-ci conserve
+exactement l'arbre de `c4ede9c` (`git diff` vide), à la tête publiée
+`0d50ab75e77e94ae09418fc502b1ee202a2f1ade`.
+La [CI après rebase](https://github.com/FoxTimew/Somnium/actions/runs/45627692899)
+est verte sur Windows et Linux avant fusion ; la
+[CI de main](https://github.com/FoxTimew/Somnium/actions/runs/45629637846)
+est également verte sur les deux runners au commit de fusion.
+Le tag `phase-2` est publié sur ce commit.
 
 | Vérification requise | Windows / Radeon | Linux / WSL2 |
 | --- | --- | --- |
@@ -122,16 +134,47 @@ Somnium avec dépendances, 37 en shipping. L'ancien blocage WinError 4551 ne se
 reproduit pas avec les outils et binaires MSVC actuels ; aucune politique de
 contrôle d'application n'a été assouplie.
 
-WARP n'est plus couvert. macOS reste manuel best effort ; le nouveau sandbox
-n'a pas été réexécuté sur Metal pour cette clôture. Les [preuves du jalon](README.md)
+WARP n'est plus couvert. macOS reste manuel best effort ; le lancement sur main
+décrit ci-dessous n'a pas atteint le moteur ni Metal. Les [preuves du jalon](README.md)
 restent historiques. Metal dépend de macos-15, cible 13.3 ; horizon de retrait et
 condition de migration dans [PHASE_1_CI.md](../../PHASE_1_CI.md). Les comptes
 personnels ont accès aux fichiers utilisateur, dont les disques Windows depuis
 WSL ; limites et conditions de compte dédié dans l'[ADR-0006](../../adr/0006-ci-auto-hebergee.md).
 
-## Phase suivante, après validation
+## Lancement macOS sur main — non bloquant
 
-ADR-0007 : scène/EnTT, hiérarchie et sérialisation JSON versionnée, extraction et
-interpolation. ADR-0008 : mapping d'inputs configurable et interaction avec l'UI.
+Un seul lancement manuel, demandé pendant que le dépôt est public :
+[run 45630158935](https://github.com/FoxTimew/Somnium/actions/runs/45630158935),
+sur `bf0976aded532668946ad71b92847ff8ca7b3a2c`, **échec**.
+Le provisionnement, les versions, le format et le scanner d'architecture passent.
+Les deux jobs s'arrêtent ensuite au contrat CI, avant la chaîne de shaders,
+la compilation moteur et le probe GPU. **Metal : non validé** sur ce passage ;
+il ne démontre ni une absence de device ni un défaut de rendu.
+
+| Job | Environnement observé | Résultat |
+| --- | --- | --- |
+| macos-latest | macOS 26.7.2 arm64, Xcode 26.6 | Échec du test de rétention, 1/7 tests en échec |
+| macos-15 | macOS 15.8.2 arm64, Xcode 16.4 | Même échec ; aucun test Metal exécuté |
+
+Diagnostic exact : `test_retention_preserves_current_unowned_recent_and_cache`,
+`tools/ci/test_ci.py:82`, `AssertionError: False is not true` ; puis
+`RuntimeError: ci-contract failed (1)`. Métadonnées et extraits de journaux :
+[résultat](macos-manual-2026-11-25/result.json),
+[macos-latest](macos-manual-2026-11-25/macos-latest.txt),
+[macos-15](macos-manual-2026-11-25/macos-15.txt).
+
+Cause probable à la lecture de `clean_runs` : comparaison du chemin résolu au
+chemin `current` non résolu du test, sensible aux alias des répertoires temporaires
+macOS. Cette hypothèse n'a pas été reproduite séparément. Avant un prochain passage,
+normaliser les deux chemins et couvrir ce cas ; aucune correction ni relance dans
+ce jalon non bloquant. Aucune nouvelle image Metal n'est disponible.
+
+## Phase suivante — jalon documentaire en attente
+
+[ADR-0007](../../adr/0007-scene-entites-serialisation.md) : scène/EnTT, hiérarchie
+et JSON versionné extensible par game, extraction et interpolation.
+[ADR-0008](../../adr/0008-inputs-configurables.md) : mapping générique, IDs
+compilés, transitions et interaction UI. Les deux restent proposés ; leur
+validation précède tout code de scène et toute modification de input.
 Le cuiseur, KTX2/BC/mipmaps, chargement asynchrone et .metallib shipping macOS
-restent hors phase 2. Aucun travail de phase 3 n'est commencé.
+restent hors phase 2. L'implémentation de phase 3 n'est pas commencée.

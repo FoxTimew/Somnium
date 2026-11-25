@@ -6,9 +6,12 @@ Document validé ; distingue les contrats du MVP des capacités déjà implémen
 
 Statut : **accepté**, 20 octobre 2026, avec les arbitrages D1 à D5 ci-dessous.
 
-Les phases 0 et 1 sont validées, fusionnées `--no-ff` et taguées sur `main`.
-La phase 2 est livrée sur `phase/2-assets-renderer` ; sa fusion attend la validation finale.
-Infrastructure auto-hébergée fusionnée par la PR #5 ; [bilan et preuves](validation/phase-2/FIN_DE_PHASE.md).
+Les phases 0 à 2 sont validées, fusionnées `--no-ff` et taguées sur `main`.
+La phase 2 se termine au tag `phase-2` (`bf0976a`, PR #4) ; `main` est la branche
+par défaut. Infrastructure auto-hébergée intégrée ; [bilan et preuves](validation/phase-2/FIN_DE_PHASE.md).
+`phase/3-scene` porte uniquement le jalon documentaire proposé :
+[ADR-0007](adr/0007-scene-entites-serialisation.md) et
+[ADR-0008](adr/0008-inputs-configurables.md), à valider avant le code concerné.
 Voir les
 [ADR-0001](adr/0001-stack-dependances-licences.md) et
 [ADR-0002](adr/0002-conventions.md).
@@ -79,6 +82,10 @@ l'ADR-0001.
 lecture retenue de « game/ et sandbox/ sont les seuls exécutables » : aucun
 `main` dans le moteur ; un éventuel autre lanceur restera dans ces répertoires.
 Le jeu est compilé dès la phase 0. Sa frontière dynamique n'est pas implémentée.
+
+La table reflète le contrat de phase 2 : `Gameplay::camera()` expose encore
+renderer. L'ADR-0007 propose sa suppression et le passage de la dépendance
+runtime → renderer à PRIVATE ; ce changement attend la validation documentaire.
 
 Le graphe moteur, lu dans le sens « dépend de », est :
 
@@ -438,6 +445,21 @@ shipping sélectionne COOKED et exclut la racine du dépôt. Tests CPU et vérif
 du graphe shipping accompagnent le cube hors écran et les captures interactives.
 Le jalon cube est validé ; le triangle est remplacé, input et caméra orbitale
 sont implémentés. `scene` reste prévu en phase 3. L'[ADR-0005](adr/0005-pipeline-assets.md) fixe ces contrats.
+
+Le jalon de phase 3 propose World/EnTT et codecs de composants extensibles par
+game, IDs persistants indépendants du registre, interpolation des TRS locaux
+avant recomposition, puis mappings d'inputs compilés en IDs. Les conventions
+d'Euler et ces contrats restent proposés dans ADR-0007/0008, sans modifier
+le comportement de phase 2. La cible est un personnage non animé sur un sol,
+caméra suiveuse avec orbite, murs AABB et portes Interact à pivot (90°), chargés
+depuis `assets/scenes/*.json` ; collisions et composants associés vivent dans
+game. L'inspecteur affiche la hiérarchie et permet l'édition des transforms.
+
+Ordre après validation : scene (composants, hiérarchie, propagation, JSON) →
+extraction/interpolation et preuve analytique de scène hors écran → **arrêt pour
+validation intermédiaire** → input configurable → gameplay cible → inspecteur
+et affichage des inputs → documentation et bilan. Aucun code de scène ni
+changement de input n'est livré dans le présent jalon.
 
 | Extension hors MVP | Frontière préservée dès maintenant |
 | --- | --- |
