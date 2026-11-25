@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "replay": "replays/orbit.json",
+  "cases": [
+    {
+      "name": "model-overlay",
+      "steps": 1
+    },
+    {
+      "name": "orbit",
+      "steps": 45
+    },
+    {
+      "name": "zoom",
+      "steps": 75
+    },
+    {
+      "name": "reset",
+      "steps": 100
+    }
+  ],
+  "comparisons": [
+    {
+      "a": "model-overlay",
+      "b": "orbit",
+      "minimum": 500
+    },
+    {
+      "a": "orbit",
+      "b": "zoom",
+      "minimum": 500
+    },
+    {
+      "a": "model-overlay",
+      "b": "reset",
+      "maximum": 0
+    }
+  ]
+}

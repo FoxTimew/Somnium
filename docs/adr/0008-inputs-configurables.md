@@ -54,6 +54,11 @@ transitions pendant les frames sans pas et les rattrapages de simulation.
   exclus du gameplay, relâchements toujours traités, nouvelle pression exigée
   au retour. Aucun ImGui dans input ou les sources de base platform/gpu.
 
+- **Rejeu.** JSON v1 d’événements neutres horodatés par pas, livré par platform
+  avant chaque pas fixe ; aucun événement de gameplay natif pendant le rejeu.
+  Les captures figent un pas précis sans injection système. Windows reste manuel
+  pour éviter les fenêtres visibles dans la session de travail. Détails : INPUT.md.
+
 ## Alternatives
 
 Enum moteur ou noms résolus par pas : couplage/coût évitables. Axe mélangeant
@@ -69,4 +74,4 @@ multi-liaisons, normalisation, doubles taps, frames sans pas/rattrapages,
 rate/delta, focus/UI/déconnexions ; correspondance clavier exhaustive dans platform.
 Inspecteur et affichage d'inputs absents de shipping.
 
-Preuves : clavier complet, configuration générique, journal de transitions et intégration UI restent à implémenter et tester ; aucun mapping phase 3 n'est encore actif.
+Preuves : clavier, compilation/conflits, transitions, capture neutre et rejeu couverts par tests CPU locaux ; validation CI du rejeu et panneau UI à terminer.

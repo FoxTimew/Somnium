@@ -1,45 +1,67 @@
-<!-- Contrat de phase 2 : événements neutres et mapping CPU à pas fixe. -->
-# Entrées à pas fixe
+<!-- Mapping et rejeu neutres : contrat public de phase 3. -->
+# Entrées configurables à pas fixe
 
-`platform::pollEvents(nextStep)` collecte SDL sur le thread de fenêtre, appelle
-l'adaptateur privé ImGui et expose une vue de `core::InputEvent` valable jusqu'au
-prochain poll. `step` est l'indice du prochain pas de simulation, fourni par runtime,
-pas une estimation depuis l'horloge du périphérique. Touches physiques Somnium,
-boutons, déplacements relatifs en pixels, molette en unités de défilement et axes
-manette signés bruts restent séparés. Le sens de molette inversé du système est normalisé.
+`assets/input/orbit.json` illustre le schéma **version 1** : tableaux `actions`
+et `axes`, noms uniques entre les deux. Une action contient `name`, `bindings` ;
+un axe ajoute `mode` (`rate` ou `delta`). Chaque binding contient `source` :
+`key`, `mouseButton`, `gamepadButton`, `gamepadAxis`, `mouseX`, `mouseY`,
+`wheelX`, `wheelY`. Les quatre premiers exigent `control` (nom Somnium sensible
+à la casse, inventaire dans `core/keys.hpp` et `core/input_names.hpp`). Touches
+physiques : A..Z, Digit0..9, F1..F24, modificateurs et clavier étendu complet.
+Aucun code SDL dans le fichier ni dans input.
 
-`input::Input::enqueue` conserve les événements en ordre ; `advance(step)` les
-consomme une seule fois, même si plusieurs frames précèdent le prochain pas.
-Les événements futurs attendent. Un lot invalide est rejeté entièrement.
-Un appui et un relâchement dans le même pas donnent `pressed=true`,
-`released=true`, `held=false`. Les transitions et impulsions sont effacées au pas
-suivant ; les boutons et sticks restent maintenus. Une perte de focus libère les
-actions et annule les axes ; une déconnexion ne libère que la manette concernée.
+Options des axes : `scale` fini (défaut 1), `invert` booléen (défaut false),
+`deadzone` uniquement pour un axe manette, dans [0,1[ (défaut 0). Une paire
+clavier est deux bindings, l’un avec scale -1, l’autre +1. Pour une manette,
+`slot` vaut `any` (défaut) ou 0..3, attribué dans l’ordre des connexions aux slots
+libres. Actions : OU de leurs boutons. Axes rate : somme bornée à [-1,1],
+sticks normalisés asymétriquement par 32768/32767, gâchettes dans [0,1], zone
+morte axiale remise à l’échelle. Axes delta : somme sans borne ±1, consommée
+une fois, sans multiplication par dt. Seuls les deltas acceptent `held`, nom
+résolu d’une action conditionnante, évaluée dans l’ordre des événements.
 
-| Action/axe en code | Sources | Normalisation |
-| --- | --- | --- |
-| `Orbit` | Bouton droit de souris | pressed / released / held |
-| `Reset` | Touche physique R, bouton sud de manette | OU des sources maintenues |
-| `MouseYaw`, `MousePitch` | Mouvement pendant Orbit | 100 pixels = 1, borné à ±1 par pas |
-| `WheelZoom` | Molette verticale | 5 unités = 1, borné à ±1 par pas |
-| `StickYaw`, `StickPitch` | Stick droit | [-32768,32767] → [-1,1], zone morte 15 %, reste remis à l'échelle |
-| `TriggerZoom` | Gâchette droite moins gauche | [0,32767] → [0,1] par gâchette |
+Une source physique a une seule destination, même entre action et axe ; un
+doublon est refusé, et `any` entre en conflit avec tout slot du même contrôle.
+Champ/contrôle/version inconnus, mauvais type ou conflit donnent une erreur
+contextualisée. `Configuration::parse/load` construit une nouvelle valeur ou
+échoue sans toucher à la configuration active. Le jeu résout `ActionId` et
+`AxisId` dans `start(World, Configuration)` ; aucune recherche par nom au pas.
+Les contextes d’input sont reportés.
 
-Quatre manettes simultanées ; platform journalise une connexion excédentaire.
-Leurs axes sont additionnés puis bornés. La file réserve 128 événements et peut
-grandir lors d'une rafale ; les états et les quatre slots n'allouent pas au pas fixe.
-Le mapping JSON configurable est reporté à la phase 3. `input` ne dépend que de
-`core` ; aucun include SDL ni type natif, vérifié par le scanner et ses tests négatifs.
+`platform::pollEvents(nextStep)` collecte les événements bruts puis input les
+conserve. `advance` exige des pas consécutifs depuis zéro. Les événements futurs
+attendent ; chaque transition apparaît dans le journal ordonné `transitions`,
+en plus du résumé pressed/released/held. Deux taps dans un pas donnent quatre
+transitions. Les états empruntés restent valides jusqu’au prochain advance.
+Un retard supprimé de l’accumulateur ne saute jamais un indice de simulation.
+Perte de focus : relâchements ; déconnexion : seule la manette concernée.
+Les impulsions déjà reçues avant une perte de focus restent livrées.
 
-La caméra orbitale est dans `game::OrbitCamera`. `Gameplay::fixedUpdate` emprunte
-un `input::State` portant le même indice de pas ; `Gameplay::camera()` fournit une
-`renderer::Camera` par valeur. `GameContext::requestModel` enregistre un chemin
-logique sans I/O. Runtime réalise ensuite le chargement et le rendu.
+`setCapture({keyboard,mouse})` insère une frontière ordonnée au prochain pas.
+L’entrée en capture libère une fois les actions concernées. Les appuis capturés
+et deltas sont ignorés pour le jeu ; les relâchements sont toujours traités.
+La sortie exige un nouvel appui, aucun bouton maintenu ne se réactive seul.
+La file et le journal réservent 128 entrées, grandissent si nécessaire ; les
+états et les quatre slots sont dimensionnés avant simulation.
 
-Souris : 0,5 radian pour 100 pixels ; stick : 1,5 radian/seconde. Le yaw est ramené
-modulo 2π, le pitch borné à ±80°, la distance à [4,30] m. La molette multiplie
-la distance par `exp(-unités/5)` ; les gâchettes appliquent ce zoom en continu avec
-le temps du pas. R/bouton sud réinitialise yaw 0,65 rad, pitch 0,45 rad, distance
-10 m. La cible est l'origine, up = +Y, FOV vertical π/3, near 0,1 et far 100 m.
-La pose est reconstruite en coordonnées sphériques ; elle n'atteint jamais les
-pôles singuliers de `lookAtRH`. L'aspect reste calculé par renderer depuis l'extent.
+## Rejeu et captures
+
+`assets/replays/orbit.json`, schéma version 1, contient `events` ordonnés par
+`step` (entier depuis zéro), puis `kind` : key/mouseButton/gamepadButton avec
+control/down ; mouseMotion/mouseWheel avec x/y ; gamepadAxis avec control/value ;
+gamepadConnected/gamepadDisconnected ; focusLost. Les événements manette ont
+un `device` entier neutre. Champs inconnus, contrôles inconnus, valeurs non finies,
+axes hors [-32768,32767] et pas désordonnés sont rejetés avant installation.
+
+`sandbox --replay replays/orbit.json` installe `platform::InputReplay` : les
+événements physiques de gameplay sont écartés, les événements de fenêtre restent
+actifs. Runtime demande les événements à platform avant chaque pas, y compris
+pendant un rattrapage. `--capture-step N` exige un rejeu, fige la simulation après
+N pas, présente la pose courante pendant trois secondes puis ferme normalement.
+Les scripts `tools/presentation/` lisent la fenêtre après `CAPTURE_READY` ; ils
+n’injectent aucun événement système et ne déplacent ni focus ni pointeur.
+Les captures Windows restent **manuelles** : les fenêtres visibles et leur
+lecture dans la session personnelle peuvent gêner le travail ou être masquées.
+Les preuves GPU hors écran et le test de fenêtre restent requis. Les scénarios
+Linux/macOS utilisent exactement le même rejeu ; leurs pixels restent des
+captures de présentation, distinctes des références analytiques hors écran.

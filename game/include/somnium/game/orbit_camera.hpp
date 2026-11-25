@@ -4,10 +4,15 @@
 #include <somnium/runtime/gameplay.hpp>
 
 namespace somnium::game {
+struct OrbitControls {
+    input::ActionId reset;
+    input::AxisId mouseYaw, mousePitch, wheelZoom, stickYaw, stickPitch, triggerZoom;
+    [[nodiscard]] static Result<OrbitControls> resolve(const input::Configuration& mapping);
+};
 class OrbitCamera final {
   public:
     void reset();
-    void update(const input::State& input, double seconds);
+    void update(const input::State& input, const OrbitControls& controls, double seconds);
     [[nodiscard]] Trs pose() const;
 
   private:

@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <array>
+#include <optional>
 #include <string>
 #include <thread>
 #include <utility>
@@ -33,6 +34,7 @@ struct Platform::Impl {
     void (*observer)(void*, const SDL_Event&) = nullptr;
     std::thread::id owner = std::this_thread::get_id();
     std::vector<core::InputEvent> input;
+    std::optional<InputReplay> replay;
     std::array<SDL_Gamepad*, 4> gamepads{};
 
     ~Impl() {
@@ -120,8 +122,9 @@ Events Platform::pollEvents(std::uint64_t nextStep) {
                 }
             }
         }
-        if (auto input = detail::translateInput(event, nextStep))
-            m_impl->input.push_back(*input);
+        if (!m_impl->replay)
+            if (auto input = detail::translateInput(event, nextStep))
+                m_impl->input.push_back(*input);
         if (event.type == SDL_EVENT_QUIT) {
             result.quitRequested = true;
         } else if (m_impl->window && event.type >= SDL_EVENT_WINDOW_FIRST &&
@@ -138,6 +141,21 @@ Events Platform::pollEvents(std::uint64_t nextStep) {
     }
     result.input = m_impl->input;
     return result;
+}
+
+void Platform::setReplay(InputReplay replay) {
+    SOMNIUM_VERIFY(m_impl->owner == std::this_thread::get_id());
+    m_impl->replay = std::move(replay);
+}
+bool Platform::replaying() const {
+    return m_impl->replay.has_value();
+}
+Result<std::span<const core::InputEvent>> Platform::replayEvents(std::uint64_t step) {
+    SOMNIUM_VERIFY(m_impl->owner == std::this_thread::get_id());
+    auto& replay = m_impl->replay;
+    if (replay.has_value())
+        return replay.value().next(step);
+    return std::span<const core::InputEvent>{};
 }
 
 Result<void> Platform::waitEvents() const {

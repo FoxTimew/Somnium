@@ -37,6 +37,9 @@ with tempfile.TemporaryDirectory(prefix="somnium-package-") as temporary:
     models = package / "assets/models"
     models.mkdir()
     shutil.copy2(args.model, models / "orbit-cube.glb")
+    inputs = package / "assets/input"
+    inputs.mkdir()
+    shutil.copy2(args.scene.parent.parent / "input/orbit.json", inputs / "orbit.json")
     complete = launch()
     print(complete.stdout)
     assert complete.returncode == 0 and "frames=12" in complete.stdout, "Explicitly staged package must run from an unrelated cwd"

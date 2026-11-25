@@ -8,7 +8,8 @@
 namespace somnium::game {
 class FoundationGame final : public runtime::Gameplay {
   public:
-    [[nodiscard]] Result<void> start(scene::World& world) override;
+    [[nodiscard]] Result<void> start(scene::World& world,
+                                     const input::Configuration& mapping) override;
     [[nodiscard]] Result<void> fixedUpdate(scene::World& world,
                                            const runtime::FixedUpdate& update) override;
     void stop(scene::World& world) override;
@@ -18,6 +19,7 @@ class FoundationGame final : public runtime::Gameplay {
     double m_simulatedSeconds = 0.0;
     bool m_running = false;
     OrbitCamera m_camera;
+    OrbitControls m_controls;
     entt::entity m_cameraEntity = entt::null;
     bool m_cameraMoving = false;
 };

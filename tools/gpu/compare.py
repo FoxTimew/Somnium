@@ -18,7 +18,7 @@ def write_png(path, width, height, rgba):
                            + chunk(b"IDAT", zlib.compress(rows)) + chunk(b"IEND", b""))
 
 
-def read_png(path):
+def read_png(path, *, allow_rgb=False):
     data = Path(path).read_bytes()
     if data[:8] != b"\x89PNG\r\n\x1a\n":
         raise ValueError("Not a PNG (check Git LFS checkout)")
@@ -31,9 +31,10 @@ def read_png(path):
             raise ValueError("PNG CRC mismatch")
         if kind == b"IHDR":
             width, height, depth, color, compression, filtering, interlace = struct.unpack(">IIBBBBB", content)
-            if (depth, color, compression, filtering, interlace) != (8, 6, 0, 0, 0):
+            if (depth, compression, filtering, interlace) != (8, 0, 0, 0) or color not in ([2, 6] if allow_rgb else [6]):
                 raise ValueError("Reference must be non-interlaced RGBA8")
             dimensions = width, height
+            channels = 3 if color == 2 else 4
         elif kind == b"IDAT":
             payload.extend(content)
         elif kind == b"IEND":
@@ -43,24 +44,30 @@ def read_png(path):
         raise ValueError("Missing PNG dimensions")
     width, height = dimensions
     rows = zlib.decompress(payload)
-    stride = width * 4
+    stride = width * channels
     if len(rows) != height * (stride + 1):
         raise ValueError("Invalid PNG data size")
-    result = bytearray(width * height * 4)
+    result = bytearray(width * height * channels)
     for y in range(height):
         mode = rows[y * (stride + 1)]
         if mode > 4:
             raise ValueError("Invalid PNG filter")
         for x in range(stride):
             index = y * stride + x
-            left = result[index - 4] if x >= 4 else 0
+            left = result[index - channels] if x >= channels else 0
             up = result[index - stride] if y else 0
-            corner = result[index - stride - 4] if y and x >= 4 else 0
+            corner = result[index - stride - channels] if y and x >= channels else 0
             p = left + up - corner
             distances = [abs(p - left), abs(p - up), abs(p - corner)]
             paeth = [left, up, corner][distances.index(min(distances))]
             predict = [0, left, up, (left + up) // 2, paeth][mode]
             result[index] = (rows[y * (stride + 1) + 1 + x] + predict) & 255
+    if channels == 3:
+        rgba = bytearray(width * height * 4)
+        for channel in range(3):
+            rgba[channel::4] = result[channel::3]
+        rgba[3::4] = b"\xff" * (width * height)
+        result = rgba
     return width, height, bytes(result)
 
 

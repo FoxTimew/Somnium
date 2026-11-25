@@ -172,7 +172,7 @@ couvert par le simple passage à un jeton non élevé.
 
 Windows exige Radeon RX 6600M pour D3D12 et Vulkan, avec couches actives ; **WARP
 n'est plus couvert**. Linux impose lavapipe. Les captures Windows viennent de la
-fenêtre réelle et d'événements souris/clavier, **uniquement dans le job manuel
+fenêtre réelle et du rejeu neutre de platform, **uniquement dans le job manuel
 windows-presentation**, déclenché avec workflow_dispatch et presentation=true.
 Il réutilise le build debug Windows du même run, sans transfert d'artefact. Laisser
 le bureau libre pendant ce job ; voir le [guide](DEMARRER_RUNNERS.md).
@@ -186,3 +186,12 @@ Sources : [runner GitHub](https://docs.github.com/en/actions/how-tos/manage-runn
 [approbations des forks](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository),
 [installation Vulkan](https://vulkan.lunarg.com/doc/view/latest/windows/getting_started.html),
 [bootstrapper VS fixe](https://learn.microsoft.com/en-us/visualstudio/releases/2026/release-history).
+
+### Rejeu de présentation (phase 3)
+
+Les captures Windows restent dans le job manuel `workflow_dispatch`, sur D3D12
+et Vulkan. Le rejeu neutre de platform remplace toute injection système sur
+Windows, Linux et macOS. Les scripts ne changent ni focus ni pointeur. La fenêtre
+visible et sa capture peuvent néanmoins gêner la session personnelle ou être
+masquées : ce risque justifie le maintien manuel. Le job requis conserve le test
+de fenêtre et D5/cube/scène hors écran. Voir [INPUT.md](INPUT.md).

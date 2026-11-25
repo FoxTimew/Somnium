@@ -38,7 +38,11 @@ EnTT v4.0.0 est utilisé depuis les en-têtes du cache CPM.
   entité id/components, composant version/data. Parents/caméra par ID, assets
   par chemin logique ; aucun identifiant EnTT, handle ou monde sérialisé.
   Table extensible de noms/versions et fonctions serialize/deserialize avec Result ;
-  game enregistre ses composants sans modifier le moteur. Contexte commun :
+  game enregistre ses composants sans modifier le moteur. Par décision, l’en-tête
+  public des codecs expose `nlohmann::json` : les codecs du jeu sont des
+  sérialiseurs ; un format binaire peut partir de la même valeur. Ils utilisent
+  les lecteurs vérifiés `readString`, `readNumber`, `readVector3`, `requireFields`.
+  Contexte commun :
   résolution différée d'IDs en **seconde passe**, accessible aussi aux codecs game
   (porte → pivot). Composant/version inconnus, référence absente ou donnée invalide :
   erreur contextualisée ; scène active inchangée. Sauvegarde ordonnée par ID.
@@ -53,7 +57,7 @@ EnTT v4.0.0 est utilisé depuis les en-têtes du cache CPM.
   caméra comprise (vue inverse, RH_ZO, aspect cible). DrawList = monde interpolé
   × instances glTF aplaties ; cache renderer par handle. **Une entité par modèle** :
   porte = pivot de scène + mesh enfant, ouvrant/bâti séparés.
-- **Gameplay/UI.** start/stop empruntent World ; fixedUpdate reçoit World, inputs,
+- **Gameplay/UI.** start emprunte World et la configuration d’input, stop emprunte World ; fixedUpdate reçoit World, inputs,
   dt et indice de pas. requestModel/lightDirection/ambient/clearColor/camera()
   disparaissent du contrat ; aucun type renderer visible du jeu. Sandbox fournit
   les chemins. Inspecteur : éditions en frontière de pas, via World/téléportation.

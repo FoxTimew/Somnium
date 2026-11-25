@@ -51,22 +51,18 @@ ne pas utiliser wsl --shutdown, qui interromprait aussi les autres distributions
 
 ## Captures Windows, uniquement à la demande
 
-Le job requis ouvre brièvement une fenêtre de test et vérifie D5/cube hors écran.
-Il **n'injecte ni souris ni clavier**. Les captures du modèle, orbite, zoom, reset
-et resize injectent de vrais événements dans le bureau : garder la session
-déverrouillée et laisser souris/clavier libres pendant le job manuel.
-
-Depuis une tâche planifiée, Windows peut refuser SetForegroundWindow. Le script
-essaie alors un clic d'activation dans le client du sandbox, temporairement placé
-au-dessus des autres fenêtres. Il vérifie d'abord que le point appartient bien
-au sandbox, puis vérifie le focus avant les captures ; sinon il échoue sans
-continuer la séquence. Aucun Alt envoyé à l'application précédente, aucun
-changement de politique système. [Règles Windows de premier plan](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setforegroundwindow).
+Le job requis ouvre brièvement une fenêtre de test et vérifie D5/cube/scène hors
+écran. Les captures utilisent désormais un rejeu neutre dans platform : aucune
+injection clavier/souris, aucun clic d’activation ni déplacement du pointeur.
+Elles restent manuelles car leurs fenêtres visibles peuvent gêner la session de
+travail ou être masquées. Garder la session déverrouillée et le bureau libre.
+Si Windows refuse le premier plan au sandbox, le script échoue explicitement ;
+il ne tente pas de reprendre le focus. Voir [le contrat de rejeu](INPUT.md).
 
 Depuis un terminal disposant de GitHub CLI, sélectionner explicitement la branche :
 
 ```sh
-gh workflow run ci.yml --repo FoxTimew/Somnium --ref phase/2-assets-renderer -f presentation=true
+gh workflow run ci.yml --repo FoxTimew/Somnium --ref phase/3-scene -f presentation=true
 ```
 
 Ce lancement par branche a été exécuté le 25 novembre 2026, après la fusion de
@@ -79,6 +75,6 @@ uniquement pour faire apparaître ce bouton.
 
 Le job windows-presentation attend le build Windows du même run, utilise ses
 binaires debug puis conserve les captures dans
-C:\SomniumCI\runs\<run-id>-<tentative>\presentation-direct3d12.
+C:\SomniumCI\runs\<run-id>-<tentative>\presentation-direct3d12 et presentation-vulkan.
 Les journaux et GITHUB_STEP_SUMMARY donnent le résultat et les chemins. Sans
 l'option presentation, même un workflow_dispatch ne capture pas le bureau.

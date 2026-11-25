@@ -1,5 +1,5 @@
 # Required Windows/Radeon and Linux/lavapipe checks use the same scripts as local runs.
-# Fork pull requests must never execute on these persistent runners; desktop input is manual only.
+# Fork pull requests must never execute on these persistent runners; presentation windows remain manual.
 name: CI self-hosted
 on:
   push:
@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       presentation:
-        description: 'Inject mouse/keyboard in the Windows session to capture D3D12 (leave the desktop free)'
+        description: 'Capture D3D12/Vulkan windows with replay (no input injection; leave the desktop free)'
         type: boolean
         default: false
 permissions:
@@ -52,6 +52,9 @@ jobs:
         with:
           lfs: true
           persist-credentials: false
-      - name: Manual D3D12 presentation captures (uses mouse and keyboard)
+      - name: Manual D3D12/Vulkan replay presentation captures
         shell: powershell
         run: tools/ci/windows.ps1 captures --backend direct3d12 --window-mode interactive
+      - name: Manual Vulkan replay presentation captures
+        shell: powershell
+        run: tools/ci/windows.ps1 captures --backend vulkan --window-mode interactive

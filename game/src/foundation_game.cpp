@@ -18,10 +18,14 @@ void logCamera(const Trs& camera) {
                eye.x, eye.y, eye.z, glm::length(eye));
 }
 } // namespace
-Result<void> FoundationGame::start(scene::World& world) {
+Result<void> FoundationGame::start(scene::World& world, const input::Configuration& mapping) {
     if (m_running) {
         return tl::unexpected(Error{ErrorCode::InvalidState, "Game already started"});
     }
+    auto controls = OrbitControls::resolve(mapping);
+    if (!controls)
+        return tl::unexpected(controls.error());
+    m_controls = *controls;
     auto camera = world.find("camera");
     if (!camera)
         return tl::unexpected(camera.error());
@@ -51,7 +55,7 @@ Result<void> FoundationGame::fixedUpdate(scene::World& world, const runtime::Fix
     ++m_steps;
     m_simulatedSeconds += update.seconds;
     const auto before = m_camera.pose().position;
-    m_camera.update(update.inputs, update.seconds);
+    m_camera.update(update.inputs, m_controls, update.seconds);
     const auto eye = m_camera.pose().position;
     if (before != eye)
         m_cameraMoving = true;
@@ -59,7 +63,7 @@ Result<void> FoundationGame::fixedUpdate(scene::World& world, const runtime::Fix
         logCamera(m_camera.pose());
         m_cameraMoving = false;
     }
-    return update.inputs.action(input::Action::Reset).pressed
+    return update.inputs.action(m_controls.reset).pressed
                ? world.teleport(m_cameraEntity, m_camera.pose())
                : world.setLocal(m_cameraEntity, m_camera.pose());
 }

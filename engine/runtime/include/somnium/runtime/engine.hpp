@@ -17,10 +17,14 @@ struct EngineConfig {
     int height = 720;
     std::string_view resourceRoot;
     std::string_view scenePath;
+    std::string_view inputPath;
+    std::string_view replayPath;
     // Empty selects D3D12 on Windows, Metal on macOS and Vulkan on Linux.
     std::string_view backend;
 };
 struct RunOptions {
+    // Replay capture: freeze after this many ticks, present for three seconds, then quit.
+    std::uint64_t captureSteps = 0;
     std::uint64_t frameLimit =
         0; // Zero means interactive; bounded runs enqueue the normal quit event.
 };

@@ -12,7 +12,7 @@ Vulkan) et Ubuntu 24.04/WSL2/lavapipe sont désormais requis. **WARP n'est plus
 couvert** : ses captures antérieures restent des preuves des anciens commits.
 Windows fonctionne sous Foxti en tâche non élevée et session interactive ; WSL
 utilise le service systemd sous foxti. Le job requis garde fenêtres et preuves hors
-écran ; les captures Windows injectant souris/clavier passent uniquement par le
+écran ; les captures Windows pilotées par rejeu sans injection système passent uniquement par le
 job manuel workflow_dispatch. Décision et risque du compte personnel : ADR-0006.
 
 macOS devient un workflow manuel best effort, indépendant de la validation requise.

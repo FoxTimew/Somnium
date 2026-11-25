@@ -138,14 +138,14 @@ class InfrastructureTests(unittest.TestCase):
         self.assertNotIn("  push:", optional)
         self.assertNotIn("  pull_request:", optional)
 
-    def test_windows_pipeline_never_injects_desktop_input(self):
+    def test_windows_pipeline_keeps_presentation_manual(self):
         # Run orchestration with inert build operations; any accidental desktop
         # capture in the required Windows pipeline is an immediate test failure.
         runner = object.__new__(run.Runner)
         for name in ["doctor", "format", "cache_server", "compiler_cache", "shader_toolchain",
                      "configure", "build", "test", "gpu", "call", "summary"]:
             setattr(runner, name, lambda *args, **kwargs: None)
-        runner.captures = lambda *_: self.fail("Required Windows pipeline injected desktop input")
+        runner.captures = lambda *_: self.fail("Required Windows pipeline opened presentation captures")
         with patch.object(run, "SYSTEM", "Windows"):
             runner.pipeline()
         workflow = (run.ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")

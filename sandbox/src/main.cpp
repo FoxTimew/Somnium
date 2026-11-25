@@ -12,19 +12,23 @@ int main(int argc, char** argv) {
     somnium::runtime::RunOptions options;
     somnium::runtime::EngineConfig config;
     config.scenePath = "scenes/orbit.json";
+    config.inputPath = "input/orbit.json";
     for (int index = 1; index < argc; index += 2) {
         if (index + 1 >= argc) {
-            std::fputs("Usage: sandbox [--frames N] [--backend vulkan|direct3d12|metal]\n", stderr);
+            std::fputs("Usage: sandbox [--frames N] [--backend vulkan|direct3d12|metal] [--replay "
+                       "path] [--capture-step N]\n",
+                       stderr);
             return 2;
         }
         const std::string_view key(argv[index]), value(argv[index + 1]);
         if (key == "--backend")
             config.backend = value;
-        else if (key == "--frames") {
-            const auto parsed =
-                std::from_chars(value.data(), value.data() + value.size(), options.frameLimit);
-            if (parsed.ec != std::errc{} || parsed.ptr != value.data() + value.size() ||
-                options.frameLimit == 0)
+        else if (key == "--replay")
+            config.replayPath = value;
+        else if (key == "--frames" || key == "--capture-step") {
+            auto& count = key == "--frames" ? options.frameLimit : options.captureSteps;
+            const auto parsed = std::from_chars(value.data(), value.data() + value.size(), count);
+            if (parsed.ec != std::errc{} || parsed.ptr != value.data() + value.size() || count == 0)
                 return 2;
         } else
             return 2;

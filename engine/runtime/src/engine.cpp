@@ -30,7 +30,7 @@ struct Engine::Impl {
     scene::AssetContext assets{models};
     std::unique_ptr<scene::World> world;
     std::unique_ptr<SceneRendering> scene;
-    std::string scenePath;
+    std::string scenePath, inputPath;
     gpu::Texture depth{};
     Impl(std::unique_ptr<platform::Platform> window, platform::FileReader reader,
          std::unique_ptr<gpu::Device> device, std::unique_ptr<renderer::Renderer> rendering)
@@ -96,6 +96,13 @@ Result<std::unique_ptr<Engine>> Engine::create(const EngineConfig& config) {
     auto impl = std::make_unique<Impl>(std::move(*platform), std::move(*resources),
                                        std::move(*device), std::move(*renderer));
     impl->scenePath = config.scenePath;
+    impl->inputPath = config.inputPath;
+    if (!config.replayPath.empty()) {
+        auto replay = platform::InputReplay::load(impl->resources, config.replayPath);
+        if (!replay)
+            return tl::unexpected(replay.error());
+        impl->platform->setReplay(std::move(*replay));
+    }
 #if defined(SOMNIUM_ENABLE_DEBUG_UI)
     auto overlay = debug_ui::Overlay::create(*impl->platform, *impl->gpu);
     if (!overlay)
@@ -116,7 +123,14 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
         return tl::unexpected(loaded.error());
     m_impl->world = std::move(*loaded);
     auto& world = *m_impl->world;
-    auto started = game.start(world);
+    auto mapping = input::Configuration::load(m_impl->resources, m_impl->inputPath);
+    if (!mapping)
+        return tl::unexpected(mapping.error());
+    input::Input input(std::move(*mapping));
+    if (options.captureSteps != 0 && !m_impl->platform->replaying())
+        return tl::unexpected(
+            Error{ErrorCode::InvalidArgument, "Capture requires an input replay"});
+    auto started = game.start(world, input.configuration());
     if (!started)
         return tl::unexpected(started.error());
     struct StopGame {
@@ -136,7 +150,8 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
     core::Clock clock;
     FixedStep accumulator;
     RunStats stats;
-    input::Input input;
+    double captureSeconds = 0;
+    bool captureReady = false;
     gpu::FrameSize previousSize;
     bool firstModelFrame = true;
     for (;;) {
@@ -158,7 +173,15 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
             return tl::unexpected(batch.error());
         }
         for (std::uint32_t step = 0; step < batch->steps; ++step) {
+            if (options.captureSteps != 0 && stats.fixedSteps >= options.captureSteps)
+                break;
             SOMNIUM_PROFILE_SCOPE("runtime.fixed_update");
+            auto replay = m_impl->platform->replayEvents(stats.fixedSteps);
+            if (!replay)
+                return tl::unexpected(replay.error());
+            queued = input.enqueue(*replay);
+            if (!queued)
+                return tl::unexpected(queued.error());
             auto state = input.advance(stats.fixedSteps);
             if (!state)
                 return tl::unexpected(state.error());
@@ -172,6 +195,9 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
                 return tl::unexpected(propagated.error());
             ++stats.fixedSteps;
         }
+        const bool frozen = options.captureSteps != 0 && stats.fixedSteps >= options.captureSteps;
+        if (captureReady)
+            captureSeconds += frameSeconds;
         resources = m_impl->scene->prepare(world);
         if (!resources)
             return tl::unexpected(resources.error());
@@ -192,7 +218,8 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
         if (!size)
             return tl::unexpected(size.error());
         // A bounded sandbox run exercises closing after acquisition, before a render pass.
-        if (options.frameLimit != 0 && stats.frames >= options.frameLimit) {
+        if ((options.frameLimit != 0 && stats.frames >= options.frameLimit) ||
+            captureSeconds >= 3.0) {
             auto quit = m_impl->platform->requestQuit();
             if (!quit)
                 return tl::unexpected(quit.error());
@@ -253,7 +280,8 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
         if (!prepared)
             return tl::unexpected(prepared.error());
 #endif
-        auto extracted = m_impl->scene->extract(world, static_cast<float>(batch->alpha), *size);
+        auto extracted =
+            m_impl->scene->extract(world, frozen ? 1.F : static_cast<float>(batch->alpha), *size);
         if (!extracted)
             return tl::unexpected(extracted.error());
         const auto& sceneFrame = m_impl->scene->frame();
@@ -271,6 +299,11 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
         if (!submitted)
             return tl::unexpected(submitted.error());
         ++stats.frames;
+        if (frozen && !captureReady) {
+            captureReady = true;
+            Log::write("runtime", Log::Level::Info, "CAPTURE_READY steps={}", stats.fixedSteps);
+            Log::flush();
+        }
         if (firstModelFrame && !sceneFrame.draws.empty()) {
             Log::write("runtime", Log::Level::Info, "First model frame presented");
             Log::flush();

@@ -1,52 +1,70 @@
-// Maps neutral, step-stamped events to the sandbox's fixed action vocabulary.
-// Queue storage grows only for event bursts; state and four gamepad slots are allocation-free.
+// Retains events until their exact simulation step, including ordered double taps.
+// State views borrow storage until the next advance; configuration is immutable.
 #pragma once
-
-#include <somnium/core/input_event.hpp>
-#include <somnium/core/result.hpp>
-
 #include <array>
-#include <span>
-#include <vector>
-
+#include <memory_resource>
+#include <somnium/core/input_names.hpp>
+#include <somnium/input/configuration.hpp>
 namespace somnium::input {
-enum class Action : std::uint8_t { Orbit, Reset, Count };
-enum class Axis : std::uint8_t {
-    MouseYaw,
-    MousePitch,
-    WheelZoom,
-    StickYaw,
-    StickPitch,
-    TriggerZoom,
-    Count
-};
 struct ButtonState {
     bool pressed = false, released = false, held = false;
 };
+struct Transition {
+    ActionId action;
+    bool down = false;
+};
 struct State {
     std::uint64_t step = 0;
-    std::array<ButtonState, static_cast<std::size_t>(Action::Count)> actions{};
-    std::array<float, static_cast<std::size_t>(Axis::Count)> axes{};
-    [[nodiscard]] const ButtonState& action(Action name) const;
-    [[nodiscard]] float axis(Axis name) const;
+    std::span<const ButtonState> actions;
+    std::span<const float> axes;
+    std::span<const Transition> transitions;
+    [[nodiscard]] const ButtonState& action(ActionId id) const;
+    [[nodiscard]] float axis(AxisId id) const;
+};
+struct Capture {
+    bool keyboard = false, mouse = false;
+    bool operator==(const Capture&) const = default;
 };
 class Input final {
   public:
-    Input();
+    explicit Input(Configuration configuration,
+                   std::pmr::memory_resource* memory = std::pmr::get_default_resource());
+    [[nodiscard]] const Configuration& configuration() const {
+        return m_configuration;
+    }
     [[nodiscard]] Result<void> enqueue(std::span<const core::InputEvent> events);
+    // Ordered at the next tick, after already collected events for that tick.
+    void setCapture(Capture capture);
     [[nodiscard]] Result<State> advance(std::uint64_t step);
+    [[nodiscard]] State state() const;
 
   private:
+    struct Button {
+        bool down = false, blocked = false;
+    };
     struct Pad {
         std::uint32_t id = 0;
-        bool connected = false, reset = false;
+        bool connected = false;
+        std::array<Button, core::kGamepadButtonNames.size()> buttons{};
         std::array<float, 6> axes{};
     };
+    struct Queued {
+        core::InputEvent event;
+        std::optional<Capture> capture;
+    };
     void apply(const core::InputEvent& event);
+    void capture(Capture capture);
     void updateActions();
-    State m_state;
-    std::vector<core::InputEvent> m_pending;
+    [[nodiscard]] float physical(const Binding& binding) const;
+    Configuration m_configuration;
+    std::pmr::vector<ButtonState> m_actions;
+    std::pmr::vector<float> m_axes;
+    std::pmr::vector<Transition> m_transitions;
+    std::pmr::vector<Queued> m_pending;
+    std::array<Button, static_cast<std::size_t>(core::Key::Count)> m_keys{};
+    std::array<Button, 6> m_mouse{};
     std::array<Pad, 4> m_pads{};
-    bool m_keyReset = false, m_orbit = false, m_advanced = false;
+    Capture m_capture{}, m_requestedCapture{};
+    std::uint64_t m_nextStep = 0;
 };
 } // namespace somnium::input

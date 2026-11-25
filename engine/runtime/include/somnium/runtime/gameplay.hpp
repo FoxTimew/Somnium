@@ -14,7 +14,8 @@ struct FixedUpdate {
 class Gameplay {
   public:
     virtual ~Gameplay() = default;
-    [[nodiscard]] virtual Result<void> start(scene::World& world) = 0;
+    [[nodiscard]] virtual Result<void> start(scene::World& world,
+                                             const input::Configuration& mapping) = 0;
     [[nodiscard]] virtual Result<void> fixedUpdate(scene::World& world,
                                                    const FixedUpdate& update) = 0;
     virtual void stop(scene::World& world) = 0;
