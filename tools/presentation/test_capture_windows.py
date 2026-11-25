@@ -7,10 +7,23 @@ import tempfile
 import zlib
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "gpu"))
 from compare import read_png
+from window_visibility import overlaps, require_unobscured
 
 ROOT = Path(__file__).resolve().parent
 
 class CaptureContractTests(unittest.TestCase):
+    def test_topmost_overlay_rejected_even_if_sandbox_is_foreground(self):
+        with self.assertRaisesRegex(RuntimeError, "obscured"):
+            require_unobscured((0, 0, 1280, 720), [((848, 0, 1280, 285), True, False, False)])
+
+    def test_hidden_minimized_cloaked_or_nonoverlapping_windows_are_harmless(self):
+        rect = (20, 20, 80, 80)
+        require_unobscured((0, 0, 100, 100), [
+            (rect, False, False, False), (rect, True, True, False),
+            (rect, True, False, True), ((100, 0, 200, 100), True, False, False)])
+        self.assertFalse(overlaps((0, 0, 100, 100), (10, 100, 20, 110)))
+        self.assertTrue(overlaps((0, 0, 100, 100), (99, 99, 101, 101)))
+
     def test_no_system_input_or_focus_mutation(self):
         forbidden = ["Send" + "Input", "Set" + "CursorPos", "Set" + "ForegroundWindow", "post" + "ToPid", "AXUIElementSet" + "AttributeValue", '"mouse' + 'down"', '"mouse' + 'move"', '"window' + 'focus"']
         for name in ["capture.py", "capture_windows.py", "capture_linux.py", "capture_macos.py", "macos_window.swift"]:
