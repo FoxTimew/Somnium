@@ -124,6 +124,9 @@ Les ports des serveurs sccache diffèrent entre Windows et WSL.
 Le serveur est relancé sous verrou avant un build pour prendre le répertoire
 du hash courant. Un probe compile un en-tête modifié deux fois pour vérifier
 que Ninja recompile effectivement à travers sccache, y compris après retour au cache.
+Le hash sccache Windows inclut VSLANG=1033 : les sorties françaises de l'ancien
+cache ne sont pas réutilisées. Après chaque build Windows, la CI refuse tout
+objet du projet dont Ninja n'a enregistré aucune dépendance d'en-tête.
 
 `runs/<run-id>/build/<preset>/bin` contient les binaires et shaders ; les captures,
 rapports GPU, logs et `SUMMARY.md` sont voisins. Le journal GitHub et le résumé du

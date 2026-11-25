@@ -24,11 +24,12 @@ SYSTEM = platform.system()
 PRESETS = ["debug", "release", "shipping", "profiling", "asan-ubsan"]
 
 
-def key(*files):
+def key(*files, context=""):
     digest = hashlib.sha256()
     for name in files:
         digest.update((ROOT / name).read_bytes().replace(b"\r\n", b"\n"))
     digest.update((SYSTEM + platform.machine()).encode())
+    digest.update(context.encode())
     return digest.hexdigest()[:24]
 
 
@@ -87,7 +88,9 @@ class Runner:
         self.logs.mkdir(exist_ok=True)
         self.records = []
         self.env = dict(os.environ)
-        tool_key = key("tools/ci/toolchain.json")
+        # Cached MSVC stdout contains the localized /showIncludes prefix. Objects
+        # from the old French cache must never enter an English Ninja build.
+        tool_key = key("tools/ci/toolchain.json", context="VSLANG=1033" if SYSTEM == "Windows" else "")
         self.env["CPM_SOURCE_CACHE"] = str(self.root / "cache/cpm" / key("cmake/CPM.cmake", "cmake/Dependencies.cmake"))
         self.env["SCCACHE_DIR"] = str(self.root / "cache/sccache" / tool_key)
         self.env["SCCACHE_CACHE_SIZE"] = "20G"
@@ -223,6 +226,15 @@ class Runner:
 
     def build(self, preset):
         self.call("build-" + preset, [self.cmake, "--build", self.build_dir(preset), "--parallel", self.args.jobs])
+        if SYSTEM == "Windows":
+            dependencies = subprocess.check_output(["ninja", "-C", self.build_dir(preset), "-t", "deps"],
+                env=self.env, text=True, encoding="utf-8", errors="replace")
+            objects = [(name, int(count)) for name, count in re.findall(r"^(.+\.obj): #deps (\d+)", dependencies, re.MULTILINE)
+                       if name.replace("\\", "/").startswith(("engine/", "game/", "sandbox/", "tools/"))]
+            missing = [name for name, count in objects if count == 0]
+            if not objects or missing:
+                raise RuntimeError(f"Ninja lost project header dependencies through MSVC/sccache: {missing or 'no objects found'}")
+            self.summary(f"{preset}: Ninja header dependencies present for {len(objects)} project objects")
 
     def test(self, preset):
         command = [self.ctest, "--test-dir", self.build_dir(preset), "--output-on-failure", "--no-tests=error"]
