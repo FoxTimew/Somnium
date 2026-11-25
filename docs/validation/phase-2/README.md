@@ -2,16 +2,17 @@
 # Phase 2 — cube hors écran, point de contrôle
 
 Ce jalon est **validé**. La suite input/caméra/sandbox et ses limites de validation
-figurent dans le [bilan de fin de phase préparé localement](FIN_DE_PHASE.md).
+figurent dans le [bilan de fin de phase et ses preuves auto-hébergées](FIN_DE_PHASE.md).
 
 La [CI de preuve](https://github.com/FoxTimew/Somnium/actions/runs/39739082282)
 est entièrement verte au commit `073413d1466096dc8ce49528b79013c386dd9b78`.
 Les captures CI ci-dessous sont ses artefacts originaux, sans retouche. Le rapport
 de chaque backend conserve SHA du binaire, manifests, scène, fixture et image.
 Ces pièces archivent le premier passage du cube normal. La CI de la
-[PR de phase](https://github.com/FoxTimew/Somnium/pull/4) teste aussi la variante
-miroir X ajoutée ensuite : ses artefacts `cube-<backend>` contiennent les deux
-images et comparaisons du SHA courant. La référence PNG commune reste identique.
+[PR de phase](https://github.com/FoxTimew/Somnium/pull/4) a ensuite testé la variante
+miroir X : ses anciens artefacts `cube-<backend>` contenaient les deux images.
+Depuis l'ADR-0006, les nouvelles pièces sont conservées sur les runners puis
+versionnées dans le bilan, sans upload/download-artifact. La référence commune reste identique.
 
 | Backend | Device et origine | Pixels différents / écart maximal | Centres exacts | Validation | Pièces |
 | --- | --- | --- | --- | --- | --- |

@@ -56,11 +56,21 @@ Il **n'injecte ni souris ni clavier**. Les captures du modèle, orbite, zoom, re
 et resize injectent de vrais événements dans le bureau : garder la session
 déverrouillée et laisser souris/clavier libres pendant le job manuel.
 
+Depuis une tâche planifiée, Windows peut refuser SetForegroundWindow. Le script
+essaie alors un clic d'activation dans le client du sandbox, temporairement placé
+au-dessus des autres fenêtres. Il vérifie d'abord que le point appartient bien
+au sandbox, puis vérifie le focus avant les captures ; sinon il échoue sans
+continuer la séquence. Aucun Alt envoyé à l'application précédente, aucun
+changement de politique système. [Règles Windows de premier plan](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setforegroundwindow).
+
 Depuis un terminal disposant de GitHub CLI, sélectionner explicitement la branche :
 
 ```sh
 gh workflow run ci.yml --repo FoxTimew/Somnium --ref phase/2-assets-renderer -f presentation=true
 ```
+
+Ce lancement par branche a été exécuté le 25 novembre 2026, après la fusion de
+la PR #5, sans changement de la branche par défaut.
 
 Le bouton Actions → CI self-hosted → Run workflow sera disponible lorsque la
 version de `ci.yml` sur la branche par défaut déclarera workflow_dispatch. Choisir

@@ -1,0 +1,7 @@
+{
+  "backend": "vulkan",
+  "debug": true,
+  "device": "llvmpipe (LLVM 20.1.2, 256 bits)",
+  "driver_version": "25.2.8",
+  "resource_checks": "passed"
+}

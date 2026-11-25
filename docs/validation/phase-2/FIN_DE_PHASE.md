@@ -1,124 +1,137 @@
-<!-- Bilan local de la phase 2 ; les preuves du SHA final restent distinctes du jalon validé. -->
-# Phase 2 — bilan local et validation finale en attente
+<!-- Pièces vérifiables ; accord du propriétaire requis avant fusion dans main. -->
+# Phase 2 — assets, renderer et caméra orbitale
 
-État au 5 novembre 2026 : les trois commits locaux sont désormais poussés sur
-`phase/2-assets-renderer`, à la demande du propriétaire. **Phase non clôturée** :
-migration en cours sur `feat/ci-self-hosted`, Windows/Radeon et Linux/WSL2 requis,
-macOS manuel best effort, WARP non couvert. Le blocage de facturation du 22 octobre
-reste historique. Aucun merge dans main ni tag de phase 2.
+État au 25 novembre 2026 : fonctionnalités livrées, CI auto-hébergée validée et
+[PR #5](https://github.com/FoxTimew/Somnium/pull/5) fusionnée dans
+`phase/2-assets-renderer` par `892895320de846696888a3b7cda365b5e0a60b7a`.
+La [PR de phase #4](https://github.com/FoxTimew/Somnium/pull/4) attend la validation
+du propriétaire. **Aucune fusion dans main, aucun tag de phase 2.**
 
 ## Livraison
 
-- Platform collecte/traduit SDL en événements Somnium bruts horodatés au prochain
-  pas fixe. Input dépend seulement de core : actions, transitions conservées,
-  axes normalisés, zone morte, focus et déconnexion ; tests CPU et scanner négatif.
-- Gameplay reçoit les inputs, demande `models/orbit-cube.glb` par GameContext et
-  fournit `renderer::Camera`. Game possède l'orbite bornée ; runtime charge via
-  AssetManager et produit la DrawList avec ModelRendering. Le triangle et ses
-  ressources ont disparu de runtime/sandbox ; aucune logique de caméra n'y réside.
-- Présentation SDR_LINEAR, profondeur recréée au resize, deux frames en vol,
-  acquisition bloquante et soumission après acquisition. Overlay passif.
-- Ambiant de frame : zéro conserve le shader du cube et sa provenance ; 0,15 dans
-  le sandbox via une variante PS b2. L'oracle, les sondes et la référence sont inchangés.
-- Modèle original CC0 sous LFS, licence dans `assets/LICENSES.md`. Racines ordonnées
-  en développement ; aucune copie de sources dans le build. Shipping utilise une
-  racine unique, vérifiée par un paquet de test temporaire extérieur au build.
-- README, architecture et ADR-0005 accepté reflètent ces contrats. Scene/ECS,
-  mapping JSON et interpolation restent en phase 3 ; cuiseur/KTX2/BC/mipmaps et
-  prérequis `.metallib` macOS restent en phase 4.
+- **gpu** : indices uint16/32, draws indexés, bindings multiples, samplers décrits,
+  textures sRGB et uniformes. Handles invalidés immédiatement et libération SDL
+  différée pendant une frame ; pipelines paramétrés, profondeur et resize.
+- **assets** : cgltf/stb_image, modèles et textures CPU, AssetManager avec identité
+  logique, handles à génération et états ; hiérarchie glTF aplatie, une primitive
+  par draw/matériau. Sources lues directement, fixtures et références sous LFS.
+- **renderer** : ressources GPU depuis les données CPU, DrawList, caméra RH_ZO,
+  lumière Lambert et ambiant. Présentation SDR_LINEAR ; cible hors écran UNORM
+  avec encodage shader sRGB et oracle analytique commun.
+- **platform/input** : flux neutre horodaté par pas ; input sans SDL, actions et
+  axes normalisés, transitions, focus et déconnexion. Tests purement CPU.
+- **runtime/game/sandbox** : Gameplay reçoit les inputs, demande le modèle via
+  GameContext et fournit la caméra ; orbite/zoom bornés dans game. Runtime charge
+  et produit la DrawList, sans contenu ni logique de caméra. Modèle original CC0,
+  ambiant 0,15, overlay, VSYNC et profondeur adaptée au resize. Triangle supprimé.
+- **outils/docs** : scripts local/CI identiques, caches sur disque, runners sous
+  comptes personnels non élevés ; [guide de démarrage](../../DEMARRER_RUNNERS.md).
+  Windows requis : fenêtres et rendu hors écran ; injection souris/clavier
+  exclusivement dans le job manuel de captures. Linux capture sous Xvfb.
 
-## Commits et publication
+## Commits et validation
 
-| Étape | Commit | État |
+GPU `e5e765a`, assets `f6d71cf`, renderer `3edbfce`, input `adeeae5`, caméra
+`98ce7bf`, sandbox `9dc0733`, documentation `806961c`. Infrastructure : `522c453`,
+`27f4751`, correction sccache `7d5122d`, documentation `8c2f774`, puis fusion #5.
+Les trois ajustements d'installation préexistants de `27f4751` sont conservés
+avec l'accord explicite du propriétaire.
+
+La [CI de #5](https://github.com/FoxTimew/Somnium/actions/runs/45618525005) est
+entièrement verte sur `8c2f774`. Après fusion, le premier job manuel a refusé la
+capture faute de focus ; le correctif de script `36f1824` conserve le code moteur.
+Le [workflow manuel corrigé](https://github.com/FoxTimew/Somnium/actions/runs/45622048422)
+est entièrement vert sur `36f18248b7ab05b3cec598a68c5b8ac4d33d6133` : les deux
+pipelines et les captures D3D12 passent. [Métadonnées du run](self-hosted/workflow.json),
+[résumé Windows](self-hosted/windows/SUMMARY.md), [résumé Linux](self-hosted/linux/SUMMARY.md).
+Le commit suivant de clôture ne modifie que documentation et pièces ; la PR
+porte le lien de la CI du dernier SHA documentaire.
+
+| Vérification requise | Windows / Radeon | Linux / WSL2 |
 | --- | --- | --- |
-| GPU / assets / renderer-cube | `e5e765a` / `f6d71cf` / `3edbfce` | Publiés, CI verte, jalon validé |
-| Input neutre | `adeeae5` | Publié ; CI PR verte, workflow push bloqué à son démarrage GPU |
-| Contrat Gameplay et caméra | `98ce7bf` | Publié le 5 novembre |
-| Sandbox glTF et captures | `9dc0733` | Publié le 5 novembre |
-| Documentation et pièces | `806961c` | Publié le 5 novembre |
+| Debug, release, profiling | 18/18 par preset | 18/18 par preset |
+| Shipping | 17/17 ; graphe sans UI | 17/17 ; graphe sans UI |
+| Test de fenêtre | Inclus dans chaque preset | Inclus sous Xvfb |
+| Format, architecture, contrat CI, cache d'en-têtes | Verts | Verts |
+| clang-tidy 18 | — | Vert |
+| ASan/UBSan avec détection des fuites | — | 17 tests + 1 fenêtre, verts |
+| Contrôle d'application | Aucun blocage observé | Sans objet |
 
-La [CI PR input](https://github.com/FoxTimew/Somnium/actions/runs/39755226013) est
-entièrement verte. Dans le [workflow push](https://github.com/FoxTimew/Somnium/actions/runs/39755216717),
-desktop, outils, analyse et sanitizers sont verts ; les jobs GPU n'ont exécuté
-aucune étape. Annotation GitHub : « The job was not started because recent account
-payments have failed or your spending limit needs to be increased. Please check
-the 'Billing & plans' section in your settings ». Ce n'est pas un échec de rendu.
+Les archives de chaque OS contiennent SUMMARY.md, run.json, les journaux
+sélectionnés et un inventaire SHA-256. Sous Windows, run.json décrit la dernière
+opération (captures) ; le résumé et le journal GitHub conservent aussi le pipeline.
+Les PNG gardent leurs octets originaux ; seuls les fins de ligne des rapports
+textuels sont normalisées en LF, conformément au dépôt, avant calcul de l'inventaire.
+Les binaires restent dans les répertoires de run pendant 14 jours ; ils ne sont
+pas versionnés. Caches CPM, shaders et sccache persistants, aucun artefact/cache GitHub.
 
-## Vérifications locales
+## Preuves GPU et présentation
 
-Linux Ubuntu 24.04 sous Docker depuis le poste Windows ; Clang/clang-tidy 18,
-Mesa/lavapipe, Xvfb et couches Khronos + synchronisation.
+Les résultats ci-dessous viennent du workflow manuel vert après fusion.
+Rapports, images et validation : [Windows](self-hosted/windows/) et [Linux](self-hosted/linux/).
 
-| Vérification | Résultat |
-| --- | --- |
-| Debug, tests CPU/architecture | 16/16 sélectionnés ; test d'incrémentalité shader exclu de cette sélection |
-| Fenêtre debug, fermeture après acquisition | 1/1 |
-| Shipping, tests et paquet temporaire | 16/16 sélectionnés, incrémentalité shader exclue |
-| Graphe shipping | Aucune cible/source UI ; COOKED, aucune racine du dépôt |
-| clang-tidy 18, format, scanner et actionlint | Verts |
-| ASan/UBSan | 16 tests CPU/architecture + 1 fenêtre passent, détection des fuites active ; délai du test shader détaillé ci-dessous |
-| Cube normal + miroir, ambiant nul | 0 pixel différent, écart maximal 0, 5/5 sondes exactes par image |
-| D5 conservé | 0 pixel différent, écart maximal 0, 10/10 sondes exactes |
-| Présentation Vulkan | Modèle, orbite, zoom, reset et resize validés ; aucune erreur de validation |
+| Exécution | D5 | Cube normal et miroir | Validation |
+| --- | --- | --- | --- |
+| Windows, D3D12 Radeon RX 6600M | 0 pixel différent ; 10/10 sondes exactes | 0 pixel différent ; 5/5 sondes par image | Debug D3D12 active |
+| Windows, Vulkan Radeon RX 6600M | Identique | Identique | Khronos + synchronisation |
+| WSL2, Vulkan/lavapipe | Identique | Identique | Khronos + synchronisation |
 
-Pièces locales : [commandes et environnement](local-checks/COMMANDS.md), [CPU debug](local-checks/tests-sandbox.txt),
-[fenêtre](local-checks/window-sandbox.txt), [shipping](local-checks/tests-shipping.txt),
-[graphe shipping](local-checks/shipping-graph.txt), [clang-tidy](local-checks/tidy-sandbox.txt),
-[cube normal/miroir](final-local-cube/result.json) avec [validation](final-local-cube/validation.txt),
-[D5](final-local-d5/result.json) avec [validation](final-local-d5/validation.txt).
-La référence du cube et tous les fichiers sources de sa provenance sont inchangés
-par rapport au jalon `3edbfce` ; `cube_reference.py --verify` passe.
+SDR_LINEAR est confirmé sur ces trois exécutions. Les PNG du cube conservent
+le SHA-256 `dedd7662f51f2b6baeee2fa3f41c1d1e3a2cedfd6eb7d0c1a3b657a40be22af5`.
+Référence, sondes, fixture et provenance restent inchangées ; ambiant zéro dans
+le cube, variante à 0,15 uniquement dans le sandbox.
 
-Le premier [passage ASan/UBSan](local-checks/tests-asan.txt) arrête le script sur
-le timeout CTest de 120 s du test shader ; les 16 autres tests de cette sélection
-passent. Le [test fenêtre](local-checks/tests-asan-window.txt), lancé séparément avec
-le même lavapipe préchargé et les mêmes options ASan/UBSan, passe aussi. Aucun
-signalement mémoire ni suppression de fuite. Le même [contrat shader](local-checks/tests-shader-local.txt) passe ensuite en
-**32 s**, avec le point d’entrée natif CMake 3.31.6 et un dossier de travail Linux
-`/tmp`, au lieu du lanceur Python et du montage NTFS. Cette relance diagnostique
-isole la lenteur locale ; elle ne transforme pas le premier CTest en succès.
-La limite CI de 120 s et son test obligatoire sont conservés.
+| Présentation | Modèle et overlay | Orbite | Zoom |
+| --- | --- | --- | --- |
+| D3D12, session Windows, job manuel | [Image](self-hosted/windows/presentation-direct3d12/model-overlay.png) | [Image](self-hosted/windows/presentation-direct3d12/orbit.png) | [Image](self-hosted/windows/presentation-direct3d12/zoom.png) |
+| Vulkan, WSL2/Xvfb | [Image](self-hosted/linux/presentation-vulkan/model-overlay.png) | [Image](self-hosted/linux/presentation-vulkan/orbit.png) | [Image](self-hosted/linux/presentation-vulkan/zoom.png) |
 
-La nouvelle chaîne n'a **pas** de validation finale Windows/macOS : les captures
-D3D12/Metal du [jalon](README.md) prouvent ce jalon seulement. L'exécution native
-Windows d'un précédent binaire a rencontré WinError 4551 (journal archivé au jalon) ;
-aucune modification de politique n'a été faite et le test core release déjà validé
-n'est pas remis en cause. La preuve Metal CI du sandbox reste à obtenir en best
-effort ; elle ne bloque plus la clôture depuis l'ADR-0006.
+Rapports, reset et resize : [Windows](self-hosted/windows/presentation-direct3d12/)
+et [Linux](self-hosted/linux/presentation-vulkan/). Images originales sans retouche,
+modèle/binaire identifiés par SHA. Reset exact hors overlay ; resize 960×600.
+Sur chaque backend : 38 878 pixels de la région contrôlée changent après orbite,
+94 035 après zoom ; zéro après reset par rapport à l'état initial.
 
-## Captures
+## Incidents résolus et limites
 
-Captures Vulkan réelles sous Xvfb/lavapipe du commit **9dc0733**, code propre :
-[rapport avec SHA binaire/modèle](sandbox-vulkan/result.json) et
-[journal de validation](sandbox-vulkan/validation.txt). Elles sont conservées
-sous LFS et sont publiées dans la branche de phase depuis le 5 novembre.
+Le [premier job manuel](https://github.com/FoxTimew/Somnium/actions/runs/45620375402)
+a échoué avant injection : « Sandbox is not foreground (Win32 0) » ([rapport](self-hosted/failed-focus/result.json)).
+Depuis la tâche planifiée, SetForegroundWindow n'avait pas activé la fenêtre.
+Le script vérifie maintenant la fenêtre sous le point d'activation avant un clic
+client réel, puis contrôle le focus. Trois tests sans fenêtre vérifient le chemin
+normal, le repli et le refus de cliquer dans une fenêtre couvrante. Aucun changement
+de politique Windows ; les captures restent exclusivement manuelles.
+Le passage vert a obtenu le focus par SetForegroundWindow ; le repli est couvert
+par les tests, sans prétendre qu'il a été emprunté pendant cette capture.
 
-| Modèle et overlay | Orbite | Zoom |
-| --- | --- | --- |
-| ![Modèle](sandbox-vulkan/model-overlay.png) | ![Orbite](sandbox-vulkan/orbit.png) | ![Zoom](sandbox-vulkan/zoom.png) |
+Le timeout shader initial de 120 s concernait l'environnement Docker avec lanceur
+CMake Python et fichiers sur montage NTFS. Une relance avec CMake natif et dossier
+Linux /tmp passait en 32 s ; la part de chaque facteur n'a pas été isolée séparément.
+La correction utilise CMake/Ninja natifs, Python explicite et un checkout/cache WSL
+sur ext4. Le contrat complet est désormais obligatoire dans tous les presets et
+ASan ; **la limite de 120 s n'a pas été relevée et aucun test n'est exclu**.
+Mesures du run archivé : **7,45–10,42 s sous Windows**, **3,20–4,11 s sous Linux**,
+ASan compris. Les logs CTest complets sont archivés avec chaque OS.
+Les [journaux initiaux](local-checks/) restent disponibles, sans transformer le
+premier passage en succès.
 
-[Reset](sandbox-vulkan/reset.png) · [Redimensionnement](sandbox-vulkan/resize.png).
-38 878 pixels de la région contrôlée changent après l’orbite, 94 035 après le zoom,
-et zéro après le reset par rapport à l’état initial.
-L'orbite/zoom sont produits par de vrais événements X11 envoyés à la fenêtre ;
-le reset doit restaurer exactement les pixels du modèle, hors région de l'overlay.
-Le resize vérifie une capture 960×600 et la validation de la nouvelle profondeur.
+Le cache MSVC ancien pouvait restituer des diagnostics français altérés par
+sccache, faisant perdre les dépendances d'en-têtes à Ninja. Ressources anglaises,
+VSLANG=1033 dans la clé du cache et vérification après chaque build : 43 objets
+Somnium avec dépendances, 37 en shipping. L'ancien blocage WinError 4551 ne se
+reproduit pas avec les outils et binaires MSVC actuels ; aucune politique de
+contrôle d'application n'a été assouplie.
 
-Reproduction : `tools/presentation/capture_linux.py` sous Xvfb, avec xdotool,
-ImageMagick et les variables de validation Vulkan du workflow. Le script macOS
-utilise Quartz pour orbite/zoom/reset puis vérifie resize/minimisation/restauration.
-Les [outils de capture](../../../tools/presentation/) gardent les originaux sans retouche.
+WARP n'est plus couvert. macOS reste manuel best effort ; le nouveau sandbox
+n'a pas été réexécuté sur Metal pour cette clôture. Les [preuves du jalon](README.md)
+restent historiques. Metal dépend de macos-15, cible 13.3 ; horizon de retrait et
+condition de migration dans [PHASE_1_CI.md](../../PHASE_1_CI.md). Les comptes
+personnels ont accès aux fichiers utilisateur, dont les disques Windows depuis
+WSL ; limites et conditions de compte dédié dans l'[ADR-0006](../../adr/0006-ci-auto-hebergee.md).
 
-## Reprise et sortie de phase
+## Phase suivante, après validation
 
-1. Achever le provisionnement/enregistrement des runners décrits dans [CI_RUNNER.md](../../CI_RUNNER.md).
-2. Obtenir la CI auto-hébergée verte sur `feat/ci-self-hosted`, puis fusionner cette
-   branche dans la branche de phase. Aucun merge dans main ni tag.
-3. Joindre les preuves D3D12/Vulkan Radeon et Linux/lavapipe du nouveau SHA,
-   captures sandbox et mesure du test shader. WARP n'est plus une preuve requise ;
-   macOS est best effort. Demander ensuite la validation finale de phase 2.
-
-Le workflow macOS manuel conserve un job de validation Metal sur `macos-15`,
-construit sur place pour macOS 13.3 ; macos-latest a son build indépendant.
-L'horizon de retrait annoncé est l'automne 2027, sans jour arm64 confirmé dans la
-source documentée ; [détails et condition de migration](../../PHASE_1_CI.md).
+ADR-0007 : scène/EnTT, hiérarchie et sérialisation JSON versionnée, extraction et
+interpolation. ADR-0008 : mapping d'inputs configurable et interaction avec l'UI.
+Le cuiseur, KTX2/BC/mipmaps, chargement asynchrone et .metallib shipping macOS
+restent hors phase 2. Aucun travail de phase 3 n'est commencé.

@@ -25,7 +25,7 @@ Les scripts [tools/ci](../tools/ci/) sont communs au local et aux workflows.
 Caches CPM/shaders/sccache sur disque par hash, sorties par run et rétention
 14 jours ; aucune action cache/upload/download. Installation, sécurité et preuves
 reproductibles dans [CI_RUNNER.md](CI_RUNNER.md). Les résultats des nouveaux
-runners seront consignés dans le bilan de phase 2 ; aucun ancien résultat WARP
+runners sont consignés dans le [bilan de phase 2](validation/phase-2/FIN_DE_PHASE.md) ; aucun ancien résultat WARP
 ou Metal n'est présenté comme validation d'un commit non exécuté.
 
 ## Ce qui est déjà prouvé

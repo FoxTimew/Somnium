@@ -7,7 +7,9 @@ Document validé ; distingue les contrats du MVP des capacités déjà implémen
 Statut : **accepté**, 20 octobre 2026, avec les arbitrages D1 à D5 ci-dessous.
 
 Les phases 0 et 1 sont validées, fusionnées `--no-ff` et taguées sur `main`.
-La phase 2 est développée sur `phase/2-assets-renderer` ; sa fusion attend la validation finale. Voir les
+La phase 2 est livrée sur `phase/2-assets-renderer` ; sa fusion attend la validation finale.
+Infrastructure auto-hébergée fusionnée par la PR #5 ; [bilan et preuves](validation/phase-2/FIN_DE_PHASE.md).
+Voir les
 [ADR-0001](adr/0001-stack-dependances-licences.md) et
 [ADR-0002](adr/0002-conventions.md).
 
@@ -35,7 +37,7 @@ dans l'ADR-0002. Leur traduction en constantes aura une seule autorité :
 | D2 | Les backends officiels sont compilés dans `somnium_platform_imgui` et `somnium_gpu_imgui`, cibles séparées activées uniquement par `SOMNIUM_ENABLE_DEBUG_UI=ON` et liées par `debug_ui`. Les sources de platform/gpu ne contiennent aucun include ImGui ni condition UI. SDL_Event reste dans platform (collecte, traduction neutre et intégration privée). Input ne contient aucun include SDL. Aucun type SDL public. |
 | D3 | Le MVP charge le MSL produit hors ligne par shadercross. Le travail du driver est autorisé ; aucun compilateur HLSL dans le moteur. Le `.metallib` est reporté au cuiseur de phase 4 ; l'ADR-0003 le consigne comme prérequis de shipping macOS. |
 | D4 | Pas de zones de durée GPU Tracy. Zones CPU, hooks mémoire, compteurs de draw calls/soumissions/uploads et marqueurs SDL visibles dans RenderDoc/PIX/Xcode. Critère de phase 2 amendé. |
-| D5 | Test de rendu hors écran, relecture et comparaison à une référence avec tolérance. CI : Vulkan/lavapipe Linux obligatoire, D3D12/WARP obtenu par le probe sans sélection publique SDL, Metal macOS si device disponible. Sans device/couche : job explicitement « non validé » et preuve locale avec capture et journal de validation joints à la PR. |
+| D5 | Test de rendu hors écran, relecture et comparaison à une référence avec tolérance. Depuis ADR-0006 : Vulkan/lavapipe Linux et D3D12/Vulkan Radeon Windows requis, Metal manuel best effort ; WARP n'est plus couvert. Sans device/couche sur un backend optionnel : résultat explicitement « non validé ». Une absence sur les deux runners requis fait échouer le job. Captures et journaux de validation joints à la PR. |
 
 Les contrats de lecture dans `core`, réalisé par `platform` et injecté par
 `runtime`, et de gameplay dans `runtime`, réalisé par `game` et assemblé dans

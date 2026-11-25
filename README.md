@@ -9,10 +9,10 @@ Moteur de jeu 3D C++20 pour Windows, Linux et macOS. La branche
 avec profondeur, caméra orbitale et overlay ImGui. Les phases 0 et 1 sont fusionnées
 et taguées ; la fusion/tag de phase 2 attendent la validation finale.
 
-État au 5 novembre : les commits de phase 2 sont publiés ; migration de la CI vers
-Windows/Radeon et Linux/WSL2 auto-hébergés en cours. macOS devient manuel et
-best effort ; WARP n'est plus couvert. Installation et commandes dans
-[CI_RUNNER.md](docs/CI_RUNNER.md). La clôture attend les nouvelles preuves. Voir le
+État au 25 novembre : phase 2 livrée, infrastructure auto-hébergée fusionnée dans
+la branche de phase. Windows/Radeon et Linux/WSL2 sont requis ; macOS est manuel
+best effort et WARP n'est plus couvert. Installation et commandes dans
+[CI_RUNNER.md](docs/CI_RUNNER.md). Captures, journaux, CI et limites dans le
 [bilan de phase 2](docs/validation/phase-2/FIN_DE_PHASE.md).
 
 - [Architecture](docs/ARCHITECTURE.md) et [conventions](docs/adr/0002-conventions.md)

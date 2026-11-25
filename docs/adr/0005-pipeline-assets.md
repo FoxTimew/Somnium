@@ -67,4 +67,4 @@ frontières rompues. Caméra dans runtime : couplage au gameplay.
 Phase 4 change loaders/conditionnement sans changer identité/états. Ordre réalisé :
 GPU → assets/tests CPU → renderer/cube (jalon validé) → input/caméra/sandbox.
 
-Preuves : CI finale et nouvelles captures Metal de présentation en attente du rétablissement de GitHub Actions.
+Preuves : CI Windows/Linux, D5/cube exacts Radeon/lavapipe et captures D3D12/Vulkan validés sur 36f1824 (run 45622048422, bilan de phase 2) ; Metal reste une preuve historique du jalon, best effort manuel depuis ADR-0006 ; WARP non couvert.

@@ -1,0 +1,93 @@
+{
+  "os": "Linux",
+  "arch": "x86_64",
+  "steps": [
+    {
+      "name": "consumer-configure",
+      "seconds": 0.025,
+      "returncode": 0
+    },
+    {
+      "name": "consumer-missing-tool",
+      "seconds": 0.015,
+      "returncode": 1
+    },
+    {
+      "name": "dxc-version",
+      "seconds": 0.005,
+      "returncode": 0
+    },
+    {
+      "name": "compile-vert-SPIRV",
+      "seconds": 0.014,
+      "returncode": 0
+    },
+    {
+      "name": "compile-vert-DXIL",
+      "seconds": 0.021,
+      "returncode": 0
+    },
+    {
+      "name": "compile-vert-MSL",
+      "seconds": 0.015,
+      "returncode": 0
+    },
+    {
+      "name": "reflect-vert",
+      "seconds": 0.005,
+      "returncode": 0
+    },
+    {
+      "name": "compile-frag-SPIRV",
+      "seconds": 0.014,
+      "returncode": 0
+    },
+    {
+      "name": "compile-frag-DXIL",
+      "seconds": 0.021,
+      "returncode": 0
+    },
+    {
+      "name": "compile-frag-MSL",
+      "seconds": 0.014,
+      "returncode": 0
+    },
+    {
+      "name": "reflect-frag",
+      "seconds": 0.006,
+      "returncode": 0
+    },
+    {
+      "name": "invalid-hlsl",
+      "seconds": 0.009,
+      "returncode": 1
+    }
+  ],
+  "sources": {
+    "sdl": {
+      "repository": "https://github.com/libsdl-org/SDL.git",
+      "revision": "829a65d769d935c4852f8159e964312c0957260a",
+      "version": "release-3.4.18"
+    },
+    "spirv_cross": {
+      "repository": "https://github.com/KhronosGroup/SPIRV-Cross.git",
+      "revision": "f11ba9f0b21ba8fc15153d50a2a1ae31ab1cf8f7",
+      "version": "vulkan-sdk-1.4.363.0"
+    },
+    "shadercross": {
+      "repository": "https://github.com/libsdl-org/SDL_shadercross.git",
+      "revision": "1ff05bec573988a98ef9e0260b4da44f512b8367",
+      "version": "unreleased"
+    },
+    "dxc": {
+      "repository": "https://github.com/microsoft/DirectXShaderCompiler.git",
+      "revision": "01b62ad47db7dee3dd33f90e7339cf9e860b3f93",
+      "version": "v1.9.2609"
+    }
+  },
+  "provider": "official",
+  "cache_hit": true,
+  "prefix": "/home/foxti/somnium-ci/cache/shaders/c969d28189106ac6a9af955c/install/official",
+  "status": "success",
+  "total_seconds": 0.17
+}

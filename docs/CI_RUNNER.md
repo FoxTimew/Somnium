@@ -141,11 +141,11 @@ Les pièces de phase retenues sont copiées explicitement dans `docs/validation/
 
 Configurer Settings → Actions → General → approbation des workflows de fork pour
 **tous les contributeurs externes**, permissions du token en lecture seule.
-Le dépôt est désormais **public** (vérifié le 25 novembre) ; la note du 5 novembre
-sur les réglages de forks privés est obsolète. Le réglage public a été aligné sur
-`all_external_contributors`, puis relu par l'API. Cette approbation préalable ne
-remplace pas le refus des PR de forks dans les jobs. Avant d'accepter une PR externe
-sur ce dépôt public, appliquer l'obligation de compte dédié ci-dessous.
+Le réglage a été aligné sur `all_external_contributors` le 25 novembre, puis relu
+par l'API. Cette approbation préalable ne remplace pas le refus des PR de forks
+dans les jobs. Appliquer l'obligation de compte dédié ci-dessous avant toute
+ouverture aux contributions externes ; la visibilité temporaire du dépôt ne
+change pas le mode d'exploitation convenu avec le propriétaire.
 Le token par défaut est vérifié en lecture, sans approbation de PR par Actions.
 Chaque workflow garde aussi l'égalité du dépôt source d'une PR avec le dépôt
 cible ; aucun `pull_request_target`. Checkout ne conserve pas son credential.
