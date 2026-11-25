@@ -27,7 +27,7 @@
       "markers": ["GAMEPLAY_DOOR id=door-west degrees=90.00000 open=true", "GAMEPLAY_DOOR id=door-east degrees=0.00000 open=false"]
     },
     {
-      "name": "orbit",
+      "name": "inspector",
       "steps": 415
     }
   ],
@@ -49,7 +49,7 @@
     },
     {
       "a": "door-open",
-      "b": "orbit",
+      "b": "inspector",
       "minimum": 1000
     }
   ]

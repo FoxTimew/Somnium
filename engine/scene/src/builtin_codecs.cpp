@@ -1,7 +1,7 @@
 // Defines the version-one codecs and the explicit degrees/Rz*Ry*Rx file boundary.
 // Hierarchy references use exactly the deferred resolver exposed to game codecs.
 #include <algorithm>
-#include <cmath>
+#include <somnium/scene/rotation.hpp>
 #include <somnium/scene/serialization.hpp>
 
 namespace somnium::scene {
@@ -11,17 +11,6 @@ template <typename T> bool contains(const World& world, entt::entity entity) {
 }
 Json vector(glm::vec3 value) {
     return Json::array({value.x, value.y, value.z});
-}
-glm::vec3 eulerDegrees(const glm::quat& rotation) {
-    // Near a pole, asin magnifies float roundoff and separate X/Z become undefined.
-    const auto matrix = glm::mat3_cast(glm::normalize(glm::dquat(rotation)));
-    const auto cosine = std::hypot(matrix[0][0], matrix[0][1]);
-    const auto y = std::atan2(-matrix[0][2], cosine);
-    const bool regular = cosine > .000001;
-    const auto x =
-        regular ? std::atan2(matrix[1][2], matrix[2][2]) : std::atan2(-matrix[2][1], matrix[1][1]);
-    const auto z = regular ? std::atan2(matrix[0][1], matrix[0][0]) : 0.0;
-    return glm::vec3(glm::degrees(glm::dvec3{x, y, z}));
 }
 Result<Json> writeName(const World& world, entt::entity entity) {
     return Json{{"value", world.registry().get<Name>(entity).value}};
@@ -56,11 +45,7 @@ Result<void> readTransform(World& world, entt::entity entity, const Json& data,
         return tl::unexpected(degrees.error());
     if (!scale)
         return tl::unexpected(scale.error());
-    const auto radians = glm::radians(*degrees);
-    const auto rotation = glm::normalize(glm::angleAxis(radians.z, glm::vec3(0, 0, 1)) *
-                                         glm::angleAxis(radians.y, glm::vec3(0, 1, 0)) *
-                                         glm::angleAxis(radians.x, glm::vec3(1, 0, 0)));
-    return world.teleport(entity, {*position, rotation, *scale});
+    return world.teleport(entity, {*position, rotationDegrees(*degrees), *scale});
 }
 Result<Json> writeHierarchy(const World& world, entt::entity entity) {
     const auto parent = world.registry().get<Hierarchy>(entity).parent;

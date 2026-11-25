@@ -9,6 +9,14 @@ class Platform;
 namespace somnium::gpu {
 class Device;
 }
+namespace somnium::scene {
+class World;
+}
+namespace somnium::input {
+class Configuration;
+struct State;
+struct Capture;
+} // namespace somnium::input
 namespace somnium::debug_ui {
 class Overlay final {
   public:
@@ -17,7 +25,11 @@ class Overlay final {
     ~Overlay();
     Overlay(const Overlay&) = delete;
     Overlay& operator=(const Overlay&) = delete;
-    [[nodiscard]] Result<void> prepare(double frameSeconds);
+    [[nodiscard]] input::Capture update(double frameSeconds, const scene::World& world,
+                                        const input::Configuration& mapping,
+                                        const input::State& inputs, bool replay);
+    void applyEdits(scene::World& world);
+    [[nodiscard]] Result<void> prepare();
     [[nodiscard]] Result<void> render();
 
   private:

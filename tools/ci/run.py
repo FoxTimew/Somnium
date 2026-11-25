@@ -321,6 +321,16 @@ class Runner:
         if SYSTEM == "Windows":
             arguments += ["--backend", backend]
         self.py("capture-" + backend, "tools/presentation/" + script, *arguments, env=self.gpu_environment(backend), window=True)
+        # Hosted disks are ephemeral: retain presentation pixels in bounded log records,
+        # using the same transport as the scene proof (no upload/download action).
+        if SYSTEM == "Darwin":
+            for path in sorted(output.glob("*.png")):
+                data = path.read_bytes()
+                if len(data) > 2 * 1024 * 1024:
+                    raise RuntimeError("Presentation log capture exceeds 2 MiB")
+                print("SOMNIUM_PRESENTATION_IMAGE " + json.dumps({"name": path.name,
+                      "sha256": hashlib.sha256(data).hexdigest(),
+                      "base64": base64.b64encode(data).decode("ascii")}), flush=True)
 
     def pipeline(self):
         # One job per OS: cheap checks first, GPU smoke before four full build variants.

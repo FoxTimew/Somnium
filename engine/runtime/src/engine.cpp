@@ -154,12 +154,12 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
     bool captureReady = false;
     gpu::FrameSize previousSize;
     bool firstModelFrame = true;
+    // Events collected after acquisition wait for the next UI capture decision.
+    std::pmr::vector<core::InputEvent> deferredInput;
+    deferredInput.reserve(128);
     for (;;) {
         SOMNIUM_PROFILE_SCOPE("runtime.frame");
         const auto events = m_impl->platform->pollEvents(stats.fixedSteps);
-        auto queued = input.enqueue(events.input);
-        if (!queued)
-            return tl::unexpected(queued.error());
         if (events.quitRequested) {
             break;
         }
@@ -168,6 +168,17 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
             accumulator.reset();
         }
         const auto frameSeconds = clock.sampleSeconds();
+#if defined(SOMNIUM_ENABLE_DEBUG_UI)
+        input.setCapture(m_impl->overlay->update(frameSeconds, world, input.configuration(),
+                                                 input.state(), m_impl->platform->replaying()));
+#endif
+        auto queued = input.enqueue(deferredInput);
+        if (!queued)
+            return tl::unexpected(queued.error());
+        deferredInput.clear();
+        queued = input.enqueue(events.input);
+        if (!queued)
+            return tl::unexpected(queued.error());
         auto batch = accumulator.advance(frameSeconds);
         if (!batch) {
             return tl::unexpected(batch.error());
@@ -186,6 +197,9 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
             if (!state)
                 return tl::unexpected(state.error());
             world.beginStep();
+#if defined(SOMNIUM_ENABLE_DEBUG_UI)
+            m_impl->overlay->applyEdits(world);
+#endif
             auto updated =
                 game.fixedUpdate(world, {core::kFixedStepSeconds, stats.fixedSteps, *state});
             if (!updated)
@@ -225,9 +239,11 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
                 return tl::unexpected(quit.error());
         }
         const auto afterAcquire = m_impl->platform->pollEvents(stats.fixedSteps);
-        queued = input.enqueue(afterAcquire.input);
-        if (!queued)
-            return tl::unexpected(queued.error());
+        if (afterAcquire.input.size() > deferredInput.capacity())
+            Log::write("runtime", Log::Level::Warning,
+                       "Input burst grows deferred frame storage: {} events",
+                       afterAcquire.input.size());
+        deferredInput.assign(afterAcquire.input.begin(), afterAcquire.input.end());
         if (afterAcquire.quitRequested) {
             frame.active = false;
             auto submitted = m_impl->gpu->submitFrame();
@@ -276,7 +292,7 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
             previousSize = *size;
         }
 #if defined(SOMNIUM_ENABLE_DEBUG_UI)
-        auto prepared = m_impl->overlay->prepare(frameSeconds);
+        auto prepared = m_impl->overlay->prepare();
         if (!prepared)
             return tl::unexpected(prepared.error());
 #endif

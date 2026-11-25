@@ -20,6 +20,6 @@ for command in commands:
     source = Path(command["file"]).as_posix().lower()
     if "SOMNIUM_DEVELOPMENT_ASSETS" in command.get("command", " ".join(command.get("arguments", []))):
         raise SystemExit("Shipping contains the development source root")
-    if "imgui" in source or "/debug_ui/" in source or "/integration/" in source:
+    if "imgui" in source or "/debug_ui/" in source or "/integration/" in source or "inspector" in source:
         raise SystemExit(f"Shipping compiles an optional UI source: {source}")
-print("Shipping graph: no ImGui, platform/gpu integration or debug_ui target/source")
+print("Shipping graph: no ImGui, platform/gpu integration, inspector or debug_ui target/source")

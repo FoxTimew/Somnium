@@ -1,6 +1,6 @@
 # Owns EnTT scene data, hierarchy and extensible JSON codecs without rendering types.
 # CPU tests exercise persistence and transactions independently of platform/GPU.
-add_library(somnium_scene STATIC src/world.cpp src/serialization.cpp src/builtin_codecs.cpp)
+add_library(somnium_scene STATIC src/world.cpp src/serialization.cpp src/builtin_codecs.cpp src/rotation.cpp)
 add_library(somnium::scene ALIAS somnium_scene)
 target_include_directories(somnium_scene PUBLIC include)
 target_link_libraries(somnium_scene PUBLIC somnium::core somnium::assets EnTT::EnTT nlohmann_json::nlohmann_json)
