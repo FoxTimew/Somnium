@@ -155,11 +155,13 @@ class Runner:
                   ("sccache", ["sccache", "--version"], PINS["sccache"]),
                   ("lfs", ["git-lfs", "version"], PINS["git_lfs"])]
         if SYSTEM == "Linux":
+            if os.geteuid() == 0:
+                raise RuntimeError("Run CI as the unprivileged Linux user, never root")
             checks += [("clang", ["clang-18", "--version"], PINS["clang_linux"]),
                        ("tidy", [self.tidy_tool, "--version"], PINS["clang_linux"])]
         if SYSTEM == "Windows":
             if ctypes.windll.shell32.IsUserAnAdmin():
-                raise RuntimeError("Run CI as a standard user, never elevated")
+                raise RuntimeError("Run CI without elevation")
             compiler = Path(shutil.which("cl"))
             if not (compiler.parent / "1033/clui.dll").is_file():
                 raise RuntimeError("MSVC English resources required for reliable sccache/Ninja dependencies; repeat provision_windows.ps1 -Machine")
@@ -308,7 +310,12 @@ class Runner:
             self.summary("Metal: **non validé** on this build-only host; the independent macos-15 job probes Metal")
         for backend in backends:
             self.gpu(backend)
-            self.captures(backend)
+            # Windows capture injects real desktop input; only an explicit manual
+            # operation may invoke it. Xvfb/hosted macOS have isolated sessions.
+            if SYSTEM != "Windows":
+                self.captures(backend)
+        if SYSTEM == "Windows":
+            self.summary("Presentation captures: manual workflow_dispatch job only; window tests and offscreen GPU proofs remain required")
         if SYSTEM == "Linux":
             self.tidy()
         for preset in ["release", "shipping", "profiling"]:

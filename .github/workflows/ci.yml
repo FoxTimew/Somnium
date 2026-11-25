@@ -1,11 +1,16 @@
 # Required Windows/Radeon and Linux/lavapipe checks use the same scripts as local runs.
-# Fork pull requests must never execute on these persistent runners.
+# Fork pull requests must never execute on these persistent runners; desktop input is manual only.
 name: CI self-hosted
 on:
   push:
     branches: [main, 'phase/**', 'feat/**']
   pull_request:
   workflow_dispatch:
+    inputs:
+      presentation:
+        description: 'Inject mouse/keyboard in the Windows session to capture D3D12 (leave the desktop free)'
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -21,7 +26,7 @@ jobs:
         with:
           lfs: true
           persist-credentials: false
-      - name: Required Windows presets, Radeon D3D12/Vulkan and interactive presentation
+      - name: Required Windows presets, window test and Radeon D3D12/Vulkan offscreen proofs
         shell: powershell
         run: tools/ci/windows.ps1 pipeline --jobs 2 --window-mode interactive
   linux:
@@ -35,3 +40,18 @@ jobs:
           persist-credentials: false
       - name: Required Linux presets, lavapipe, analysis and sanitizers
         run: bash tools/ci/linux.sh pipeline --jobs 2
+  windows-presentation:
+    if: >-
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) &&
+      github.event_name == 'workflow_dispatch' && inputs.presentation
+    needs: windows
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          lfs: true
+          persist-credentials: false
+      - name: Manual D3D12 presentation captures (uses mouse and keyboard)
+        shell: powershell
+        run: tools/ci/windows.ps1 captures --backend direct3d12 --window-mode interactive

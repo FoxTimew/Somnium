@@ -11,6 +11,14 @@ if ($principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))
 if ([Diagnostics.Process]::GetCurrentProcess().SessionId -eq 0) {
     throw 'The runner requires an interactive session'
 }
+$listenerPath = [IO.Path]::GetFullPath((Join-Path $RunnerDirectory 'bin/Runner.Listener.exe'))
+$existingListener = Get-Process -Name 'Runner.Listener' -ErrorAction SilentlyContinue | Where-Object {
+    $_.Path -eq $listenerPath
+}
+if ($existingListener) {
+    Write-Host 'The Windows runner is already running'
+    exit 0
+}
 if (-not (Test-Path "$Root/tools/bin/git-lfs.exe")) { throw 'Run provisioning first' }
 $env:PATH = "$Root/tools/bin;$env:PATH"
 $env:SOMNIUM_CI_ROOT = $Root

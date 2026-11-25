@@ -11,6 +11,8 @@ import platform
 import shutil
 import subprocess
 import tarfile
+import urllib.error
+import urllib.parse
 import urllib.request
 import zipfile
 
@@ -23,7 +25,25 @@ def download(pin, folder):
     path = folder / (pin["sha256"] + "-" + pin["url"].split("/")[-1])
     if not path.exists():
         temporary = path.with_suffix(path.suffix + ".partial")
-        urllib.request.urlretrieve(pin["url"], temporary)
+        try:
+            urllib.request.urlretrieve(pin["url"], temporary)
+        except urllib.error.HTTPError as error:
+            url = urllib.parse.urlsplit(pin["url"])
+            if error.code != 403 or url.hostname != "sdk.lunarg.com" or not url.path.startswith("/sdk/download/"):
+                raise
+            # LunarG documents this option for SDK downloads rejected by its bot limit.
+            query = dict(urllib.parse.parse_qsl(url.query))
+            query["Human"] = "true"
+            retry_url = url._replace(query=urllib.parse.urlencode(query)).geturl()
+            # The SDK endpoint also rejects Python's client; use LunarG's documented curl client.
+            curl = shutil.which("curl.exe" if os.name == "nt" else "curl")
+            if not curl:
+                raise RuntimeError("LunarG SDK download requires curl after HTTP 403") from error
+            subprocess.run([curl, "--fail", "--location", "--retry", "2", "--connect-timeout", "30",
+                            "--max-time", "900", "--output", str(temporary), retry_url], check=True)
+        with temporary.open("rb") as stream:
+            if hashlib.file_digest(stream, "sha256").hexdigest() != pin["sha256"]:
+                raise RuntimeError(f"Checksum mismatch: {temporary}; download not cached")
         temporary.replace(path)
     with path.open("rb") as stream:
         digest = hashlib.file_digest(stream, "sha256").hexdigest()

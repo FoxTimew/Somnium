@@ -76,4 +76,4 @@ if ($Machine) {
     $graphics = Get-WindowsCapability -Online -Name 'Tools.Graphics.DirectX*'
     if ($graphics.State -ne 'Installed') { $graphics | Add-WindowsCapability -Online | Out-Null }
 }
-Write-Host "Provisioning complete. Validate from the dedicated account: tools/ci/windows.ps1 doctor --root $Root"
+Write-Host "Provisioning complete. Validate without elevation: tools/ci/windows.ps1 doctor --root $Root"

@@ -2,14 +2,16 @@
 # Runners Somnium
 
 Windows et Linux/WSL2 sont requis. Le workflow macOS manuel reste best effort.
-La politique est fixée par l'[ADR-0006](adr/0006-ci-auto-hebergee.md).
+La politique est fixée par l'[ADR-0006](adr/0006-ci-auto-hebergee.md), amendé le
+25 novembre 2026. Exploitation quotidienne : [Démarrer les runners Somnium](DEMARRER_RUNNERS.md).
 
 ## Installation Windows
 
 Le runner FOXTIMEW-LAPTOP est enregistré avec `self-hosted`, `Windows`, `X64`.
-Mode retenu : **session interactive**, pas service. Il doit utiliser un compte
-local standard dédié (par exemple `somnium-ci`), sans droits d'administration,
-sans identifiants de développement personnels et sans accès aux dossiers privés.
+Mode réel : **tâche planifiée non élevée en session interactive**, sous le compte
+personnel **Foxti**, sans compte dédié. La tâche « Somnium Runner Windows » utilise
+un jeton utilisateur non élevé ; les jobs ne s'exécutent jamais en administrateur.
+Ce choix privilégie la praticité sur la machine personnelle d'un seul contributeur.
 
 Les versions sont épinglées dans [toolchain.json](../tools/ci/toolchain.json) :
 Python 3.12.12, CMake 3.31.6, Ninja 1.11.1.3, MSVC 14.51.36231 (VS 18.11.1),
@@ -33,10 +35,10 @@ Le compte runner peut répéter la passe portable sans `-Machine` ; l'exécution
 n'appelle jamais la passe administrative. Un redémarrage demandé par l'installateur
 doit être fait avant de lancer les jobs.
 
-Pour réenregistrer le runner sous le compte dédié : arrêter son listener actuel,
+Pour réenregistrer le runner sous le compte personnel Foxti : arrêter son listener actuel,
 puis suivre Settings → Actions → Runners → New self-hosted runner → Windows x64.
 Décompresser et vérifier le package indiqué par GitHub dans `C:\ActionsRunner`,
-exécuter `config.cmd` comme compte standard (URL du dépôt, nom FOXTIMEW-LAPTOP,
+exécuter `config.cmd` sans élévation (URL du dépôt, nom FOXTIMEW-LAPTOP,
 labels par défaut `self-hosted,Windows,X64`, work `_work`), sans installer de service.
 Saisir le token d'enregistrement éphémère à l'invite. Ne pas conserver de token
 personnel ; retirer l'ancienne inscription si GitHub demande de remplacer le nom.
@@ -60,17 +62,17 @@ Dans PowerShell administrateur, si Ubuntu n'existe pas :
 wsl --install -d Ubuntu-24.04
 ```
 
-Initialiser la distribution puis créer un compte Linux `somnium-ci` standard,
-sans sudo permanent. Utiliser un compte d'installation distinct pour la passe
-administrative. Cloner le dépôt **dans `/home/somnium-ci/Somnium`**, jamais sous
-`/mnt/c`. Le checkout initial privé peut être transféré par bundle Git et objets
-LFS pour éviter de conserver un PAT dans WSL.
+Installation réelle : Ubuntu-24.04, compte personnel **foxti**, service systemd
+**actions.runner.FoxTimew-Somnium.FOXTIMEW-WSL.service**, avec User=foxti et
+WorkingDirectory=/home/foxti/actions-runner. Les jobs ne tournent pas sous root.
+Le checkout Actions est sur ext4 dans /home/foxti/actions-runner/_work/Somnium/Somnium,
+jamais sous /mnt/c. sudo est réservé à l'installation/administration du service.
 
 ```sh
-# Passe de paquets système, depuis un compte administrateur Ubuntu :
-sudo bash tools/ci/provision_wsl.sh --root /home/somnium-ci/somnium-ci
-# Passe portable depuis le compte runner standard :
-bash tools/ci/provision_wsl.sh --root /home/somnium-ci/somnium-ci
+# Passe administrative de paquets système :
+sudo bash tools/ci/provision_wsl.sh --root /home/foxti/somnium-ci
+# Passe portable depuis foxti, sans sudo :
+bash tools/ci/provision_wsl.sh --root /home/foxti/somnium-ci
 ```
 
 Le script impose Ubuntu 24.04, Clang/clang-tidy 18.1.3 (paquets exacts du verrou),
@@ -80,14 +82,15 @@ dans les journaux. Xvfb fournit un écran pour les tests, sans dépendance à WS
 
 Dans GitHub : Settings → Actions → Runners → New self-hosted runner → Linux x64.
 Exécuter les commandes de téléchargement et vérification données par GitHub dans
-`/home/somnium-ci/actions-runner`, puis `./config.sh` pour
+`/home/foxti/actions-runner`, puis `./config.sh` pour
 `https://github.com/FoxTimew/Somnium`, nom `FOXTIMEW-WSL`, labels par défaut
 `self-hosted,Linux,X64`, work `_work`. Saisir le token éphémère dans l'invite,
 jamais dans un script, fichier versionné ou journal. Lancer `./run.sh` comme
-compte standard après `export PATH="$HOME/somnium-ci/tools/bin:$PATH"` : checkout
+foxti après `export PATH="$HOME/somnium-ci/tools/bin:$PATH"` : checkout
 a besoin de Git LFS avant les scripts de build. Un service systemd avec
-`User=somnium-ci` et ce même PATH convient pour Linux ;
-Windows peut démarrer WSL à l'ouverture de session. Vérifier les deux états Online.
+`User=foxti` et ce même PATH convient pour Linux ;
+la tâche Windows « Somnium Runner WSL » maintient Ubuntu active via
+C:/ActionsRunner/start_wsl.ps1 à l'ouverture de session. Vérifier les deux états Online.
 
 ## Commandes et stockage
 
@@ -105,8 +108,10 @@ suivies d'une opération et des mêmes options. Exemples :
 ```
 
 Autres opérations : `format`, `compiler-cache`, `tidy`, `sanitizers`, `cleanup`, `pipeline`.
-`pipeline` ordonne version/format/architecture → shaders → debug/tests/GPU/captures
-→ tidy Linux → release/shipping/profiling → sanitizers Linux. Un échec interrompt la suite.
+`pipeline` ordonne version/format/architecture → shaders → debug/tests/GPU hors
+écran (et captures Xvfb Linux) → tidy Linux → release/shipping/profiling → sanitizers
+Linux. **Aucune capture Windows dans le pipeline requis** : test de fenêtre et
+probes GPU restent obligatoires. Un échec interrompt la suite.
 Garder le même `--run-id` pour reprendre un configure/build/test. Aucun accès
 GitHub n'est requis hors acquisition des dépendances publiques au premier passage.
 
@@ -141,18 +146,34 @@ activer « Require approval for fork pull request workflows » avant toute exéc
 Le token par défaut est déjà en lecture, sans approbation de PR par Actions.
 Chaque workflow garde aussi l'égalité du dépôt source d'une PR avec le dépôt
 cible ; aucun `pull_request_target`. Checkout ne conserve pas son credential.
-Ne pas injecter de secrets de déploiement ni réutiliser un compte personnel.
-Restreindre les ACL de `C:\SomniumCI` et du dossier du runner au compte dédié,
-SYSTEM et administrateurs ; sous Linux, permissions 0700 sur le home et les
-credentials du runner. Le provisionnement ne change pas les réglages GitHub.
+Aucun secret n'est injecté dans les jobs. Les credentials d'enregistrement du runner
+restent locaux ; aucun PAT de développement n'est ajouté aux workflows. Restreindre
+les ACL des caches et du runner à Foxti, SYSTEM et administrateurs ; sous Linux,
+limiter l'accès aux credentials à foxti. Le provisionnement ne change pas les réglages GitHub.
 
-La garde de fork ne protège pas contre un collaborateur autorisé qui modifierait
-le workflow ; ne donner l'écriture qu'aux personnes dont le code peut s'exécuter
-sur ce poste. Les caches persistants ont le même niveau de confiance.
+Le risque résiduel est accepté sur cette machine personnelle : **tout code poussé
+s'exécute avec les droits utilisateur de Foxti/foxti**, y compris l'accès aux fichiers
+personnels et, depuis WSL, aux **disques Windows montés sous /mnt**. Le refus des
+forks, l'absence de secrets CI et le token en lecture ne cloisonnent pas les données
+déjà accessibles à ces comptes. Les caches persistants partagent ce niveau de confiance.
+
+Un **compte dédié devient obligatoire avant** l'un des événements suivants :
+
+- second contributeur disposant d'un droit d'écriture ;
+- ajout de secrets à la CI ;
+- dépôt public acceptant des PR.
+
+Ce changement impose aussi de revoir les ACL, les montages Windows dans WSL et
+l'approbation des contributeurs externes. Aucun de ces déclencheurs n'est supposé
+couvert par le simple passage à un jeton non élevé.
 
 Windows exige Radeon RX 6600M pour D3D12 et Vulkan, avec couches actives ; **WARP
 n'est plus couvert**. Linux impose lavapipe. Les captures Windows viennent de la
-fenêtre réelle et d'événements souris/clavier ; aucun assouplissement de politique
+fenêtre réelle et d'événements souris/clavier, **uniquement dans le job manuel
+windows-presentation**, déclenché avec workflow_dispatch et presentation=true.
+Il réutilise le build debug Windows du même run, sans transfert d'artefact. Laisser
+le bureau libre pendant ce job ; voir le [guide](DEMARRER_RUNNERS.md).
+Aucun assouplissement de politique
 de contrôle d'application. Un blocage doit être rapporté avec le message exact.
 macOS est manuel, ses deux jobs indépendants conservent leurs résultats seulement
 sur le runner éphémère et dans les résumés ; publier une pièce retenue nécessite

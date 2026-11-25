@@ -154,8 +154,10 @@ ambiant de 0,15 dans une variante shader et utilise SDR_LINEAR : un seul encodag
 sRGB à la sortie. Les tests input/caméra sont entièrement CPU.
 
 La CI requise configure, construit et teste **debug, release, shipping et profiling
-sur Windows et Linux**, puis vérifie D5/cube et la présentation ; clang-tidy **18**
+sur Windows et Linux**, puis vérifie D5/cube et le test de fenêtre ; clang-tidy **18**
 et ASan/UBSan tournent sous Linux. macOS est un workflow manuel best effort.
+Les captures Windows injectant souris/clavier sont réservées au job manuel
+workflow_dispatch ; [démarrer les runners et les captures](docs/DEMARRER_RUNNERS.md).
 Logs, binaires et images restent sur le disque du runner par run, pendant 14 jours ;
 le résumé GitHub indique leurs chemins. Les actions restantes sont épinglées par SHA.
 
