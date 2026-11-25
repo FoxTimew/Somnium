@@ -1,0 +1,35 @@
+App name: sandbox.exe
+App version: <unspecified>
+App ID: <unspecified>
+SDL revision: SDL-3.4.18-HEAD-HASH-NOTFOUND
+SDL chose video backend 'windows'
+SDL chose gpu backend 'direct3d12'
+WARNING: WinPixEventRuntime.dll is not available. It is required for SDL_Push/PopGPUDebugGroup and SDL_InsertGPUDebugLabel to function correctly. See here for instructions on how to obtain it: https://devblogs.microsoft.com/pix/winpixeventruntime/
+SDL_GPU Driver: D3D12
+D3D12 Adapter: AMD Radeon RX 6600M
+D3D12 Driver: 32.0.21037.1004
+Validation layers enabled, expect debug level performance!
+[2026-11-25 14:25:45.285] [gpu] [info] direct3d12: AMD Radeon RX 6600M
+[2026-11-25 14:25:45.288] [game] [info] Orbit pose: eye=(5.4494,4.3497,7.1683) distance=10.0000
+[2026-11-25 14:25:45.288] [game] [info] Gameplay session started
+[2026-11-25 14:25:45.330] [runtime] [info] Model ready: models/orbit-cube.glb (7 draws)
+[2026-11-25 14:25:45.330] [runtime] [info] Swapchain extent 1280x720
+[2026-11-25 14:25:45.366] [runtime] [info] First model frame presented
+[2026-11-25 14:25:46.402] [game] [info] Orbit pose: eye=(5.5994,4.4395,6.9955) distance=10.0000
+[2026-11-25 14:25:46.451] [game] [info] Orbit pose: eye=(5.7436,4.5289,6.8191) distance=10.0000
+[2026-11-25 14:25:46.518] [game] [info] Orbit pose: eye=(5.8820,4.6178,6.6392) distance=10.0000
+[2026-11-25 14:25:46.548] [game] [info] Orbit pose: eye=(6.0143,4.7063,6.4559) distance=10.0000
+[2026-11-25 14:25:46.603] [game] [info] Orbit pose: eye=(6.1406,4.7943,6.2696) distance=10.0000
+[2026-11-25 14:25:46.651] [game] [info] Orbit pose: eye=(6.2607,4.8818,6.0805) distance=10.0000
+[2026-11-25 14:25:46.699] [game] [info] Orbit pose: eye=(6.3745,4.9688,5.8886) distance=10.0000
+[2026-11-25 14:25:46.748] [game] [info] Orbit pose: eye=(6.4821,5.0553,5.6944) distance=10.0000
+[2026-11-25 14:25:46.815] [game] [info] Orbit pose: eye=(6.5833,5.1414,5.4979) distance=10.0000
+[2026-11-25 14:25:46.851] [game] [info] Orbit pose: eye=(6.6781,5.2269,5.2994) distance=10.0000
+[2026-11-25 14:25:46.899] [game] [info] Orbit pose: eye=(6.7664,5.3119,5.0991) distance=10.0000
+[2026-11-25 14:25:46.948] [game] [info] Orbit pose: eye=(6.8482,5.3963,4.8972) distance=10.0000
+[2026-11-25 14:25:48.064] [game] [info] Orbit pose: eye=(5.6068,4.4181,4.0095) distance=8.1873
+[2026-11-25 14:25:48.215] [game] [info] Orbit pose: eye=(4.5905,3.6173,3.2827) distance=6.7032
+[2026-11-25 14:25:49.432] [game] [info] Orbit pose: eye=(5.4494,4.3497,7.1683) distance=10.0000
+[2026-11-25 14:26:02.600] [runtime] [info] Swapchain extent 960x600
+[2026-11-25 14:26:05.105] [game] [info] Stopped after 1186 fixed steps (19.767 s)
+frames=3250 fixed_steps=1186 alpha=0.132320 dropped_seconds=0.000000

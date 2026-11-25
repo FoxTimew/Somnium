@@ -1,0 +1,46 @@
+Ubuntu LLVM version 18.1.3
+  Optimized build.
+
+OK engine/assets/src/image_loader.cpp
+OK engine/assets/src/model_loader.cpp
+OK engine/core/src/assert.cpp
+OK engine/core/src/log.cpp
+OK engine/core/src/logical_path.cpp
+OK engine/core/tests/core_tests.cpp
+OK engine/assets/tests/asset_tests.cpp
+OK engine/debug_ui/src/overlay.cpp
+OK engine/debug_ui/tests/frame_times_tests.cpp
+OK engine/core/tests/log_tests.cpp
+OK engine/gpu/integration/adapter.cpp
+OK engine/gpu/src/shader_data.cpp
+OK engine/gpu/tests/capabilities.cpp
+OK engine/gpu/src/device.cpp
+OK engine/gpu/tests/extensions.cpp
+OK engine/gpu/tests/offscreen.cpp
+OK engine/input/src/input.cpp
+OK engine/input/tests/input_tests.cpp
+OK engine/gpu/tests/shader_tests.cpp
+OK engine/platform/integration/adapter.cpp
+OK engine/platform/src/input_translation.cpp
+OK engine/platform/src/file_reader.cpp
+OK engine/platform/src/read_stream.cpp
+OK engine/platform/src/platform.cpp
+OK engine/platform/tests/input_translation_tests.cpp
+OK engine/platform/tests/file_reader_tests.cpp
+OK engine/renderer/src/camera.cpp
+OK engine/platform/tests/read_stream_tests.cpp
+OK engine/renderer/tests/camera_tests.cpp
+OK engine/renderer/src/renderer.cpp
+OK engine/runtime/src/fixed_step.cpp
+OK engine/runtime/src/gameplay.cpp
+OK engine/runtime/src/engine.cpp
+OK engine/runtime/src/model_rendering.cpp
+OK engine/runtime/tests/fixed_step_tests.cpp
+OK engine/runtime/tests/cube.cpp
+OK game/src/foundation_game.cpp
+OK game/src/orbit_camera.cpp
+OK game/tests/orbit_camera_tests.cpp
+OK tools/dependencies/cgltf_impl.c
+OK sandbox/src/main.cpp
+OK tools/dependencies/stb_impl.c
+OK tools/dependencies/dependency_tests.cpp

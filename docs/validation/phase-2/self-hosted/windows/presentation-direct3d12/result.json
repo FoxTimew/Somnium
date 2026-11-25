@@ -1,0 +1,30 @@
+{
+  "origin": "Windows interactive desktop",
+  "backend": "direct3d12",
+  "source_commit": "36f18248b7ab05b3cec598a68c5b8ac4d33d6133",
+  "source_dirty": false,
+  "model_sha256": "6cd95ff987472a80dc3fe0a49ed7920aeea04b1cbc48cc1facd3cef7d1efb305",
+  "binary_sha256": "ad6fcb1a411c683d2de0a8f0411b3f72c040024412af2acb6ec72cbab7ecdf15",
+  "status": "validé",
+  "captures": [
+    "model-overlay.png",
+    "orbit.png",
+    "zoom.png",
+    "reset.png",
+    "resize.png"
+  ],
+  "activation": "SetForegroundWindow",
+  "model_region_different_pixels": {
+    "orbit": 38878,
+    "zoom": 94035,
+    "reset": 0
+  },
+  "resized_extent": [
+    960,
+    600
+  ],
+  "exit_code": 0,
+  "validation_enabled": true,
+  "validation_errors": false,
+  "expected_device": true
+}

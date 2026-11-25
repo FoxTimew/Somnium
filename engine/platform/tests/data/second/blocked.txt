@@ -1,0 +1,1 @@
+This file must never hide an error in the first root.

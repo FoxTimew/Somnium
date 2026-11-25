@@ -1,0 +1,7 @@
+{
+  "acquisition_submission": "passed",
+  "backend": "vulkan",
+  "device": "AMD Radeon RX 6600M",
+  "sdr_linear": true,
+  "srgb_target": true
+}

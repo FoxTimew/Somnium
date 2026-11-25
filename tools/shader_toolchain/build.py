@@ -128,10 +128,10 @@ def runtime_environment(prefix):
 def verify(prefix):
     compiler = prefix / "bin" / ("shadercross" + EXT)
     env = runtime_environment(prefix)
-    run("consumer-configure", ["cmake", "-S", HERE / "verify", "-B", CACHE / "consumer",
+    run("consumer-configure", ["cmake", "-S", HERE / "verify", "-B", REPORTS / "consumer",
                                f"-DSOMNIUM_SHADERCROSS_EXECUTABLE={compiler}"], env=env)
     status, message = run("consumer-missing-tool", ["cmake", "-S", HERE / "verify",
-        "-B", CACHE / "consumer-missing", f"-DSOMNIUM_SHADERCROSS_EXECUTABLE={CACHE / 'absent-shadercross'}"],
+        "-B", REPORTS / "consumer-missing", f"-DSOMNIUM_SHADERCROSS_EXECUTABLE={CACHE / 'absent-shadercross'}"],
         env=env, expect_success=False)
     if not status or "SOMNIUM_SHADERCROSS_EXECUTABLE is required" not in message:
         raise RuntimeError("Consumer did not fail explicitly for a missing offline compiler")
@@ -212,10 +212,15 @@ def sdk_probe():
 
 
 def main():
+    global CACHE, REPORTS
     parser = argparse.ArgumentParser()
     parser.add_argument("--provider", choices=["official", "source", "vulkan-sdk"], required=True)
     parser.add_argument("--jobs", type=int, default=3)
+    parser.add_argument("--cache-root", type=Path, default=CACHE)
+    parser.add_argument("--report-dir", type=Path)
     args = parser.parse_args()
+    CACHE = args.cache_root.resolve()
+    REPORTS = args.report_dir.resolve() if args.report_dir else CACHE / "reports"
     RESULT["provider"] = args.provider
     REPORTS.mkdir(parents=True, exist_ok=True)
     started = time.monotonic()

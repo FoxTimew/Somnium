@@ -4,6 +4,30 @@ Les résultats D5 et les preuves de présentation restent distincts des jobs de 
 -->
 # Plan CI de phase 1 — accepté le 21 octobre 2026
 
+## Infrastructure courante — 25 novembre 2026
+
+L'[ADR-0006](adr/0006-ci-auto-hebergee.md) remplace l'infrastructure hébergée
+requise décrite dans l'historique ci-dessous. Windows/Radeon RX 6600M (D3D12 et
+Vulkan) et Ubuntu 24.04/WSL2/lavapipe sont désormais requis. **WARP n'est plus
+couvert** : ses captures antérieures restent des preuves des anciens commits.
+Windows fonctionne sous Foxti en tâche non élevée et session interactive ; WSL
+utilise le service systemd sous foxti. Le job requis garde fenêtres et preuves hors
+écran ; les captures Windows injectant souris/clavier passent uniquement par le
+job manuel workflow_dispatch. Décision et risque du compte personnel : ADR-0006.
+
+macOS devient un workflow manuel best effort, indépendant de la validation requise.
+Le build macos-latest et la validation Metal macos-15 construisent chacun leurs
+outils et binaires sur place, cible 13.3 ; il n'y a plus de transfert d'artefacts.
+Le précédent mécanisme de consommation de `gpu-binary-macOS` appartient à
+l'historique de phase 1. La dépendance Metal à macos-15 reste applicable.
+
+Les scripts [tools/ci](../tools/ci/) sont communs au local et aux workflows.
+Caches CPM/shaders/sccache sur disque par hash, sorties par run et rétention
+14 jours ; aucune action cache/upload/download. Installation, sécurité et preuves
+reproductibles dans [CI_RUNNER.md](CI_RUNNER.md). Les résultats des nouveaux
+runners sont consignés dans le [bilan de phase 2](validation/phase-2/FIN_DE_PHASE.md) ; aucun ancien résultat WARP
+ou Metal n'est présenté comme validation d'un commit non exécuté.
+
 ## Ce qui est déjà prouvé
 
 Le [spike](SHADERS.md) compile et exécute shadercross lié à DXC sur les trois OS,

@@ -1,210 +1,57 @@
-# Compiles and tests the foundation on every supported desktop OS.
-# Window presentation tests complement the explicit offscreen validation jobs.
-name: CI
+# Required Windows/Radeon and Linux/lavapipe checks use the same scripts as local runs.
+# Fork pull requests must never execute on these persistent runners; desktop input is manual only.
+name: CI self-hosted
 on:
   push:
     branches: [main, 'phase/**', 'feat/**']
   pull_request:
+  workflow_dispatch:
+    inputs:
+      presentation:
+        description: 'Inject mouse/keyboard in the Windows session to capture D3D12 (leave the desktop free)'
+        type: boolean
+        default: false
 permissions:
   contents: read
+concurrency:
+  group: ci-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
 jobs:
-  shader-tools:
-    uses: ./.github/workflows/shader-toolchain.yml
-  desktop:
-    needs: shader-tools
-    timeout-minutes: 35
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest, ubuntu-24.04, macos-latest]
-    runs-on: ${{ matrix.os }}
+  windows:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           lfs: true
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: '3.12'
-      - name: Build and formatting tools
-        run: python -m pip install cmake==3.31.6 ninja==1.11.1.3 clang-format==18.1.8
-      - name: MSVC environment
-        if: runner.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: shader-tools-${{ runner.os }}
-      - name: Restore required offline tools
-        shell: bash
-        run: |
-          mkdir -p .cache/shader-toolchain/install
-          tar -xzf shader-tools.tar.gz -C .cache/shader-toolchain/install
-      - name: Linux window dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxfixes-dev libxss-dev libxtst-dev libwayland-dev libxkbcommon-dev libegl1-mesa-dev libgl1-mesa-dev libasound2-dev libpulse-dev libudev-dev xvfb mesa-vulkan-drivers
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .cache/cpm
-          key: cpm-${{ runner.os }}-${{ hashFiles('cmake/Dependencies.cmake', 'cmake/CPM.cmake') }}
-          restore-keys: cpm-${{ runner.os }}-
-      - name: Format
-        run: python tools/format.py --check
-      - name: Configure
-        # Xvfb exercises X11; Ubuntu 24.04's Wayland scanner predates SDL's protocol XML.
-        run: cmake --preset debug -DSOMNIUM_WARNINGS_AS_ERRORS=ON -DSDL_WAYLAND=OFF
-      - name: Build
-        run: cmake --build --preset debug --parallel 3
-      - name: Package offscreen executable and offline shaders
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: gpu-binary-${{ runner.os }}
-          path: build/debug/bin/
-          if-no-files-found: error
-      - name: Tests Linux
-        if: runner.os == 'Linux'
-        run: xvfb-run -a ctest --preset debug
-      - name: Tests desktop
-        if: runner.os != 'Linux'
-        run: ctest --preset debug
-      - name: Configure release with debug UI
-        run: cmake --preset release -DSOMNIUM_WARNINGS_AS_ERRORS=ON -DSDL_WAYLAND=OFF
-      - name: Build release
-        run: cmake --build --preset release --parallel 3
-      - name: Tests release Linux
-        if: runner.os == 'Linux'
-        run: xvfb-run -a ctest --preset release
-      - name: Tests release desktop
-        if: runner.os != 'Linux'
-        run: ctest --preset release
-      - name: Shipping configuration excludes UI
-        run: cmake --preset shipping -DSOMNIUM_WARNINGS_AS_ERRORS=ON -DSDL_WAYLAND=OFF
-      - name: Verify shipping target and compilation graph
-        run: python tools/check_shipping.py build/shipping
-      - name: Build shipping
-        run: cmake --build --preset shipping --parallel 3
-      - name: Tests shipping Linux
-        if: runner.os == 'Linux'
-        run: xvfb-run -a ctest --preset shipping
-      - name: Tests shipping desktop
-        if: runner.os != 'Linux'
-        run: ctest --preset shipping
-      - name: Configure profiling
-        run: cmake --preset profiling -DSOMNIUM_WARNINGS_AS_ERRORS=ON -DSDL_WAYLAND=OFF
-      - name: Build profiling
-        run: cmake --build --preset profiling --parallel 3
-      - name: Tests profiling Linux
-        if: runner.os == 'Linux'
-        run: xvfb-run -a ctest --preset profiling
-      - name: Tests profiling desktop
-        if: runner.os != 'Linux'
-        run: ctest --preset profiling
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: always()
-        with:
-          name: test-logs-${{ runner.os }}
-          path: build/*/Testing/Temporary/
-  sanitizers:
-    needs: shader-tools
-    runs-on: ubuntu-24.04
+          persist-credentials: false
+      - name: Required Windows presets, window test and Radeon D3D12/Vulkan offscreen proofs
+        shell: powershell
+        run: tools/ci/windows.ps1 pipeline --jobs 2 --window-mode interactive
+  linux:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           lfs: true
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: '3.12'
-      - run: python -m pip install cmake==3.31.6 ninja==1.11.1.3
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: shader-tools-Linux
-      - name: Restore required offline tools
-        run: |
-          mkdir -p .cache/shader-toolchain/install
-          tar -xzf shader-tools.tar.gz -C .cache/shader-toolchain/install
-      - run: |
-          sudo apt-get update
-          sudo apt-get install -y clang libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxfixes-dev libxss-dev libxtst-dev libwayland-dev libxkbcommon-dev libegl1-mesa-dev libgl1-mesa-dev libasound2-dev libpulse-dev libudev-dev xvfb mesa-vulkan-drivers
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .cache/cpm
-          key: cpm-Linux-${{ hashFiles('cmake/Dependencies.cmake', 'cmake/CPM.cmake') }}
-          restore-keys: cpm-Linux-
-      # Link X11 normally: dlclose otherwise removes Xlib's global cache roots before LSan.
-      # Leak detection stays enabled; no allocation stack is suppressed.
-      - run: cmake --preset asan-ubsan -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DSOMNIUM_WARNINGS_AS_ERRORS=ON -DSDL_WAYLAND=OFF -DSDL_X11_SHARED=OFF
-      - run: cmake --build --preset asan-ubsan --parallel 3
-      - run: python tools/run_sanitizers.py
-        env:
-          ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
-          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: always()
-        with:
-          name: sanitizer-logs
-          path: build/asan-ubsan/Testing/Temporary/
-  clang-tidy:
-    needs: shader-tools
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
+          persist-credentials: false
+      - name: Required Linux presets, lavapipe, analysis and sanitizers
+        run: bash tools/ci/linux.sh pipeline --jobs 2
+  windows-presentation:
+    if: >-
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) &&
+      github.event_name == 'workflow_dispatch' && inputs.presentation
+    needs: windows
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           lfs: true
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: '3.12'
-      - run: python -m pip install cmake==3.31.6 ninja==1.11.1.3
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
-        with:
-          name: shader-tools-Linux
-      - name: Restore required offline tools
-        run: |
-          mkdir -p .cache/shader-toolchain/install
-          tar -xzf shader-tools.tar.gz -C .cache/shader-toolchain/install
-      - name: Install clang-tidy 18 and SDL development dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y clang-18 clang-tidy-18 libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxfixes-dev libxss-dev libxtst-dev libwayland-dev libxkbcommon-dev libegl1-mesa-dev libgl1-mesa-dev libasound2-dev libpulse-dev libudev-dev
-          clang-tidy-18 --version
-          dpkg-query -W clang-18 clang-tidy-18
-      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .cache/cpm
-          key: cpm-Linux-${{ hashFiles('cmake/Dependencies.cmake', 'cmake/CPM.cmake') }}
-          restore-keys: cpm-Linux-
-      - name: Configure compilation database
-        run: cmake --preset debug -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18 -DSDL_WAYLAND=OFF
-      - name: Analyze Somnium sources
-        run: python tools/run_clang_tidy.py --jobs 3
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        if: always()
-        with:
-          name: clang-tidy-reports
-          path: build/debug/clang-tidy/
-  gpu-linux:
-    permissions: {contents: read, checks: write}
-    needs: desktop
-    uses: ./.github/workflows/gpu-validation.yml
-    with:
-      os: ubuntu-24.04
-      backend: vulkan
-      required: true
-  gpu-windows:
-    permissions: {contents: read, checks: write}
-    needs: desktop
-    uses: ./.github/workflows/gpu-validation.yml
-    with:
-      os: windows-latest
-      backend: direct3d12
-      required: false
-  gpu-macos:
-    permissions: {contents: read, checks: write}
-    needs: desktop
-    uses: ./.github/workflows/gpu-validation.yml
-    with:
-      # macOS 26's paravirtual shader validator fails even the independent SDK probe.
-      # Consume the macos-latest binary targeting 13.3; only validation stays on macOS 15.
-      os: macos-15
-      backend: metal
-      required: false
+          persist-credentials: false
+      - name: Manual D3D12 presentation captures (uses mouse and keyboard)
+        shell: powershell
+        run: tools/ci/windows.ps1 captures --backend direct3d12 --window-mode interactive

@@ -12,7 +12,8 @@ if(BUILD_TESTING)
     add_test(NAME somnium_shader_build_tests
         COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/shaders/test_build.py"
             --root "${PROJECT_SOURCE_DIR}" --work "${CMAKE_CURRENT_BINARY_DIR}/shader-build-tests"
-            --compiler "${SOMNIUM_SHADERCROSS_EXECUTABLE}")
+            --compiler "${SOMNIUM_SHADERCROSS_EXECUTABLE}"
+            --cmake "${CMAKE_COMMAND}" --ninja "${CMAKE_MAKE_PROGRAM}")
     set_tests_properties(somnium_shader_build_tests PROPERTIES TIMEOUT 120 LABELS "shaders")
     add_executable(somnium_dependency_tests dependencies/dependency_tests.cpp)
     target_link_libraries(somnium_dependency_tests PRIVATE somnium::core EnTT::EnTT

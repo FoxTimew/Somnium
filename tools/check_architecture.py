@@ -14,7 +14,7 @@ allowed = {
     "renderer": {"core", "gpu"},
     "assets": {"core"},
     "scene": {"core", "assets"},
-    "input": {"core", "platform"},
+    "input": {"core"},
     "debug_ui": {"core", "scene", "input", "platform_imgui", "gpu_imgui"},
     "runtime": {"core", "platform", "gpu", "renderer", "assets", "scene", "input", "debug_ui"},
 }
@@ -42,7 +42,9 @@ for module, dependencies in allowed.items():
             errors.append(f"{path}: optional UI leaked into base implementation")
         if module != "core" and "#include <spdlog/" in text:
             errors.append(f"{path}: logging implementation leaked")
-        if module not in {"platform", "platform_imgui", "input"} and re.search(r"\bSDL_Event\b", text):
+        if module == "input" and re.search(r"#include\s*[<\"]SDL|\bSDL_\w+", text):
+            errors.append(f"{path}: SDL leaked into CPU input mapping")
+        if module not in {"platform", "platform_imgui"} and re.search(r"\bSDL_Event\b", text):
             errors.append(f"{path}: native event escaped its boundary")
         if re.search(r"\b(?:int|auto)\s+main\s*\(", text) and "tests" not in path.parts:
             errors.append(f"{path}: engine must not define main")

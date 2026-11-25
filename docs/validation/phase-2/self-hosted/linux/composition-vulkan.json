@@ -1,0 +1,7 @@
+{
+  "acquisition_submission": "passed",
+  "backend": "vulkan",
+  "device": "llvmpipe (LLVM 20.1.2, 256 bits)",
+  "sdr_linear": true,
+  "srgb_target": true
+}

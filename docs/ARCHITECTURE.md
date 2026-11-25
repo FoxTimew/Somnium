@@ -6,8 +6,10 @@ Document validé ; distingue les contrats du MVP des capacités déjà implémen
 
 Statut : **accepté**, 20 octobre 2026, avec les arbitrages D1 à D5 ci-dessous.
 
-La phase 0 est validée, fusionnée `--no-ff` et taguée `phase-0` sur `main`.
-La branche suivante est `phase/1-gpu-shaders`. Voir les
+Les phases 0 et 1 sont validées, fusionnées `--no-ff` et taguées sur `main`.
+La phase 2 est livrée sur `phase/2-assets-renderer` ; sa fusion attend la validation finale.
+Infrastructure auto-hébergée fusionnée par la PR #5 ; [bilan et preuves](validation/phase-2/FIN_DE_PHASE.md).
+Voir les
 [ADR-0001](adr/0001-stack-dependances-licences.md) et
 [ADR-0002](adr/0002-conventions.md).
 
@@ -18,10 +20,10 @@ sol et pièces, collisions AABB dans `game/`, portes articulées autour d'un piv
 action `Interact`, clavier/souris et manette. Le MVP final charge une scène JSON
 et affiche sa hiérarchie dans ImGui. Chaque capacité du moteur doit servir ce jeu.
 
-La phase 1 ajoute le device GPU, les ressources, les shaders hors ligne,
-le triangle présenté et l'overlay de statistiques aux fondations de phase 0.
-Windows, Linux et macOS sont compilés et testés ; aucune cible, API ni toolchain
-console n'est introduite. Renderer/assets/scene/input restent aux phases suivantes.
+La phase 2 charge un modèle glTF texturé, le présente avec profondeur et overlay,
+et permet son exploration par une caméra orbitale de gameplay. Assets, renderer
+et input sont actifs ; scene/ECS, interpolation et mapping JSON restent en phase 3.
+Windows, Linux et macOS sont les seules plateformes ciblées.
 
 Les conventions mathématiques, de mémoire, d'erreurs et de style sont décrites
 dans l'ADR-0002. Leur traduction en constantes aura une seule autorité :
@@ -32,10 +34,10 @@ dans l'ADR-0002. Leur traduction en constantes aura une seule autorité :
 | Référence | Décision |
 | --- | --- |
 | D1 | Toute dépendance sans release est épinglée par SHA complet, jamais par branche ; cette règle inclut stb et shadercross. |
-| D2 | Les backends officiels sont compilés dans `somnium_platform_imgui` et `somnium_gpu_imgui`, cibles séparées activées uniquement par `SOMNIUM_ENABLE_DEBUG_UI=ON` et liées par `debug_ui`. Les sources de platform/gpu ne contiennent aucun include ImGui ni condition UI. SDL_Event reste dans platform (collecte et intégration privée) et input (traduction). Aucun type SDL public. |
+| D2 | Les backends officiels sont compilés dans `somnium_platform_imgui` et `somnium_gpu_imgui`, cibles séparées activées uniquement par `SOMNIUM_ENABLE_DEBUG_UI=ON` et liées par `debug_ui`. Les sources de platform/gpu ne contiennent aucun include ImGui ni condition UI. SDL_Event reste dans platform (collecte, traduction neutre et intégration privée). Input ne contient aucun include SDL. Aucun type SDL public. |
 | D3 | Le MVP charge le MSL produit hors ligne par shadercross. Le travail du driver est autorisé ; aucun compilateur HLSL dans le moteur. Le `.metallib` est reporté au cuiseur de phase 4 ; l'ADR-0003 le consigne comme prérequis de shipping macOS. |
 | D4 | Pas de zones de durée GPU Tracy. Zones CPU, hooks mémoire, compteurs de draw calls/soumissions/uploads et marqueurs SDL visibles dans RenderDoc/PIX/Xcode. Critère de phase 2 amendé. |
-| D5 | Test de rendu hors écran, relecture et comparaison à une référence avec tolérance. CI : Vulkan/lavapipe Linux obligatoire, D3D12/WARP obtenu par le probe sans sélection publique SDL, Metal macOS si device disponible. Sans device/couche : job explicitement « non validé » et preuve locale avec capture et journal de validation joints à la PR. |
+| D5 | Test de rendu hors écran, relecture et comparaison à une référence avec tolérance. Depuis ADR-0006 : Vulkan/lavapipe Linux et D3D12/Vulkan Radeon Windows requis, Metal manuel best effort ; WARP n'est plus couvert. Sans device/couche sur un backend optionnel : résultat explicitement « non validé ». Une absence sur les deux runners requis fait échouer le job. Captures et journaux de validation joints à la PR. |
 
 Les contrats de lecture dans `core`, réalisé par `platform` et injecté par
 `runtime`, et de gameplay dans `runtime`, réalisé par `game` et assemblé dans
@@ -66,11 +68,11 @@ l'ADR-0001.
 | `renderer` | Meshes et matériaux GPU, caméra de rendu, DrawList, passe forward | `core`, `gpu` | aucune |
 | `assets` | Ressources CPU immuables, loaders, handles et états | `core` | aucune |
 | `scene` | World/EnTT, composants, transforms, hiérarchie et JSON | `core`, `assets` | aucune |
-| `input` | Traduction des événements en actions et axes | `core` | `platform` |
+| `input` | Mapping CPU des événements neutres en actions et axes à pas fixe | `core` | aucune |
 | `debug_ui` | Contexte ImGui, statistiques, inspecteur et édition | `core` | `platform_imgui`, `gpu_imgui`, `scene`, `input` |
 | `platform_imgui` | Backend officiel SDL3 et coopération privée | aucune | `platform` |
 | `gpu_imgui` | Backend officiel SDL GPU et coopération privée | aucune | `gpu` |
-| `runtime` | Engine, orchestration, simulation, extraction et correspondance assets/rendu | `core`, `scene`, `input` | `platform`, `gpu`, `renderer`, `assets`, `debug_ui` si activé |
+| `runtime` | Engine, orchestration, simulation, extraction et correspondance assets/rendu | `core`, `scene`, `input`, `renderer` | `platform`, `gpu`, `assets`, `debug_ui` si activé |
 
 `game/` produit une bibliothèque statique `somnium_game`, consommant `runtime`.
 `sandbox/` contient l'exécutable et assemble le gameplay et `Engine`. C'est la
@@ -90,7 +92,6 @@ flowchart TD
     assets --> core
     scene --> assets
     scene --> core
-    input --> platform
     input --> core
     debug_ui --> platform_imgui
     debug_ui --> gpu_imgui
@@ -137,9 +138,10 @@ le réalise. L'appel passe par ce contrat, jamais par un include de `game`.
 Les références de scène et d'inputs sont empruntées pour l'appel. L'état moteur,
 la registry et les ressources restent possédés par `Engine`.
 
-En phase 1, `Engine` possède plateforme/fenêtre, lecteur de ressources, device,
-handles du triangle, overlay optionnel, horloge et état de boucle. Le device
-possède les objets GPU ; l'overlay est détruit avant lui. Tous les modules ont
+En phase 2, `Engine` possède plateforme/fenêtre, lecteur, device, renderer, loader
+et AssetManager de modèles, adaptateur ModelRendering, cible de profondeur,
+overlay optionnel et état de boucle. Le gameplay possède sa caméra orbitale.
+L'overlay et les ressources renderer sont détruits avant le device. Tous les modules ont
 leurs répertoires et CMakeLists ; aucune cible sans sources réelles ni fonction
 factice n’est créée.
 
@@ -170,9 +172,9 @@ implémentées.
 | Asset CPU | Mesh, matériau ou image immuable après `Ready` ; références internes par handles | `AssetManager` ; emprunts bornés au traitement |
 | `Transform` | Position, quaternion et échelle locaux ; matrice monde dérivée ; historique nécessaire à l'interpolation | composant plat dans le namespace `somnium`, stocké dans World |
 | Hiérarchie | Parent et liens enfants utilisant les identités EnTT ; arbre acyclique, ordre de propagation défini | `scene` |
-| Caméra extraite | Matrices vue/projection, position et paramètres utiles au rendu ; aucune référence à une entité | valeur dans la DrawList |
+| Caméra | Pose et FOV/near/far explicites ; `cameraFrame` produit vue/projection RH_ZO depuis l’extent | gameplay fournit une `renderer::Camera` par valeur |
 | Draw packet | Matrice monde interpolée, handle renderer de mesh, handle renderer de matériau, clé de tri | stockage réutilisable détenu par `runtime` |
-| `DrawList` | Caméra et séquence contiguë de packets ; aucune registry, entité, ressource CPU empruntée ni pointeur SDL | `runtime` produit, `renderer` lit |
+| `DrawList` | Séquence de mesh/matériau/monde ; `FrameData` porte séparément vue/projection/lumière/ambiant ; aucune registry ni donnée CPU empruntée | `runtime` produit, `renderer` lit |
 | État d'input | Actions tenues et transitions, axes, deltas et informations de périphérique utiles | `input` produit, gameplay consulte |
 | Frame GPU | Ressources temporaires et commandes d'une frame ; fin par soumission ou abandon contrôlé | `gpu`, emprunts limités à la frame |
 
@@ -209,8 +211,12 @@ Les données JSON et les shaders peuvent également être fournis comme octets.
 Le futur format cuit remplacera la source et les loaders, sans changer les
 handles ou les états ; aucun cuiseur ni système de montage n'est écrit au MVP.
 
-Le `FileReader` actuel résout par défaut `<exécutable>/assets` via SDL, jamais
-le répertoire courant. Son implémentation boucle sur les lectures partielles
+Le `FileReader` résout dans l’ordre `<exécutable>/assets` (shaders compilés), puis
+`<dépôt>/assets` en mode DEVELOPMENT. Le preset shipping choisit COOKED : seule
+la première racine existe, aucun repli vers le dépôt ni le répertoire courant.
+CMake ne copie aucun asset source dans le build. Un package shipping doit apporter
+le modèle dans cette racine ; le test de conditionnement le prépare explicitement
+dans un dossier temporaire extérieur au build, avant le cuiseur de phase 4. Son implémentation boucle sur les lectures partielles
 jusqu'à complétion ; erreur, zéro progression prématuré ou taille supérieure à
 256 MiB échouent explicitement. Les tests injectent un flux SDL fragmenté privé.
 
@@ -233,13 +239,13 @@ draw packet. Les matériaux de rendu regroupent données et handle de pipeline.
 une abstraction d'ECS. Les composants restent des structs plates dans
 `somnium`. Les opérations de hiérarchie vérifient les cycles et les parents
 invalides ; la destruction d'un parent doit appliquer une politique explicite,
-précisée avec l'ADR-0006 avant l'implémentation de scène.
+précisée avec l'ADR-0007 avant l'implémentation de scène.
 
 Le JSON porte `"version": 1` et des versions de composants. Les références
 persistées utilisent des identités de scène et des identifiants logiques
 d'assets, jamais les bits des handles runtime ni les valeurs brutes d'EnTT.
 Les détails du schéma et la politique de migration seront soumis avec
-l'ADR-0006 en phase 3.
+l'ADR-0007 en phase 3.
 
 Pour l'interpolation, les positions et échelles locales sont interpolées
 linéairement, les quaternions par interpolation sphérique normalisée. Les
@@ -250,11 +256,12 @@ son historique ; un objet détruit est exclu de l'extraction.
 
 ## 6. Événements et intégration ImGui
 
-`platform` collecte les événements SDL sur le thread requis et traite le cycle
-de vie de la fenêtre. Sa coopération privée permet à `input` de traduire les
-événements et à l’intégration de plateforme ImGui de les recevoir. Aucun
-`SDL_Event` ne traverse une interface publique, `runtime`, `scene`, `renderer`,
-`gpu` ou `game`.
+`platform` collecte SDL, traite le cycle de fenêtre et traduit les périphériques
+en `core::InputEvent` : enums Somnium, valeurs brutes, indice du prochain pas.
+Sa coopération privée transmet les événements natifs à l’adaptateur ImGui.
+La vue neutre est copiée par `input::Input::enqueue` avant le poll suivant.
+Input dépend seulement de core ; ni include SDL ni SDL_Event dans ce module,
+une interface publique ou les autres modules moteur.
 
 Les cibles séparées `somnium_platform_imgui` et `somnium_gpu_imgui` compilent
 respectivement les backends officiels `imgui_impl_sdl3` et `imgui_impl_sdlgpu3`.
@@ -271,35 +278,43 @@ l'inspecteur de scène reste en phase 3. Les en-têtes publics des adaptateurs
 ne contiennent aucun type SDL. Le scanner teste aussi les violations synthétiques
 de D2 ; la CI shipping vérifie les cibles et la base de compilation.
 
-Les événements sont toujours traités pour les relâchements, pertes de focus et
-connexions de manette. La capture UI filtre ensuite les actions de gameplay,
-sans perdre les transitions nécessaires pour éviter une touche bloquée.
-Le détail du mapping et du routage est fixé dans l'ADR-0007.
+Les événements de relâchement, perte de focus et déconnexion sont conservés.
+L’overlay de phase 2 est passif (`NoInputs`) ; aucune capture UI ne masque le
+gameplay. Le routage d’une UI interactive et le mapping JSON appartiennent
+à la phase 3/ADR-0008. Le mapping actuel est décrit dans [INPUT.md](INPUT.md).
 
 ## 7. Boucle et flux d'une frame
 
 La boucle appartient à `runtime` ; le gameplay fournit ses mises à jour fixes.
 L'horloge monotone de `core` exprime les durées en secondes.
 
-1. Mesurer le temps réel et collecter les événements via `platform`.
-2. Mettre à jour les états d'input et la capture de l'UI lorsqu'elles existent.
-3. Ajouter un delta borné à l'accumulateur. Exécuter de zéro à plusieurs pas
-   fixes : conserver l'état précédent, appliquer gameplay et systèmes de scène,
-   puis propager les transforms courants.
-4. Calculer `alpha = reste / pasFixe`, compris entre zéro inclus et un exclu.
-5. Préparer les ressources nouvelles hors du parcours chaud, puis extraire la
-   caméra et les packets interpolés dans une DrawList réutilisée.
-6. Obtenir une frame GPU, puis construire l'UI. Préparer ses uploads avant les passes
-   de rendu, comme l'exige le backend officiel ImGui.
-7. Enregistrer la passe renderer, puis l'overlay UI via `gpu`.
-8. Soumettre et présenter via `gpu`, puis marquer la frame CPU pour Tracy.
+Au démarrage, `Gameplay::start(GameContext&)` demande le modèle par chemin
+logique et fournit lumière/ambiant/clear. Runtime interroge AssetManager :
+Failed retourne son diagnostic ; Loading reste en attente ; Ready déclenche les
+uploads et la DrawList via ModelRendering. Aucun chemin d’asset, vertex de test
+ni logique de caméra n’est codé dans runtime ou sandbox.
 
-La phase 1 exécute collecte, pas fixes, acquisition, triangle et overlay ; elle
-n'invente pas de DrawList ni d'extraction de scène. `SDL_WaitAndAcquireGPUSwapchainTexture`
-bloque avec deux frames en vol ; VSYNC cadence la boucle. Sans texture acquise,
-la frame est soumise sans rendu puis platform attend un événement. Une fermeture
-détectée après acquisition soumet également la frame. Resize et reprise utilisent
-les dimensions réelles ; le chronomètre et l'accumulateur sont réinitialisés.
+1. Collecter les événements avec l’indice du prochain pas et les mettre en file.
+   Traiter fermeture, minimisation/restauration et remise à zéro de l’horloge.
+2. Préparer un modèle devenu Ready avant l’enregistrement, puis mesurer le delta.
+3. Exécuter les pas fixes bornés : `input.advance(tick)` consomme transitions et
+   impulsions une fois ; `game.fixedUpdate({seconds,tick,inputs})` pilote l’orbite.
+4. Acquérir le command buffer puis la swapchain par
+   `SDL_WaitAndAcquireGPUSwapchainTexture`, VSYNC, deux frames en vol. Un deuxième
+   poll conserve les entrées pour le prochain pas ; une fermeture soumet la frame.
+5. Sans texture, soumettre sans rendu puis attendre un événement. Au resize,
+   recréer la profondeur D32 à l’extent acquis ; libérer l’ancienne selon ADR-0004.
+6. Lire `game.camera()` par valeur. Renderer calcule `lookAtRH` et
+   `perspectiveRH_ZO`, aspect de l’extent ; runtime ajoute lumière et ambiant.
+   La DrawList réutilisée contient les primitives et matrices monde du modèle.
+7. Préparer l’overlay et ses uploads, enregistrer la passe renderer puis l’UI.
+   Textures sRGB → facteur × (Lambert + ambiant) linéaire → swapchain SDR_LINEAR.
+8. Soumettre, présenter et marquer la frame CPU Tracy. Aucun délai artificiel.
+
+Le test cube garde un ambiant nul et son shader Lambert original : référence,
+sondes et provenance inchangées. L’ambiant non nul sélectionne une variante de
+shader avec uniforme de frame PS b2 ; le sandbox utilise 0,15. Chaque variante
+possède les windings CCW/CW nécessaires aux instances de déterminant négatif.
 
 Valeurs initiales acceptées : pas fixe `1/60 s`, delta entrant plafonné à
 `250 ms`, maximum de huit pas par itération. Après ce maximum, les pas entiers
@@ -311,8 +326,8 @@ réinitialise la mesure du temps plutôt que de rattraper toute la suspension.
 Une action pressée entre deux pas fixes est mémorisée jusqu'au prochain pas et
 consommée une seule fois. Un état tenu reste disponible pour chaque pas ;
 les deltas souris ne sont pas répétés à chaque pas de rattrapage. Une frame sans
-simulation ne perd pas les transitions. Les politiques détaillées seront testées
-avec les inputs en phase 3.
+simulation ne perd pas les transitions. Ces politiques sont testées sur CPU en
+phase 2 ; une perte de focus réinitialise les états sans touche bloquée.
 
 Les conteneurs chauds sont réservés avant la scène, réutilisés et, lorsque
 pertinent, de type `std::pmr`. Une croissance déclenche une étape documentée de
@@ -329,9 +344,12 @@ sans changer le contenu des packets.
 | 0 | CMake/CPM, conventions codées, core, platform, boucle runtime, game et sandbox | Build sans warning, tests Result/handles/accumulateur, fenêtre locale et fermeture, matrice CI et sanitizers Linux verts |
 | 1 | GPU, chaîne de shaders hors ligne, triangle, UI | Backends réellement exécutés, validation GPU, tests de ressources et shaders, ADR-0003/0004 |
 | 2 | Assets CPU, rendu de mesh texturé, caméra via input | Modèle de référence, orientation et textures correctes, Tracy CPU/mémoire, compteurs et marqueurs GPU selon D4, ADR-0005 |
-| 3 | World, hiérarchie, JSON, extraction, interpolation, mapping complet, gameplay de référence | Tests de hiérarchie/round-trip/extraction/interpolation, personnage bloqué par les murs, portes à pivot et inspecteur, ADR-0006/0007 |
+| 3 | World, hiérarchie, JSON, extraction, interpolation, mapping complet, gameplay de référence | Tests de hiérarchie/round-trip/extraction/interpolation, personnage bloqué par les murs, portes à pivot et inspecteur, ADR-0007/0008 |
 
 Chaque module implémenté dispose de sa cible de tests doctest sous `tests/`.
+L'[ADR-0006](adr/0006-ci-auto-hebergee.md) fixe la CI : Windows/Radeon et
+Linux/WSL2/lavapipe requis, macOS manuel best effort, WARP non couvert. Les mêmes
+scripts locaux/CI conservent caches et preuves sur disque, avec rétention de 14 jours.
 Les tests n'instancient pas de GPU pour vérifier les contrats purement CPU.
 Le test de fenêtre borné en CI ne remplace pas le contrôle visuel local ;
 l'exécution ASan doit couvrir les chemins réellement exercés, sans prétendre
@@ -408,6 +426,18 @@ de fin de phase. ADR-0003/0004 tiennent chacun en une page ; leur ligne « Preuv
 recense uniquement les validations restantes.
 
 ## 9. Extensions réservées
+
+Le [point de contrôle de phase 2](CUBE_VALIDATION.md) implémente déjà les extensions
+GPU (indices, bindings, uniforms, formats sRGB), les loaders CPU et AssetManager,
+puis renderer et l'adaptateur privé `runtime::ModelRendering`. Le renderer possède
+meshes, textures et matériaux derrière des handles avec génération ; le runtime
+produit la DrawList depuis les primitives et matrices monde importées. Sa capacité
+de scratch est réservée au chargement ; aucun accroissement implicite dans record.
+`FileReader` résout les racines ordonnées et ne replie que sur NotFound ; le preset
+shipping sélectionne COOKED et exclut la racine du dépôt. Tests CPU et vérification
+du graphe shipping accompagnent le cube hors écran et les captures interactives.
+Le jalon cube est validé ; le triangle est remplacé, input et caméra orbitale
+sont implémentés. `scene` reste prévu en phase 3. L'[ADR-0005](adr/0005-pipeline-assets.md) fixe ces contrats.
 
 | Extension hors MVP | Frontière préservée dès maintenant |
 | --- | --- |

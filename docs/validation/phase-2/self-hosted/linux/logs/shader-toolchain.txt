@@ -1,0 +1,24 @@
+[consumer-configure] cmake -S /home/foxti/actions-runner/_work/Somnium/Somnium/tools/shader_toolchain/verify -B /home/foxti/somnium-ci/runs/45622048422-1/shader-toolchain/consumer -DSOMNIUM_SHADERCROSS_EXECUTABLE=/home/foxti/somnium-ci/cache/shaders/c969d28189106ac6a9af955c/install/official/bin/shadercross
+[consumer-configure] exit=0, 0.025s
+[consumer-missing-tool] cmake -S /home/foxti/actions-runner/_work/Somnium/Somnium/tools/shader_toolchain/verify -B /home/foxti/somnium-ci/runs/45622048422-1/shader-toolchain/consumer-missing -DSOMNIUM_SHADERCROSS_EXECUTABLE=/home/foxti/somnium-ci/cache/shaders/c969d28189106ac6a9af955c/absent-shadercross
+[consumer-missing-tool] exit=1, 0.015s
+[dxc-version] /home/foxti/somnium-ci/cache/shaders/c969d28189106ac6a9af955c/install/official/bin/dxc --version
+[dxc-version] exit=0, 0.005s
+[compile-vert-SPIRV] /home/foxti/somnium-ci/cache/shaders/c969d28189106ac6a9af955c/install/official/bin/shadercross /home/foxti/actions-runner/_work/Somnium/Somnium/tools/shader_toolchain/fixtures/probe.vert.hlsl -s HLSL -t vertex -e vsMain -I /home/foxti/actions-runner/_work/Somnium/Somnium/tools/shader_toolchain/fixtures -d SPIRV --msl-version 2.3.0 -o /home/foxti/somnium-ci/runs/45622048422-1/shader-toolchain/probe.vert.spirv
+[compile-vert-SPIRV] exit=0, 0.014s
+[compile-vert-DXIL] /home/foxti/somnium-ci/cache/shaders/c969d28189106ac6a9af955c/install/official/bin/shadercross /home/foxti/actions-runner/_work/Somnium/Somnium/tools/shader_toolchain/fixtures/probe.vert.hlsl -s HLSL -t vertex -e vsMain -I /home/foxti/actions-runner/_work/Somnium/Somnium/tools/shader_toolchain/fixtures -d DXIL --msl-version 2.3.0 -o /home/foxti/somnium-ci/runs/45622048422-1/shader-toolchain/probe.vert.dxil
+[compile-vert-DXIL] exit=0, 0.021s
+[compile-vert-MSL] /home/foxti/somnium-ci/cache/shaders/c969d28189106ac6a9af955c/install/official/bin/shadercross /home/foxti/actions-runner/_work/Somnium/Somnium/tools/shader_toolchain/fixtures/probe.vert.hlsl -s HLSL -t vertex -e vsMain -I /home/foxti/actions-runner/_work/Somnium/Somnium/tools/shader_toolchain/fixtures -d MSL --msl-version 2.3.0 -o /home/foxti/somnium-ci/runs/45622048422-1/shader-toolchain/probe.vert.msl
+[compile-vert-MSL] exit=0, 0.015s
+[reflect-vert] /home/foxti/somnium-ci/cache/shaders/c969d28189106ac6a9af955c/install/official/bin/shadercross /home/foxti/somnium-ci/runs/45622048422-1/shader-toolchain/probe.vert.spirv -s SPIRV -d JSON -t vertex -e vsMain -o /home/foxti/somnium-ci/runs/45622048422-1/shader-toolchain/probe.vert.json
+[reflect-vert] exit=0, 0.005s
+[compile-frag-SPIRV] /home/foxti/somnium-ci/cache/shaders/c969d28189106ac6a9af955c/install/official/bin/shadercross /home/foxti/actions-runner/_work/Somnium/Somnium/tools/shader_toolchain/fixtures/probe.frag.hlsl -s HLSL -t fragment -e psMain -I /home/foxti/actions-runner/_work/Somnium/Somnium/tools/shader_toolchain/fixtures -d SPIRV --msl-version 2.3.0 -o /home/foxti/somnium-ci/runs/45622048422-1/shader-toolchain/probe.frag.spirv
+[compile-frag-SPIRV] exit=0, 0.014s
+[compile-frag-DXIL] /home/foxti/somnium-ci/cache/shaders/c969d28189106ac6a9af955c/install/official/bin/shadercross /home/foxti/actions-runner/_work/Somnium/Somnium/tools/shader_toolchain/fixtures/probe.frag.hlsl -s HLSL -t fragment -e psMain -I /home/foxti/actions-runner/_work/Somnium/Somnium/tools/shader_toolchain/fixtures -d DXIL --msl-version 2.3.0 -o /home/foxti/somnium-ci/runs/45622048422-1/shader-toolchain/probe.frag.dxil
+[compile-frag-DXIL] exit=0, 0.021s
+[compile-frag-MSL] /home/foxti/somnium-ci/cache/shaders/c969d28189106ac6a9af955c/install/official/bin/shadercross /home/foxti/actions-runner/_work/Somnium/Somnium/tools/shader_toolchain/fixtures/probe.frag.hlsl -s HLSL -t fragment -e psMain -I /home/foxti/actions-runner/_work/Somnium/Somnium/tools/shader_toolchain/fixtures -d MSL --msl-version 2.3.0 -o /home/foxti/somnium-ci/runs/45622048422-1/shader-toolchain/probe.frag.msl
+[compile-frag-MSL] exit=0, 0.014s
+[reflect-frag] /home/foxti/somnium-ci/cache/shaders/c969d28189106ac6a9af955c/install/official/bin/shadercross /home/foxti/somnium-ci/runs/45622048422-1/shader-toolchain/probe.frag.spirv -s SPIRV -d JSON -t fragment -e psMain -o /home/foxti/somnium-ci/runs/45622048422-1/shader-toolchain/probe.frag.json
+[reflect-frag] exit=0, 0.006s
+[invalid-hlsl] /home/foxti/somnium-ci/cache/shaders/c969d28189106ac6a9af955c/install/official/bin/shadercross /home/foxti/somnium-ci/runs/45622048422-1/shader-toolchain/invalid.hlsl -s HLSL -d SPIRV -t vertex -e vsMain -o /home/foxti/somnium-ci/runs/45622048422-1/shader-toolchain/invalid.spirv
+[invalid-hlsl] exit=1, 0.009s

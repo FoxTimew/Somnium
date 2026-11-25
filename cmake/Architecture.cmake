@@ -38,13 +38,13 @@ somnium_check_links(somnium_gpu "somnium_core;somnium_platform" "")
 somnium_check_links(somnium_renderer "somnium_core;somnium_gpu" "")
 somnium_check_links(somnium_assets "somnium_core" "")
 somnium_check_links(somnium_scene "somnium_core;somnium_assets" "")
-somnium_check_links(somnium_input "somnium_core" "somnium_platform")
+somnium_check_links(somnium_input "somnium_core" "")
 somnium_check_links(somnium_platform_imgui "" "somnium_platform")
 somnium_check_links(somnium_gpu_imgui "" "somnium_gpu")
 somnium_check_links(somnium_debug_ui "somnium_core"
     "somnium_platform_imgui;somnium_gpu_imgui;somnium_scene;somnium_input")
-somnium_check_links(somnium_runtime "somnium_core;somnium_scene;somnium_input"
-    "somnium_platform;somnium_gpu;somnium_renderer;somnium_assets;somnium_debug_ui")
+somnium_check_links(somnium_runtime "somnium_core;somnium_scene;somnium_input;somnium_renderer"
+    "somnium_platform;somnium_gpu;somnium_assets;somnium_debug_ui")
 somnium_check_links(somnium_game "somnium_runtime" "")
 somnium_check_links(sandbox "" "somnium_game;somnium_runtime")
 

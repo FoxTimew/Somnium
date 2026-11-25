@@ -1,0 +1,24 @@
+[consumer-configure] cmake -S C:\ActionsRunner\_work\Somnium\Somnium\tools\shader_toolchain\verify -B C:\SomniumCI\runs\45622048422-1\shader-toolchain\consumer -DSOMNIUM_SHADERCROSS_EXECUTABLE=C:\SomniumCI\cache\shaders\b0a34cf8118a0a96720bfeff\install\official\bin\shadercross.exe
+[consumer-configure] exit=0, 0.172s
+[consumer-missing-tool] cmake -S C:\ActionsRunner\_work\Somnium\Somnium\tools\shader_toolchain\verify -B C:\SomniumCI\runs\45622048422-1\shader-toolchain\consumer-missing -DSOMNIUM_SHADERCROSS_EXECUTABLE=C:\SomniumCI\cache\shaders\b0a34cf8118a0a96720bfeff\absent-shadercross
+[consumer-missing-tool] exit=1, 0.11s
+[dxc-version] C:\SomniumCI\cache\shaders\b0a34cf8118a0a96720bfeff\install\official\bin\dxc.exe --version
+[dxc-version] exit=0, 0.031s
+[compile-vert-SPIRV] C:\SomniumCI\cache\shaders\b0a34cf8118a0a96720bfeff\install\official\bin\shadercross.exe C:\ActionsRunner\_work\Somnium\Somnium\tools\shader_toolchain\fixtures\probe.vert.hlsl -s HLSL -t vertex -e vsMain -I C:\ActionsRunner\_work\Somnium\Somnium\tools\shader_toolchain\fixtures -d SPIRV --msl-version 2.3.0 -o C:\SomniumCI\runs\45622048422-1\shader-toolchain\probe.vert.spirv
+[compile-vert-SPIRV] exit=0, 0.046s
+[compile-vert-DXIL] C:\SomniumCI\cache\shaders\b0a34cf8118a0a96720bfeff\install\official\bin\shadercross.exe C:\ActionsRunner\_work\Somnium\Somnium\tools\shader_toolchain\fixtures\probe.vert.hlsl -s HLSL -t vertex -e vsMain -I C:\ActionsRunner\_work\Somnium\Somnium\tools\shader_toolchain\fixtures -d DXIL --msl-version 2.3.0 -o C:\SomniumCI\runs\45622048422-1\shader-toolchain\probe.vert.dxil
+[compile-vert-DXIL] exit=0, 0.094s
+[compile-vert-MSL] C:\SomniumCI\cache\shaders\b0a34cf8118a0a96720bfeff\install\official\bin\shadercross.exe C:\ActionsRunner\_work\Somnium\Somnium\tools\shader_toolchain\fixtures\probe.vert.hlsl -s HLSL -t vertex -e vsMain -I C:\ActionsRunner\_work\Somnium\Somnium\tools\shader_toolchain\fixtures -d MSL --msl-version 2.3.0 -o C:\SomniumCI\runs\45622048422-1\shader-toolchain\probe.vert.msl
+[compile-vert-MSL] exit=0, 0.031s
+[reflect-vert] C:\SomniumCI\cache\shaders\b0a34cf8118a0a96720bfeff\install\official\bin\shadercross.exe C:\SomniumCI\runs\45622048422-1\shader-toolchain\probe.vert.spirv -s SPIRV -d JSON -t vertex -e vsMain -o C:\SomniumCI\runs\45622048422-1\shader-toolchain\probe.vert.json
+[reflect-vert] exit=0, 0.032s
+[compile-frag-SPIRV] C:\SomniumCI\cache\shaders\b0a34cf8118a0a96720bfeff\install\official\bin\shadercross.exe C:\ActionsRunner\_work\Somnium\Somnium\tools\shader_toolchain\fixtures\probe.frag.hlsl -s HLSL -t fragment -e psMain -I C:\ActionsRunner\_work\Somnium\Somnium\tools\shader_toolchain\fixtures -d SPIRV --msl-version 2.3.0 -o C:\SomniumCI\runs\45622048422-1\shader-toolchain\probe.frag.spirv
+[compile-frag-SPIRV] exit=0, 0.047s
+[compile-frag-DXIL] C:\SomniumCI\cache\shaders\b0a34cf8118a0a96720bfeff\install\official\bin\shadercross.exe C:\ActionsRunner\_work\Somnium\Somnium\tools\shader_toolchain\fixtures\probe.frag.hlsl -s HLSL -t fragment -e psMain -I C:\ActionsRunner\_work\Somnium\Somnium\tools\shader_toolchain\fixtures -d DXIL --msl-version 2.3.0 -o C:\SomniumCI\runs\45622048422-1\shader-toolchain\probe.frag.dxil
+[compile-frag-DXIL] exit=0, 0.046s
+[compile-frag-MSL] C:\SomniumCI\cache\shaders\b0a34cf8118a0a96720bfeff\install\official\bin\shadercross.exe C:\ActionsRunner\_work\Somnium\Somnium\tools\shader_toolchain\fixtures\probe.frag.hlsl -s HLSL -t fragment -e psMain -I C:\ActionsRunner\_work\Somnium\Somnium\tools\shader_toolchain\fixtures -d MSL --msl-version 2.3.0 -o C:\SomniumCI\runs\45622048422-1\shader-toolchain\probe.frag.msl
+[compile-frag-MSL] exit=0, 0.032s
+[reflect-frag] C:\SomniumCI\cache\shaders\b0a34cf8118a0a96720bfeff\install\official\bin\shadercross.exe C:\SomniumCI\runs\45622048422-1\shader-toolchain\probe.frag.spirv -s SPIRV -d JSON -t fragment -e psMain -o C:\SomniumCI\runs\45622048422-1\shader-toolchain\probe.frag.json
+[reflect-frag] exit=0, 0.031s
+[invalid-hlsl] C:\SomniumCI\cache\shaders\b0a34cf8118a0a96720bfeff\install\official\bin\shadercross.exe C:\SomniumCI\runs\45622048422-1\shader-toolchain\invalid.hlsl -s HLSL -d SPIRV -t vertex -e vsMain -o C:\SomniumCI\runs\45622048422-1\shader-toolchain\invalid.spirv
+[invalid-hlsl] exit=1, 0.031s

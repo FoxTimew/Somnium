@@ -1,0 +1,17 @@
+{
+  "owner": "somnium-ci",
+  "operation": "captures",
+  "status": "success",
+  "source": "36f18248b7ab05b3cec598a68c5b8ac4d33d6133",
+  "source_dirty": false,
+  "os": "Windows",
+  "records": [
+    {
+      "step": "capture-direct3d12",
+      "seconds": 21.985,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45622048422-1\\logs\\capture-direct3d12.log"
+    }
+  ],
+  "finished": "2026-11-25T13:26:05.382246+00:00"
+}

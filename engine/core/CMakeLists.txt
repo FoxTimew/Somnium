@@ -1,6 +1,6 @@
 # Builds foundational contracts and diagnostics without platform dependencies.
 # Only the logging implementation sees spdlog.
-add_library(somnium_core STATIC src/assert.cpp src/log.cpp)
+add_library(somnium_core STATIC src/assert.cpp src/log.cpp src/logical_path.cpp)
 add_library(somnium::core ALIAS somnium_core)
 target_include_directories(somnium_core PUBLIC include)
 target_link_libraries(somnium_core PUBLIC tl::expected glm::glm PRIVATE spdlog::spdlog)

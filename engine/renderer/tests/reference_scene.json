@@ -1,0 +1,29 @@
+{
+  "width": 192, "height": 192,
+  "channel_tolerance": 2, "max_different_fraction": 0.001,
+  "clear_rgba": [0.12549019607843137, 0.18823529411764706, 0.25098039215686274, 1],
+  "clear_depth": 1,
+  "shaders": {"vertex": "modelVertex.vsMain.vert.json", "fragment": "modelFragment.psMain.frag.json"},
+  "fixture": "cube.glb",
+  "camera": {"eye": [4.5, 4, 6], "target": [0, 0, 0], "up": [0, 1, 0], "vertical_fov": 0.9272952180016122, "near": 0.1, "far": 100},
+  "light": [0, 0, 1],
+  "mirror_scale": [-1, 1, 1],
+  "cube": {"half_extent": 1, "scale": 2, "base_color_factor": [0.4, 0.75, 1, 1]},
+  "atlas": {"columns": 3, "rows": 2, "cell_pixels": 4, "colors": [[240, 32, 40, 255], [64, 220, 128, 255], [200, 48, 224, 255], [32, 80, 240, 255], [240, 200, 32, 255], [128, 200, 64, 255]]},
+  "faces": [
+    {"name": "front", "normal": [0, 0, 1], "u": [1, 0, 0], "v": [0, 1, 0], "tile": 5, "index_bits": 16},
+    {"name": "right", "normal": [1, 0, 0], "u": [0, 0, -1], "v": [0, 1, 0], "tile": 0, "index_bits": 32},
+    {"name": "top", "normal": [0, 1, 0], "u": [1, 0, 0], "v": [0, 0, -1], "tile": 1, "index_bits": 16},
+    {"name": "back", "normal": [0, 0, -1], "u": [-1, 0, 0], "v": [0, 1, 0], "tile": 2, "index_bits": 32},
+    {"name": "left", "normal": [-1, 0, 0], "u": [0, 0, 1], "v": [0, 1, 0], "tile": 3, "index_bits": 16},
+    {"name": "bottom", "normal": [0, -1, 0], "u": [1, 0, 0], "v": [0, 0, 1], "tile": 4, "index_bits": 32}
+  ],
+  "depth_witness": {"z": -1.25, "half_extent": 0.25, "base_color_factor": [1, 0, 1, 1]},
+  "probes": [
+    {"name": "background", "x": 10, "y": 10, "face": "background", "rgba": [32, 48, 64, 255]},
+    {"name": "front_srgb", "x": 54, "y": 123, "face": "front", "rgba": [83, 176, 64, 255]},
+    {"name": "right_lambert_zero", "x": 146, "y": 118, "face": "right", "rgba": [0, 0, 0, 255]},
+    {"name": "top_lambert_zero", "x": 96, "y": 56, "face": "top", "rgba": [0, 0, 0, 255]},
+    {"name": "occluded_late_draw", "x": 124, "y": 78, "face": "right", "rgba": [0, 0, 0, 255]}
+  ]
+}

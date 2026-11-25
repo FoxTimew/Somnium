@@ -1,0 +1,15 @@
+{
+  "origin": "Windows interactive desktop",
+  "backend": "direct3d12",
+  "source_commit": "892895320de846696888a3b7cda365b5e0a60b7a",
+  "source_dirty": false,
+  "model_sha256": "6cd95ff987472a80dc3fe0a49ed7920aeea04b1cbc48cc1facd3cef7d1efb305",
+  "binary_sha256": "ff1b89576e0a930e7365ae16403927d7f9a3b5465b748e41e7567e5b1ecb6a5a",
+  "status": "échec",
+  "captures": [],
+  "reason": "Sandbox is not foreground (Win32 0)",
+  "exit_code": 0,
+  "validation_enabled": true,
+  "validation_errors": false,
+  "expected_device": true
+}

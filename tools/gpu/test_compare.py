@@ -14,6 +14,8 @@ class ComparisonTests(unittest.TestCase):
     def test_native_errors_are_fatal_even_with_a_matching_image(self):
         self.assertTrue(native_validation_error('Texture usage flags mismatch executing fragment function: "psMain"'))
         self.assertTrue(native_validation_error('Validation Error: [ VUID-vkCmdDraw-None-08114 ]'))
+        self.assertTrue(native_validation_error('D3D12 ERROR: ID3D12CommandList::DrawInstanced: invalid state'))
+        self.assertTrue(native_validation_error('D3D12 CORRUPTION: invalid object'))
         self.assertFalse(native_validation_error('Metal API Validation Enabled\nMetal GPU Validation Enabled'))
 
     def setUp(self):

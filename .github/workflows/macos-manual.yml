@@ -1,0 +1,30 @@
+# Optional hosted builds; Metal keeps the known usable macOS 15 device.
+# Each job builds in place, without GitHub caches or artifact transfers.
+name: macOS best effort
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: macos-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+jobs:
+  macos:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, macos-15]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          lfs: true
+          persist-credentials: false
+      - name: Provision optional hosted tools
+        run: bash tools/ci/provision_macos.sh
+      - name: Build all presets; Metal proof only on macOS 15
+        env:
+          SOMNIUM_MACOS_RUNNER: ${{ matrix.os }}
+        run: bash tools/ci/macos.sh pipeline --jobs 3

@@ -1,0 +1,546 @@
+{
+  "backend": "vulkan",
+  "test": "d5",
+  "status": "valid\u00e9",
+  "binary_sha256": "a83cc9fd976d5c9ec54405c41bb037194177a7ed8b2524b3b43ffe96b8e4fd2e",
+  "shader_manifests": {
+    "d5Vertex.vsMain.vert.json": "47ee59577eab60319c1408b9cf120b72a9bbec12c2a34cc71aa993227f7d0bec",
+    "d5Fragment.psMain.frag.json": "15d95be66d25b993a283544fb2cca00a6be5021d33d01270f4b8b1da7e8a6477"
+  },
+  "scene_sha256": "8f8bd58c4c3ef44e44cd003b34d5de60b2f1f81e15ae7bc917ff72b1552fa292",
+  "exit_code": 0,
+  "image_sha256": "cb88b4b571fc5b7216bb775ba458386fc0d8e0f224aad5a941faa9fcd93b20c6",
+  "probes": [
+    {
+      "name": "CCW",
+      "x": 32,
+      "y": 32,
+      "rgba": [
+        255,
+        0,
+        0,
+        255
+      ],
+      "actual": [
+        255,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "CW culling",
+      "x": 128,
+      "y": 32,
+      "rgba": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "actual": [
+        0,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "near plane zero",
+      "x": 212,
+      "y": 32,
+      "rgba": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "actual": [
+        0,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "UV TL",
+      "x": 36,
+      "y": 164,
+      "rgba": [
+        255,
+        0,
+        0,
+        255
+      ],
+      "actual": [
+        255,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "UV TR",
+      "x": 76,
+      "y": 164,
+      "rgba": [
+        0,
+        255,
+        0,
+        255
+      ],
+      "actual": [
+        0,
+        255,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "UV BL",
+      "x": 36,
+      "y": 204,
+      "rgba": [
+        0,
+        0,
+        255,
+        255
+      ],
+      "actual": [
+        0,
+        0,
+        255,
+        255
+      ]
+    },
+    {
+      "name": "UV BR",
+      "x": 76,
+      "y": 204,
+      "rgba": [
+        255,
+        255,
+        0,
+        255
+      ],
+      "actual": [
+        255,
+        255,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "depth LESS",
+      "x": 192,
+      "y": 184,
+      "rgba": [
+        255,
+        255,
+        0,
+        255
+      ],
+      "actual": [
+        255,
+        255,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "clear depth one",
+      "x": 152,
+      "y": 152,
+      "rgba": [
+        0,
+        0,
+        255,
+        255
+      ],
+      "actual": [
+        0,
+        0,
+        255,
+        255
+      ]
+    },
+    {
+      "name": "background",
+      "x": 128,
+      "y": 128,
+      "rgba": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "actual": [
+        0,
+        0,
+        0,
+        255
+      ]
+    }
+  ],
+  "comparison": {
+    "passed": true,
+    "exact_probes": true,
+    "different_pixels": 0,
+    "different_fraction": 0.0,
+    "max_channel_error": 0,
+    "probes": [
+      {
+        "name": "CCW",
+        "x": 32,
+        "y": 32,
+        "rgba": [
+          255,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          255,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "CW culling",
+        "x": 128,
+        "y": 32,
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "near plane zero",
+        "x": 212,
+        "y": 32,
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "UV TL",
+        "x": 36,
+        "y": 164,
+        "rgba": [
+          255,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          255,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "UV TR",
+        "x": 76,
+        "y": 164,
+        "rgba": [
+          0,
+          255,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          255,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "UV BL",
+        "x": 36,
+        "y": 204,
+        "rgba": [
+          0,
+          0,
+          255,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          255,
+          255
+        ]
+      },
+      {
+        "name": "UV BR",
+        "x": 76,
+        "y": 204,
+        "rgba": [
+          255,
+          255,
+          0,
+          255
+        ],
+        "actual": [
+          255,
+          255,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "depth LESS",
+        "x": 192,
+        "y": 184,
+        "rgba": [
+          255,
+          255,
+          0,
+          255
+        ],
+        "actual": [
+          255,
+          255,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "clear depth one",
+        "x": 152,
+        "y": 152,
+        "rgba": [
+          0,
+          0,
+          255,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          255,
+          255
+        ]
+      },
+      {
+        "name": "background",
+        "x": 128,
+        "y": 128,
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      }
+    ],
+    "reference_probes": [
+      {
+        "name": "CCW",
+        "x": 32,
+        "y": 32,
+        "rgba": [
+          255,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          255,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "CW culling",
+        "x": 128,
+        "y": 32,
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "near plane zero",
+        "x": 212,
+        "y": 32,
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "UV TL",
+        "x": 36,
+        "y": 164,
+        "rgba": [
+          255,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          255,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "UV TR",
+        "x": 76,
+        "y": 164,
+        "rgba": [
+          0,
+          255,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          255,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "UV BL",
+        "x": 36,
+        "y": 204,
+        "rgba": [
+          0,
+          0,
+          255,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          255,
+          255
+        ]
+      },
+      {
+        "name": "UV BR",
+        "x": 76,
+        "y": 204,
+        "rgba": [
+          255,
+          255,
+          0,
+          255
+        ],
+        "actual": [
+          255,
+          255,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "depth LESS",
+        "x": 192,
+        "y": 184,
+        "rgba": [
+          255,
+          255,
+          0,
+          255
+        ],
+        "actual": [
+          255,
+          255,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "clear depth one",
+        "x": 152,
+        "y": 152,
+        "rgba": [
+          0,
+          0,
+          255,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          255,
+          255
+        ]
+      },
+      {
+        "name": "background",
+        "x": 128,
+        "y": 128,
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      }
+    ]
+  },
+  "capture_complete": true,
+  "device": {
+    "backend": "vulkan",
+    "debug": true,
+    "device": "llvmpipe (LLVM 20.1.2, 256 bits)",
+    "driver_version": "25.2.8",
+    "resource_checks": "passed"
+  },
+  "validation_enabled": true,
+  "reason": "Image, exact witnesses, resource lifetime and validation passed"
+}

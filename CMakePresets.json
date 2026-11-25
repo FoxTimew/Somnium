@@ -15,7 +15,8 @@
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "BUILD_TESTING": "ON",
-        "SOMNIUM_ENABLE_DEBUG_UI": "ON"
+        "SOMNIUM_ENABLE_DEBUG_UI": "ON",
+        "SOMNIUM_DATA_MODE": "DEVELOPMENT"
       }
     },
     {
@@ -44,7 +45,8 @@
       "name": "shipping",
       "inherits": "release",
       "cacheVariables": {
-        "SOMNIUM_ENABLE_DEBUG_UI": "OFF"
+        "SOMNIUM_ENABLE_DEBUG_UI": "OFF",
+        "SOMNIUM_DATA_MODE": "COOKED"
       }
     },
     {

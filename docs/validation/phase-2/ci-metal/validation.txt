@@ -1,0 +1,11 @@
+2026-10-22 07:25:33.162 somnium_renderer_offscreen[1695:8204] App name: somnium_renderer_offscreen
+2026-10-22 07:25:33.162 somnium_renderer_offscreen[1695:8204] App version: <unspecified>
+2026-10-22 07:25:33.162 somnium_renderer_offscreen[1695:8204] App ID: <unspecified>
+2026-10-22 07:25:33.162 somnium_renderer_offscreen[1695:8204] SDL revision: SDL-3.4.18-release-3.4.18
+2026-10-22 07:25:33.200 somnium_renderer_offscreen[1695:8204] SDL chose video backend 'cocoa'
+2026-10-22 07:25:33.208 somnium_renderer_offscreen[1695:8204] SDL chose gpu backend 'metal'
+2026-10-22 07:25:33.209 somnium_renderer_offscreen[1695:8204] Metal API Validation Enabled
+2026-10-22 07:25:33.209 somnium_renderer_offscreen[1695:8204] Metal GPU Validation Enabled
+2026-10-22 07:25:33.247 somnium_renderer_offscreen[1695:8204] SDL_GPU Driver: Metal
+2026-10-22 07:25:33.247 somnium_renderer_offscreen[1695:8204] Metal Device: Apple Paravirtual device
+D5_CAPTURE_COMPLETE

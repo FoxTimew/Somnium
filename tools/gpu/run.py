@@ -24,7 +24,7 @@ def digest(path):
 
 
 def native_validation_error(log):
-    return re.search(r"Validation Error|SYNC-HAZARD|VUID-|failed assertion|Texture usage flags mismatch|Metal.*[Vv]alidation.*[Ee]rror", log) is not None
+    return re.search(r"Validation Error|SYNC-HAZARD|VUID-|D3D12 (?:ERROR|CORRUPTION):|failed assertion|Texture usage flags mismatch|Metal.*[Vv]alidation.*[Ee]rror", log) is not None
 
 
 def load_scene():
@@ -112,7 +112,13 @@ def run(args, scene, output, report):
         env["MTL_DEBUG_LAYER"] = "1"
         env["MTL_SHADER_VALIDATION"] = "0" if args.metal_api_only_diagnostic else "1"
         env["MTL_SHADER_VALIDATION_REPORT_TO_STDERR"] = "1"
-    process = subprocess.run([str(executable), args.backend, str(SCENE), str(output), str(shaders)],
+    command = [str(executable), args.backend, str(SCENE), str(output), str(shaders)]
+    if args.test == "cube":
+        fixtures = ROOT / "engine/assets/tests/fixtures"
+        command.append(str(fixtures))
+        report["fixture_sha256"] = digest(fixtures / scene["fixture"])
+        shutil.copyfile(REFERENCE.with_name("provenance.json"), output / "provenance.json")
+    process = subprocess.run(command,
                              stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env, timeout=120)
     log = process.stdout.decode("utf-8", errors="replace")
     (output / "validation.log").write_text(log, encoding="utf-8")
@@ -131,6 +137,16 @@ def run(args, scene, output, report):
             comparison, diff = compare(scene, rgba, expected)
             report["comparison"] = comparison
             write_png(output / "diff.png", width, height, diff)
+    if args.test == "cube" and process.returncode == 0:
+        mirrored = (output / "mirrored.rgba").read_bytes()
+        write_png(output / "mirrored.png", scene["width"], scene["height"], mirrored)
+        _, _, expected = read_png(REFERENCE)
+        comparison, diff = compare(scene, mirrored, expected)
+        report["mirrored_comparison"] = comparison
+        report["mirrored_image_sha256"] = digest(output / "mirrored.png")
+        write_png(output / "mirrored-diff.png", scene["width"], scene["height"], diff)
+        if not comparison["passed"]:
+            raise RuntimeError("Mirrored glTF cube comparison failed")
     if process.returncode == 77 and "DEVICE_UNAVAILABLE:" in log:
         report.update(status="non validé", reason="Device unavailable; local capture and validation log required")
         return 0 if args.allow_unavailable else 1
@@ -162,7 +178,9 @@ def run(args, scene, output, report):
 
 
 def main():
+    global SCENE, REFERENCE
     parser = argparse.ArgumentParser()
+    parser.add_argument("--test", choices=["d5", "cube"], default="d5")
     parser.add_argument("--executable")
     parser.add_argument("--backend", choices=["vulkan", "direct3d12", "metal"])
     parser.add_argument("--output", type=Path)
@@ -174,16 +192,25 @@ def main():
     args = parser.parse_args()
     if args.metal_api_only_diagnostic and args.backend != "metal":
         parser.error("--metal-api-only-diagnostic requires --backend metal")
-    scene = load_scene()
+    if args.test == "cube":
+        if args.accept_capture:
+            parser.error("Cube reference is analytic; use cube_reference.py --confirm-regeneration")
+        import cube_reference
+        subprocess.run([sys.executable, str(ROOT / "tools/gpu/cube_reference.py"), "--verify"], check=True)
+        SCENE, REFERENCE = cube_reference.SCENE, cube_reference.REFERENCE
+        scene = json.loads(SCENE.read_text())
+    else:
+        scene = load_scene()
     if args.accept_capture:
         return accept_capture(args, scene)
     if not args.executable or not args.backend or not args.output:
         parser.error("--executable, --backend and --output are required")
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
-    for name in ["actual.rgba", "actual.png", "expected.png", "diff.png", "device.json", "result.json", "validation.log"]:
+    for name in ["actual.rgba", "actual.png", "expected.png", "diff.png", "device.json", "result.json", "validation.log",
+                 "mirrored.rgba", "mirrored.png", "mirrored-diff.png"]:
         (output / name).unlink(missing_ok=True)
-    report = dict(backend=args.backend, status="échec")
+    report = dict(backend=args.backend, test=args.test, status="échec")
     try:
         code = run(args, scene, output, report)
     except (ValueError, KeyError, OSError, RuntimeError, subprocess.TimeoutExpired) as error:
@@ -196,7 +223,7 @@ def main():
             stream.write("validation=" + report["status"] + "\n")
     if path := os.environ.get("GITHUB_STEP_SUMMARY"):
         with open(path, "a", encoding="utf-8") as stream:
-            stream.write(f"## D5 {args.backend} : {report['status']}\n\n{report['reason']}\n")
+            stream.write(f"## {args.test} {args.backend} : {report['status']}\n\n{report['reason']}\n")
     return code
 
 

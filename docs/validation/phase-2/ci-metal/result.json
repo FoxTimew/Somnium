@@ -1,0 +1,311 @@
+{
+  "backend": "metal",
+  "test": "cube",
+  "status": "valid\u00e9",
+  "binary_sha256": "a56317e997f97928f70e78df4ec91569218964b313ffecdf68df970cc82f821b",
+  "source_commit": "073413d1466096dc8ce49528b79013c386dd9b78",
+  "ci_run": "39739082282",
+  "shader_manifests": {
+    "modelVertex.vsMain.vert.json": "baa246f48ae4bf1be12191247b1e62414e25a2cc3ae8c4dd2e68a1bc9c66f44e",
+    "modelFragment.psMain.frag.json": "a1754faad37c89af5c53aeb500832f7e916b12862b3a5bbf0a788907ac395a17"
+  },
+  "scene_sha256": "d0e4b18feae96c4062ba1d1941609e11555b4007158443adc456f34e9c1d2008",
+  "fixture_sha256": "6cd95ff987472a80dc3fe0a49ed7920aeea04b1cbc48cc1facd3cef7d1efb305",
+  "exit_code": 0,
+  "image_sha256": "dedd7662f51f2b6baeee2fa3f41c1d1e3a2cedfd6eb7d0c1a3b657a40be22af5",
+  "probes": [
+    {
+      "name": "background",
+      "x": 10,
+      "y": 10,
+      "face": "background",
+      "rgba": [
+        32,
+        48,
+        64,
+        255
+      ],
+      "actual": [
+        32,
+        48,
+        64,
+        255
+      ]
+    },
+    {
+      "name": "front_srgb",
+      "x": 54,
+      "y": 123,
+      "face": "front",
+      "rgba": [
+        83,
+        176,
+        64,
+        255
+      ],
+      "actual": [
+        83,
+        176,
+        64,
+        255
+      ]
+    },
+    {
+      "name": "right_lambert_zero",
+      "x": 146,
+      "y": 118,
+      "face": "right",
+      "rgba": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "actual": [
+        0,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "top_lambert_zero",
+      "x": 96,
+      "y": 56,
+      "face": "top",
+      "rgba": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "actual": [
+        0,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "occluded_late_draw",
+      "x": 124,
+      "y": 78,
+      "face": "right",
+      "rgba": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "actual": [
+        0,
+        0,
+        0,
+        255
+      ]
+    }
+  ],
+  "comparison": {
+    "passed": true,
+    "exact_probes": true,
+    "different_pixels": 0,
+    "different_fraction": 0.0,
+    "max_channel_error": 0,
+    "probes": [
+      {
+        "name": "background",
+        "x": 10,
+        "y": 10,
+        "face": "background",
+        "rgba": [
+          32,
+          48,
+          64,
+          255
+        ],
+        "actual": [
+          32,
+          48,
+          64,
+          255
+        ]
+      },
+      {
+        "name": "front_srgb",
+        "x": 54,
+        "y": 123,
+        "face": "front",
+        "rgba": [
+          83,
+          176,
+          64,
+          255
+        ],
+        "actual": [
+          83,
+          176,
+          64,
+          255
+        ]
+      },
+      {
+        "name": "right_lambert_zero",
+        "x": 146,
+        "y": 118,
+        "face": "right",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "top_lambert_zero",
+        "x": 96,
+        "y": 56,
+        "face": "top",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "occluded_late_draw",
+        "x": 124,
+        "y": 78,
+        "face": "right",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      }
+    ],
+    "reference_probes": [
+      {
+        "name": "background",
+        "x": 10,
+        "y": 10,
+        "face": "background",
+        "rgba": [
+          32,
+          48,
+          64,
+          255
+        ],
+        "actual": [
+          32,
+          48,
+          64,
+          255
+        ]
+      },
+      {
+        "name": "front_srgb",
+        "x": 54,
+        "y": 123,
+        "face": "front",
+        "rgba": [
+          83,
+          176,
+          64,
+          255
+        ],
+        "actual": [
+          83,
+          176,
+          64,
+          255
+        ]
+      },
+      {
+        "name": "right_lambert_zero",
+        "x": 146,
+        "y": 118,
+        "face": "right",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "top_lambert_zero",
+        "x": 96,
+        "y": 56,
+        "face": "top",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "occluded_late_draw",
+        "x": 124,
+        "y": 78,
+        "face": "right",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      }
+    ]
+  },
+  "capture_complete": true,
+  "device": {
+    "backend": "metal",
+    "debug": true,
+    "device": "Apple Paravirtual device",
+    "draw_calls": 7,
+    "driver_version": "unknown",
+    "output_encoding": "shader sRGB into RGBA8 UNORM",
+    "resource_checks": "passed"
+  },
+  "validation_enabled": true,
+  "reason": "Image, exact witnesses, resource lifetime and validation passed"
+}

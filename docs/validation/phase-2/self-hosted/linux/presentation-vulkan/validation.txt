@@ -1,0 +1,401 @@
+App name: sandbox
+App version: <unspecified>
+App ID: <unspecified>
+SDL revision: SDL-3.4.18-HEAD-HASH-NOTFOUND
+SDL chose video backend 'x11'
+Using udev for HIDAPI joystick device discovery
+Using udev for joystick device discovery
+LAYER:             Searching for implicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/.config/vulkan/implicit_layer.d
+LAYER:                   /etc/xdg/vulkan/implicit_layer.d
+LAYER:                   /etc/vulkan/implicit_layer.d
+LAYER:                   /home/foxti/.local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/share/vulkan/implicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:             Searching for implicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/.config/vulkan/implicit_layer.d
+LAYER:                   /etc/xdg/vulkan/implicit_layer.d
+LAYER:                   /etc/vulkan/implicit_layer.d
+LAYER:                   /home/foxti/.local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/share/vulkan/implicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:             Searching for implicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/.config/vulkan/implicit_layer.d
+LAYER:                   /etc/xdg/vulkan/implicit_layer.d
+LAYER:                   /etc/vulkan/implicit_layer.d
+LAYER:                   /home/foxti/.local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/share/vulkan/implicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:             Searching for implicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/.config/vulkan/implicit_layer.d
+LAYER:                   /etc/xdg/vulkan/implicit_layer.d
+LAYER:                   /etc/vulkan/implicit_layer.d
+LAYER:                   /home/foxti/.local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/share/vulkan/implicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:             Searching for implicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/.config/vulkan/implicit_layer.d
+LAYER:                   /etc/xdg/vulkan/implicit_layer.d
+LAYER:                   /etc/vulkan/implicit_layer.d
+LAYER:                   /home/foxti/.local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/share/vulkan/implicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:             Searching for implicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/.config/vulkan/implicit_layer.d
+LAYER:                   /etc/xdg/vulkan/implicit_layer.d
+LAYER:                   /etc/vulkan/implicit_layer.d
+LAYER:                   /home/foxti/.local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/share/vulkan/implicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:             Searching for implicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/.config/vulkan/implicit_layer.d
+LAYER:                   /etc/xdg/vulkan/implicit_layer.d
+LAYER:                   /etc/vulkan/implicit_layer.d
+LAYER:                   /home/foxti/.local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/share/vulkan/implicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:             Searching for implicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/.config/vulkan/implicit_layer.d
+LAYER:                   /etc/xdg/vulkan/implicit_layer.d
+LAYER:                   /etc/vulkan/implicit_layer.d
+LAYER:                   /home/foxti/.local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/share/vulkan/implicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:             Searching for implicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/.config/vulkan/implicit_layer.d
+LAYER:                   /etc/xdg/vulkan/implicit_layer.d
+LAYER:                   /etc/vulkan/implicit_layer.d
+LAYER:                   /home/foxti/.local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/share/vulkan/implicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:             Searching for implicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/.config/vulkan/implicit_layer.d
+LAYER:                   /etc/xdg/vulkan/implicit_layer.d
+LAYER:                   /etc/vulkan/implicit_layer.d
+LAYER:                   /home/foxti/.local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/share/vulkan/implicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:             Searching for explicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_api_dump.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_monitor.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_crash_diagnostic.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_screenshot.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_shader_object.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_validation.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_gfxreconstruct.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_profiles.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_synchronization2.json
+LAYER:             Searching for implicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/.config/vulkan/implicit_layer.d
+LAYER:                   /etc/xdg/vulkan/implicit_layer.d
+LAYER:                   /etc/vulkan/implicit_layer.d
+LAYER:                   /home/foxti/.local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/share/vulkan/implicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:             Searching for implicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/.config/vulkan/implicit_layer.d
+LAYER:                   /etc/xdg/vulkan/implicit_layer.d
+LAYER:                   /etc/vulkan/implicit_layer.d
+LAYER:                   /home/foxti/.local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/share/vulkan/implicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:             Searching for explicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_api_dump.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_monitor.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_crash_diagnostic.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_screenshot.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_shader_object.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_validation.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_gfxreconstruct.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_profiles.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_synchronization2.json
+Validation layers enabled, expect debug level performance!
+LAYER:             Searching for implicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/.config/vulkan/implicit_layer.d
+LAYER:                   /etc/xdg/vulkan/implicit_layer.d
+LAYER:                   /etc/vulkan/implicit_layer.d
+LAYER:                   /home/foxti/.local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/share/vulkan/implicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:             Searching for explicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_api_dump.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_monitor.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_crash_diagnostic.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_screenshot.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_shader_object.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_validation.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_gfxreconstruct.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_profiles.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_synchronization2.json
+WARNING | LAYER:   env var 'VK_INSTANCE_LAYERS' defined and adding layers "VK_LAYER_KHRONOS_validation"
+WARNING | LAYER:   env var 'VK_INSTANCE_LAYERS' defined and adding layers "VK_LAYER_KHRONOS_validation"
+DEBUG | LAYER:     Loading layer library /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/../../../lib/libVkLayer_khronos_validation.so
+INFO | LAYER:      Insert instance layer "VK_LAYER_KHRONOS_validation" (/home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/../../../lib/libVkLayer_khronos_validation.so)
+DEBUG | LAYER:     Loading layer library libVkLayer_MESA_device_select.so
+INFO | LAYER:      Insert instance layer "VK_LAYER_MESA_device_select" (libVkLayer_MESA_device_select.so)
+LAYER:             vkCreateInstance layer callstack setup to:
+LAYER:                <Application>
+LAYER:                  ||
+LAYER:                <Loader>
+LAYER:                  ||
+LAYER:                VK_LAYER_MESA_device_select
+LAYER:                        Type: Implicit
+LAYER:                            Disable Env Var:  NODEVICE_SELECT
+LAYER:                        Manifest: /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:                        Library:  libVkLayer_MESA_device_select.so
+LAYER:                  ||
+LAYER:                VK_LAYER_KHRONOS_validation
+LAYER:                        Type: Explicit
+LAYER:                        Manifest: /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_validation.json
+LAYER:                        Library:  /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/../../../lib/libVkLayer_khronos_validation.so
+LAYER:                  ||
+LAYER:                <Drivers>
+DEBUG | LAYER:     Unloading layer library libVkLayer_MESA_device_select.so
+DEBUG | LAYER:     Unloading layer library /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/../../../lib/libVkLayer_khronos_validation.so
+SDL chose gpu backend 'vulkan'
+LAYER:             Searching for implicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/.config/vulkan/implicit_layer.d
+LAYER:                   /etc/xdg/vulkan/implicit_layer.d
+LAYER:                   /etc/vulkan/implicit_layer.d
+LAYER:                   /home/foxti/.local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/share/vulkan/implicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:             Searching for implicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/.config/vulkan/implicit_layer.d
+LAYER:                   /etc/xdg/vulkan/implicit_layer.d
+LAYER:                   /etc/vulkan/implicit_layer.d
+LAYER:                   /home/foxti/.local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/share/vulkan/implicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:             Searching for implicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/.config/vulkan/implicit_layer.d
+LAYER:                   /etc/xdg/vulkan/implicit_layer.d
+LAYER:                   /etc/vulkan/implicit_layer.d
+LAYER:                   /home/foxti/.local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/share/vulkan/implicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:             Searching for implicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/.config/vulkan/implicit_layer.d
+LAYER:                   /etc/xdg/vulkan/implicit_layer.d
+LAYER:                   /etc/vulkan/implicit_layer.d
+LAYER:                   /home/foxti/.local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/share/vulkan/implicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:             Searching for implicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/.config/vulkan/implicit_layer.d
+LAYER:                   /etc/xdg/vulkan/implicit_layer.d
+LAYER:                   /etc/vulkan/implicit_layer.d
+LAYER:                   /home/foxti/.local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/share/vulkan/implicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:             Searching for implicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/.config/vulkan/implicit_layer.d
+LAYER:                   /etc/xdg/vulkan/implicit_layer.d
+LAYER:                   /etc/vulkan/implicit_layer.d
+LAYER:                   /home/foxti/.local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/share/vulkan/implicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:             Searching for explicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_api_dump.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_monitor.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_crash_diagnostic.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_screenshot.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_shader_object.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_validation.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_gfxreconstruct.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_profiles.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_synchronization2.json
+LAYER:             Searching for implicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/.config/vulkan/implicit_layer.d
+LAYER:                   /etc/xdg/vulkan/implicit_layer.d
+LAYER:                   /etc/vulkan/implicit_layer.d
+LAYER:                   /home/foxti/.local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/share/vulkan/implicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:             Searching for implicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/.config/vulkan/implicit_layer.d
+LAYER:                   /etc/xdg/vulkan/implicit_layer.d
+LAYER:                   /etc/vulkan/implicit_layer.d
+LAYER:                   /home/foxti/.local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/share/vulkan/implicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:             Searching for explicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_api_dump.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_monitor.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_crash_diagnostic.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_screenshot.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_shader_object.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_validation.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_gfxreconstruct.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_profiles.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_synchronization2.json
+Validation layers enabled, expect debug level performance!
+LAYER:             Searching for implicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/.config/vulkan/implicit_layer.d
+LAYER:                   /etc/xdg/vulkan/implicit_layer.d
+LAYER:                   /etc/vulkan/implicit_layer.d
+LAYER:                   /home/foxti/.local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/local/share/vulkan/implicit_layer.d
+LAYER:                   /usr/share/vulkan/implicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:             Searching for explicit layer manifest files
+LAYER:                In following locations:
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d
+LAYER:                Found the following files:
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_api_dump.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_monitor.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_crash_diagnostic.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_screenshot.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_shader_object.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_validation.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_gfxreconstruct.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_profiles.json
+LAYER:                   /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_synchronization2.json
+WARNING | LAYER:   env var 'VK_INSTANCE_LAYERS' defined and adding layers "VK_LAYER_KHRONOS_validation"
+WARNING | LAYER:   env var 'VK_INSTANCE_LAYERS' defined and adding layers "VK_LAYER_KHRONOS_validation"
+DEBUG | LAYER:     Loading layer library /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/../../../lib/libVkLayer_khronos_validation.so
+INFO | LAYER:      Insert instance layer "VK_LAYER_KHRONOS_validation" (/home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/../../../lib/libVkLayer_khronos_validation.so)
+DEBUG | LAYER:     Loading layer library libVkLayer_MESA_device_select.so
+INFO | LAYER:      Insert instance layer "VK_LAYER_MESA_device_select" (libVkLayer_MESA_device_select.so)
+LAYER:             vkCreateInstance layer callstack setup to:
+LAYER:                <Application>
+LAYER:                  ||
+LAYER:                <Loader>
+LAYER:                  ||
+LAYER:                VK_LAYER_MESA_device_select
+LAYER:                        Type: Implicit
+LAYER:                            Disable Env Var:  NODEVICE_SELECT
+LAYER:                        Manifest: /usr/share/vulkan/implicit_layer.d/VkLayer_MESA_device_select.json
+LAYER:                        Library:  libVkLayer_MESA_device_select.so
+LAYER:                  ||
+LAYER:                VK_LAYER_KHRONOS_validation
+LAYER:                        Type: Explicit
+LAYER:                        Manifest: /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_validation.json
+LAYER:                        Library:  /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/../../../lib/libVkLayer_khronos_validation.so
+LAYER:                  ||
+LAYER:                <Drivers>
+SDL_GPU Driver: Vulkan
+Vulkan Device: llvmpipe (LLVM 20.1.2, 256 bits)
+Vulkan Driver: llvmpipe Mesa 25.2.8-0ubuntu0.24.04.5 (LLVM 20.1.2)
+Vulkan Conformance: 1.3.1.1
+INFO | LAYER:      Inserted device layer "VK_LAYER_KHRONOS_validation" (/home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/../../../lib/libVkLayer_khronos_validation.so)
+INFO | LAYER:      Failed to find vkGetDeviceProcAddr in layer "libVkLayer_MESA_device_select.so"
+DRIVER | LAYER:    vkCreateDevice layer callstack setup to:
+DRIVER | LAYER:       <Application>
+DRIVER | LAYER:         ||
+DRIVER | LAYER:       <Loader>
+DRIVER | LAYER:         ||
+LAYER:                VK_LAYER_KHRONOS_validation
+LAYER:                        Type: Explicit
+LAYER:                        Manifest: /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/VkLayer_khronos_validation.json
+LAYER:                        Library:  /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/../../../lib/libVkLayer_khronos_validation.so
+LAYER:                  ||
+DRIVER | LAYER:       <Device>
+DRIVER | LAYER:           Using "llvmpipe (LLVM 20.1.2, 256 bits)" with driver: "libvulkan_lvp.so"
+[2026-11-25 14:19:25.511] [gpu] [info] vulkan: llvmpipe (LLVM 20.1.2, 256 bits)
+[2026-11-25 14:19:25.516] [game] [info] Orbit pose: eye=(5.4494,4.3497,7.1683) distance=10.0000
+[2026-11-25 14:19:25.516] [game] [info] Gameplay session started
+Integrated memory detected, allocating TransferBuffers on device-local memory!
+[2026-11-25 14:19:25.521] [runtime] [info] Model ready: models/orbit-cube.glb (7 draws)
+[2026-11-25 14:19:25.522] [runtime] [info] Swapchain extent 1280x720
+[2026-11-25 14:19:25.551] [runtime] [info] First model frame presented
+[2026-11-25 14:19:26.058] [game] [info] Orbit pose: eye=(5.5994,4.4395,6.9955) distance=10.0000
+[2026-11-25 14:19:26.130] [game] [info] Orbit pose: eye=(5.7436,4.5289,6.8191) distance=10.0000
+[2026-11-25 14:19:26.176] [game] [info] Orbit pose: eye=(5.8820,4.6178,6.6392) distance=10.0000
+[2026-11-25 14:19:26.245] [game] [info] Orbit pose: eye=(6.0143,4.7063,6.4559) distance=10.0000
+[2026-11-25 14:19:26.315] [game] [info] Orbit pose: eye=(6.1406,4.7943,6.2696) distance=10.0000
+[2026-11-25 14:19:26.356] [game] [info] Orbit pose: eye=(6.2607,4.8818,6.0805) distance=10.0000
+[2026-11-25 14:19:26.430] [game] [info] Orbit pose: eye=(6.3745,4.9688,5.8886) distance=10.0000
+[2026-11-25 14:19:26.477] [game] [info] Orbit pose: eye=(6.4821,5.0553,5.6944) distance=10.0000
+[2026-11-25 14:19:26.540] [game] [info] Orbit pose: eye=(6.5833,5.1414,5.4979) distance=10.0000
+[2026-11-25 14:19:26.612] [game] [info] Orbit pose: eye=(6.6781,5.2269,5.2994) distance=10.0000
+[2026-11-25 14:19:26.657] [game] [info] Orbit pose: eye=(6.7664,5.3119,5.0991) distance=10.0000
+[2026-11-25 14:19:26.727] [game] [info] Orbit pose: eye=(6.8482,5.3963,4.8972) distance=10.0000
+[2026-11-25 14:19:27.943] [game] [info] Orbit pose: eye=(5.6068,4.4181,4.0095) distance=8.1873
+[2026-11-25 14:19:28.114] [game] [info] Orbit pose: eye=(4.5905,3.6173,3.2827) distance=6.7032
+[2026-11-25 14:19:29.407] [game] [info] Orbit pose: eye=(5.4494,4.3497,7.1683) distance=10.0000
+[2026-11-25 14:19:43.287] [runtime] [info] Swapchain extent 960x600
+[2026-11-25 14:19:45.653] [game] [info] Stopped after 1249 fixed steps (20.817 s)
+frames=2359 fixed_steps=1249 alpha=0.543419 dropped_seconds=0.016667
+DEBUG | LAYER:     Unloading layer library libVkLayer_MESA_device_select.so
+DEBUG | LAYER:     Unloading layer library /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/../../../lib/libVkLayer_khronos_validation.so

@@ -1,0 +1,2 @@
+Shader build contract: no-op, transitive/add/remove includes, defines, products, install, names and failures OK
+Shader contract elapsed: 32s (native CMake entry point, Linux temporary directory)

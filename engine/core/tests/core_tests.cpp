@@ -3,6 +3,7 @@
 #include <doctest/doctest.h>
 #include <somnium/core/assert.hpp>
 #include <somnium/core/handle.hpp>
+#include <somnium/core/logical_path.hpp>
 #include <somnium/core/profile.hpp>
 #include <somnium/core/result.hpp>
 
@@ -15,6 +16,17 @@ struct TextureTag {};
 static_assert(sizeof(somnium::Handle<MeshTag>) == 8);
 static_assert(!std::is_convertible_v<somnium::Handle<MeshTag>, somnium::Handle<TextureTag>>);
 } // namespace
+
+TEST_CASE("logical identities normalize relative segments without escaping a root") {
+    CHECK(*somnium::core::logicalPath("models/../textures/./image.png") == "textures/image.png");
+    for (const auto* name :
+         {"", "..", "a/../../outside", "/absolute", "a//b", "a/", "C:/file", "a\\b"})
+        CHECK_FALSE(somnium::core::logicalPath(name));
+    CHECK_FALSE(somnium::core::logicalPath(std::string_view("x\0y", 3)));
+    CHECK(somnium::core::logicalPath("textures/été.png"));
+    CHECK_FALSE(somnium::core::logicalPath("textures/\xc0\xaf.png"));
+    CHECK_FALSE(somnium::core::validUtf8("\xed\xa0\x80"));
+}
 
 TEST_CASE("Result preserves successful move-only values and owned failure diagnostics") {
     somnium::Result<std::unique_ptr<int>> value = std::make_unique<int>(42);

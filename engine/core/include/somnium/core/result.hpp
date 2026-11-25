@@ -14,7 +14,8 @@ enum class ErrorCode : std::uint8_t {
     Platform,
     Gpu,
     Io,
-    InvalidState
+    InvalidState,
+    NotFound
 };
 
 struct Error {

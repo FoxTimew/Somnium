@@ -1,0 +1,55 @@
+Sanitizers: ICD=/usr/share/vulkan/icd.d/lvp_icd.json, retained driver=/usr/lib/x86_64-linux-gnu/libvulkan_lvp.so
+Internal ctest changing into directory: /work/build/asan-ubsan
+Test project /work/build/asan-ubsan
+      Start  1: somnium_core_tests
+ 1/17 Test  #1: somnium_core_tests ...............   Passed    0.17 sec
+      Start  2: somnium_log_output
+ 2/17 Test  #2: somnium_log_output ...............   Passed    0.34 sec
+      Start  3: somnium_platform_tests
+ 3/17 Test  #3: somnium_platform_tests ...........   Passed    1.03 sec
+      Start  4: somnium_gpu_tests
+ 4/17 Test  #4: somnium_gpu_tests ................   Passed    0.28 sec
+      Start  5: somnium_gpu_comparison_tests
+ 5/17 Test  #5: somnium_gpu_comparison_tests .....   Passed    0.76 sec
+      Start  6: somnium_renderer_tests
+ 6/17 Test  #6: somnium_renderer_tests ...........   Passed    0.18 sec
+      Start  7: somnium_assets_tests
+ 7/17 Test  #7: somnium_assets_tests .............   Passed    0.71 sec
+      Start  8: somnium_assets_warning
+ 8/17 Test  #8: somnium_assets_warning ...........   Passed    0.53 sec
+      Start  9: somnium_input_tests
+ 9/17 Test  #9: somnium_input_tests ..............   Passed    0.14 sec
+      Start 10: somnium_debug_ui_tests
+10/17 Test #10: somnium_debug_ui_tests ...........   Passed    0.18 sec
+      Start 11: somnium_runtime_tests
+11/17 Test #11: somnium_runtime_tests ............   Passed    0.26 sec
+      Start 12: somnium_cube_reference_tests
+12/17 Test #12: somnium_cube_reference_tests .....   Passed    2.67 sec
+      Start 13: somnium_game_tests
+13/17 Test #13: somnium_game_tests ...............   Passed    0.23 sec
+      Start 15: somnium_shader_build_tests
+14/17 Test #15: somnium_shader_build_tests .......***Timeout 120.10 sec
+
+      Start 16: somnium_dependency_tests
+15/17 Test #16: somnium_dependency_tests .........   Passed    0.15 sec
+      Start 17: somnium_architecture
+16/17 Test #17: somnium_architecture .............   Passed    1.42 sec
+      Start 18: somnium_architecture_rules
+17/17 Test #18: somnium_architecture_rules .......   Passed    4.88 sec
+
+94% tests passed, 1 tests failed out of 17
+
+Label Time Summary:
+shaders    = 120.10 sec*proc (1 test)
+
+Total Test time (real) = 135.15 sec
+
+The following tests FAILED:
+	 15 - somnium_shader_build_tests (Timeout)              shaders
+Errors while running CTest
+Traceback (most recent call last):
+  File "/src/tools/run_sanitizers.py", line 25, in <module>
+    subprocess.run([*ctest, "-LE", "window"], check=True)
+  File "/usr/lib/python3.12/subprocess.py", line 571, in run
+    raise CalledProcessError(retcode, process.args,
+subprocess.CalledProcessError: Command '['ctest', '--test-dir', '/work/build/asan-ubsan', '--output-on-failure', '--no-tests=error', '-LE', 'window']' returned non-zero exit status 8.

@@ -4,20 +4,26 @@
 #include <somnium/platform/native.hpp>
 #include <somnium/platform/platform.hpp>
 
+#include "input_translation.hpp"
 #include <somnium/core/assert.hpp>
+#include <somnium/core/log.hpp>
 #include <somnium/core/profile.hpp>
 
 #define SDL_MAIN_HANDLED
 #include <SDL3/SDL_error.h>
 #include <SDL3/SDL_events.h>
+#include <SDL3/SDL_gamepad.h>
 #include <SDL3/SDL_init.h>
 #include <SDL3/SDL_main.h>
 #include <SDL3/SDL_timer.h>
 #include <SDL3/SDL_video.h>
 
+#include <algorithm>
+#include <array>
 #include <string>
 #include <thread>
 #include <utility>
+#include <vector>
 
 namespace somnium::platform {
 struct Platform::Impl {
@@ -26,9 +32,14 @@ struct Platform::Impl {
     void* observerContext = nullptr;
     void (*observer)(void*, const SDL_Event&) = nullptr;
     std::thread::id owner = std::this_thread::get_id();
+    std::vector<core::InputEvent> input;
+    std::array<SDL_Gamepad*, 4> gamepads{};
 
     ~Impl() {
         SOMNIUM_VERIFY(owner == std::this_thread::get_id());
+        for (auto* pad : gamepads)
+            if (pad)
+                SDL_CloseGamepad(pad);
         if (window) {
             SDL_DestroyWindow(window);
         }
@@ -61,6 +72,9 @@ Result<std::unique_ptr<Platform>> Platform::create(const WindowConfig& config) {
     if (!(*session)->m_impl->window) {
         return tl::unexpected(Error{ErrorCode::Platform, SDL_GetError()});
     }
+    if (!SDL_InitSubSystem(SDL_INIT_GAMEPAD))
+        return tl::unexpected(Error{ErrorCode::Platform, SDL_GetError()});
+    (*session)->m_impl->input.reserve(128);
     return session;
 }
 
@@ -77,14 +91,37 @@ Result<std::unique_ptr<Platform>> Platform::createHeadless() {
     return std::unique_ptr<Platform>(new Platform(std::move(impl)));
 }
 
-Events Platform::pollEvents() {
+Events Platform::pollEvents(std::uint64_t nextStep) {
     SOMNIUM_VERIFY(m_impl->owner == std::this_thread::get_id());
     SOMNIUM_PROFILE_SCOPE("platform.events");
     Events result;
+    m_impl->input.clear();
     SDL_Event event{};
     while (SDL_PollEvent(&event)) {
         if (m_impl->observer)
             m_impl->observer(m_impl->observerContext, event);
+        if (event.type == SDL_EVENT_GAMEPAD_ADDED) {
+            auto slot = std::ranges::find(m_impl->gamepads, nullptr);
+            if (slot == m_impl->gamepads.end()) {
+                Log::write("platform", Log::Level::Warning,
+                           "Only four simultaneous gamepads are supported");
+                continue;
+            }
+            *slot = SDL_OpenGamepad(event.gdevice.which);
+            if (!*slot) {
+                Log::write("platform", Log::Level::Warning, SDL_GetError());
+                continue;
+            }
+        } else if (event.type == SDL_EVENT_GAMEPAD_REMOVED) {
+            for (auto& pad : m_impl->gamepads) {
+                if (pad && SDL_GetGamepadID(pad) == event.gdevice.which) {
+                    SDL_CloseGamepad(pad);
+                    pad = nullptr;
+                }
+            }
+        }
+        if (auto input = detail::translateInput(event, nextStep))
+            m_impl->input.push_back(*input);
         if (event.type == SDL_EVENT_QUIT) {
             result.quitRequested = true;
         } else if (m_impl->window && event.type >= SDL_EVENT_WINDOW_FIRST &&
@@ -99,6 +136,7 @@ Events Platform::pollEvents() {
             }
         }
     }
+    result.input = m_impl->input;
     return result;
 }
 
