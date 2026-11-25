@@ -15,15 +15,18 @@ best effort et WARP n'est plus couvert. Installation et commandes dans
 [CI_RUNNER.md](docs/CI_RUNNER.md). Captures, journaux, CI et limites dans le
 [bilan de phase 2](docs/validation/phase-2/FIN_DE_PHASE.md).
 Le lancement macOS sur `main` a échoué au test de rétention, avant compilation :
-aucune nouvelle preuve Metal. Les ADR de phase 3 restent **proposés**, sans code
-de scène ni modification du module input avant leur validation.
+aucune nouvelle preuve Metal à cette clôture. Le défaut de rétention est corrigé
+en phase 3, avec régression reproduite puis couverte sous Windows/Linux.
+Les ADR de phase 3 sont **acceptés** ; [World et les codecs JSON](docs/SCENE.md)
+ont leurs tests CPU. Extraction et preuve GPU précèdent le prochain point de
+contrôle ; input configurable et le gameplay de la cible viennent ensuite.
 
 - [Architecture](docs/ARCHITECTURE.md) et [conventions](docs/adr/0002-conventions.md)
 - [Dépendances et licences](docs/adr/0001-stack-dependances-licences.md)
 - [Chaîne de shaders](docs/adr/0003-chaine-shaders.md), [frame GPU](docs/adr/0004-frame-synchronisation-gpu.md)
 - [Plan et résultats CI](docs/PHASE_1_CI.md), [protocole D5](docs/GPU_VALIDATION.md)
 - [Pipeline d’assets](docs/adr/0005-pipeline-assets.md), [contrôles](docs/INPUT.md) et [preuves de phase 2](docs/validation/phase-2/README.md)
-- Propositions de phase 3 : [scène et sérialisation](docs/adr/0007-scene-entites-serialisation.md), [inputs configurables](docs/adr/0008-inputs-configurables.md)
+- Contrats de phase 3 : [scène et sérialisation](docs/adr/0007-scene-entites-serialisation.md), [inputs configurables](docs/adr/0008-inputs-configurables.md)
 
 ## Prérequis et bootstrap
 

@@ -9,6 +9,7 @@ namespace somnium::core {
 // Right-handed world, +Y up, meters, camera toward -Z. Column vectors:
 // clip = projectionRH_ZO * view * world * position; local = T * R * S.
 // Normalized quaternions internally; radians at API boundaries.
+// Scene JSON/debug UI: Euler degrees, extrinsic X then Y then Z (Rz * Ry * Rx).
 inline constexpr double kFixedStepSeconds = 1.0 / 60.0;
 inline constexpr double kMaxFrameSeconds = 0.250;
 inline constexpr std::uint32_t kMaxFixedSteps = 8;

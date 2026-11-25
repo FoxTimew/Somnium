@@ -9,9 +9,11 @@ Statut : **accepté**, 20 octobre 2026, avec les arbitrages D1 à D5 ci-dessous.
 Les phases 0 à 2 sont validées, fusionnées `--no-ff` et taguées sur `main`.
 La phase 2 se termine au tag `phase-2` (`bf0976a`, PR #4) ; `main` est la branche
 par défaut. Infrastructure auto-hébergée intégrée ; [bilan et preuves](validation/phase-2/FIN_DE_PHASE.md).
-`phase/3-scene` porte uniquement le jalon documentaire proposé :
+`phase/3-scene` implémente les contrats acceptés des
 [ADR-0007](adr/0007-scene-entites-serialisation.md) et
-[ADR-0008](adr/0008-inputs-configurables.md), à valider avant le code concerné.
+[ADR-0008](adr/0008-inputs-configurables.md). World et ses codecs sont décrits dans
+[SCENE.md](SCENE.md) ; extraction/interpolation puis preuve hors écran précèdent
+le point de contrôle intermédiaire, avant input configurable et le gameplay cible.
 Voir les
 [ADR-0001](adr/0001-stack-dependances-licences.md) et
 [ADR-0002](adr/0002-conventions.md).
@@ -23,9 +25,10 @@ sol et pièces, collisions AABB dans `game/`, portes articulées autour d'un piv
 action `Interact`, clavier/souris et manette. Le MVP final charge une scène JSON
 et affiche sa hiérarchie dans ImGui. Chaque capacité du moteur doit servir ce jeu.
 
-La phase 2 charge un modèle glTF texturé, le présente avec profondeur et overlay,
+Le sandbox de phase 2 charge un modèle glTF texturé, le présente avec profondeur et overlay,
 et permet son exploration par une caméra orbitale de gameplay. Assets, renderer
-et input sont actifs ; scene/ECS, interpolation et mapping JSON restent en phase 3.
+et input sont actifs. World/ECS et JSON ont maintenant leurs tests CPU ; le sandbox
+reste en phase 2 jusqu'au raccordement de l'extraction, sans nouveau mapping input.
 Windows, Linux et macOS sont les seules plateformes ciblées.
 
 Les conventions mathématiques, de mémoire, d'erreurs et de style sont décrites
@@ -84,8 +87,8 @@ lecture retenue de « game/ et sandbox/ sont les seuls exécutables » : aucun
 Le jeu est compilé dès la phase 0. Sa frontière dynamique n'est pas implémentée.
 
 La table reflète le contrat de phase 2 : `Gameplay::camera()` expose encore
-renderer. L'ADR-0007 propose sa suppression et le passage de la dépendance
-runtime → renderer à PRIVATE ; ce changement attend la validation documentaire.
+renderer. L'ADR-0007 accepté prévoit sa suppression et le passage de la dépendance
+runtime → renderer à PRIVATE à l'étape d'extraction ; le raccordement reste à réaliser.
 
 Le graphe moteur, lu dans le sens « dépend de », est :
 
@@ -446,11 +449,11 @@ du graphe shipping accompagnent le cube hors écran et les captures interactives
 Le jalon cube est validé ; le triangle est remplacé, input et caméra orbitale
 sont implémentés. `scene` reste prévu en phase 3. L'[ADR-0005](adr/0005-pipeline-assets.md) fixe ces contrats.
 
-Le jalon de phase 3 propose World/EnTT et codecs de composants extensibles par
-game, IDs persistants indépendants du registre, interpolation des TRS locaux
-avant recomposition, puis mappings d'inputs compilés en IDs. Les conventions
-d'Euler et ces contrats restent proposés dans ADR-0007/0008, sans modifier
-le comportement de phase 2. La cible est un personnage non animé sur un sol,
+La phase 3 apporte World/EnTT, codecs extensibles par game et IDs persistants
+indépendants du registre. Les contrats acceptés ADR-0007/0008 fixent aussi les
+Euler, l'interpolation des TRS locaux avant recomposition et les mappings
+d'inputs compilés en IDs, à raccorder après les tests CPU de scène.
+La cible est un personnage non animé sur un sol,
 caméra suiveuse avec orbite, murs AABB et portes Interact à pivot (90°), chargés
 depuis `assets/scenes/*.json` ; collisions et composants associés vivent dans
 game. L'inspecteur affiche la hiérarchie et permet l'édition des transforms.
@@ -458,8 +461,8 @@ game. L'inspecteur affiche la hiérarchie et permet l'édition des transforms.
 Ordre après validation : scene (composants, hiérarchie, propagation, JSON) →
 extraction/interpolation et preuve analytique de scène hors écran → **arrêt pour
 validation intermédiaire** → input configurable → gameplay cible → inspecteur
-et affichage des inputs → documentation et bilan. Aucun code de scène ni
-changement de input n'est livré dans le présent jalon.
+et affichage des inputs → documentation et bilan. Le module input reste inchangé
+jusqu'à la validation intermédiaire de la scène rendue hors écran.
 
 | Extension hors MVP | Frontière préservée dès maintenant |
 | --- | --- |
@@ -469,6 +472,7 @@ changement de input n'est livré dans le présent jalon.
 | Cuiseur, formats binaires, textures compressées, asynchrone | Lecture injectée, loaders par type, handles et états |
 | Éditeur | Sérialisation par composant et inspecteur séparé |
 | Hot-reload gameplay/shaders | Cible game distincte et chargement de shader centralisé ; aucune DLL ni surveillance de fichiers |
+| Contextes d'input et modes partageant une source | IDs résolus à la configuration ; une source physique, une destination au MVP, condition limitée aux deltas pendant une action maintenue (ADR-0008) |
 | Audio | Emplacement futur `engine/audio`, sous-système possédé par Engine |
 | Tilemaps 2D | Emplacement futur `engine/tilemap`, données sans dépendance GPU |
 | Réseau | Emplacement futur `engine/network`, câblage dans runtime |

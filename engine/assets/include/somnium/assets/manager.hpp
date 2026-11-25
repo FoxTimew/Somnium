@@ -2,6 +2,7 @@
 // Callers request then inspect state; synchronous completion is not an API guarantee.
 #pragma once
 #include <functional>
+#include <limits>
 #include <map>
 #include <memory>
 #include <optional>
@@ -93,12 +94,43 @@ template <typename T> class AssetManager final {
             return tl::unexpected(Error{ErrorCode::InvalidState, "Asset has no failure"});
         return *entry->error;
     }
+    // Counted requests allow a staged scene to share assets with the active scene.
+    // Failed assets still return a handle: inspect state and release on rollback.
+    [[nodiscard]] Result<AssetHandle<T>> acquire(std::string_view path) {
+        auto handle = request(path);
+        if (!handle)
+            return handle;
+        auto* entry = find(*handle);
+        if (entry->references == std::numeric_limits<std::uint32_t>::max())
+            return tl::unexpected(Error{ErrorCode::CapacityExceeded, "Asset reference overflow"});
+        ++entry->references;
+        return *handle;
+    }
+    [[nodiscard]] Result<void> release(AssetHandle<T> handle) {
+        auto* entry = find(handle);
+        if (!entry)
+            return tl::unexpected(stale());
+        if (entry->references == 0 || entry->state == State::Loading)
+            return tl::unexpected(
+                Error{ErrorCode::InvalidState, "Asset cannot release this request"});
+        --entry->references;
+        return entry->references == 0 ? unload(handle) : Result<void>{};
+    }
+    // Borrowed until unload; serializers copy the logical identity into their output.
+    [[nodiscard]] Result<std::string_view> path(AssetHandle<T> handle) const {
+        const auto* entry = find(handle);
+        if (!entry)
+            return tl::unexpected(stale());
+        return entry->path;
+    }
     [[nodiscard]] Result<void> unload(AssetHandle<T> handle) {
         auto* entry = find(handle);
         if (!entry)
             return tl::unexpected(stale());
         if (entry->state == State::Loading)
             return tl::unexpected(Error{ErrorCode::InvalidState, "Cannot unload a loading asset"});
+        if (entry->references != 0)
+            return tl::unexpected(Error{ErrorCode::InvalidState, "Asset has counted requests"});
         m_paths.erase(entry->path);
         m_entries[handle.index].reset();
         return m_handles.release(handle);
@@ -108,6 +140,7 @@ template <typename T> class AssetManager final {
     struct Entry {
         std::string path;
         State state = State::Unloaded;
+        std::uint32_t references = 0;
         std::unique_ptr<T> data;
         std::optional<Error> error;
     };

@@ -1,10 +1,10 @@
 <!--
-Décisions proposées pour les inputs génériques et leurs garanties temporelles.
-Aucun changement de input avant validation de ce jalon documentaire.
+Décisions validées pour les inputs génériques et leurs garanties temporelles.
+Leur implémentation suit le point de contrôle scène et extraction.
 -->
 # ADR-0008 — Inputs configurables
 
-Date : 25 novembre 2026. Statut : **proposé**.
+Date : 25 novembre 2026. Statut : **accepté**.
 
 ## Contexte
 
@@ -39,7 +39,8 @@ transitions pendant les frames sans pas et les rattrapages de simulation.
   configuration inchangée. Réutiliser une source physique pour
   plusieurs destinations ou dupliquer une liaison constitue un conflit ;
   filtres `any`/slot chevauchants détectés. Lire une action comme condition n'est
-  pas une liaison supplémentaire. Aucune priorité implicite.
+  pas une liaison supplémentaire et reste limitée aux deltas pendant cette action.
+  Aucune priorité implicite ; contextes/modes partageant une source reportés.
 - **Transitions.** File ordonnée, estampillée au prochain pas par platform ;
   un advance par pas consécutif consomme une seule fois les événements éligibles,
   conserve les futurs et survit aux frames sans pas. Journal ordonné des
