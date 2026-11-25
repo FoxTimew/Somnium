@@ -1,6 +1,6 @@
 <!--
 Précise le contrat accepté de scène et les invariants à couvrir par les tests.
-Les preuves d'exécution sont consignées au point de contrôle de phase 3.
+Les preuves d'exécution sont consignées au point de contrôle et au bilan de phase 3.
 -->
 # Scènes et composants persistants
 
@@ -89,7 +89,21 @@ l’arc du pivot (et non une corde interpolée en monde), l’instance glTF, la 
 parente et locale, le signe équivalent q/-q, les limites, la téléportation et
 l’absence de croissance des buffers réservés.
 
-Le sandbox charge `scenes/orbit.json` ; son jeu existant pilote la caméra racine
-par World sans type renderer. La [preuve analytique de scène](SCENE_VALIDATION.md)
-charge un JSON pivot/enfant tourné, rend trois poses et conserve les captures et
-journaux au point de contrôle, avant input configurable et gameplay cible.
+Le sandbox charge `scenes/courtyard.json` avec les codecs `game.AabbCollider`,
+`game.Character`, `game.Door`, `game.FollowCamera`. L’en-tête public des codecs
+expose délibérément `nlohmann::json` ; game utilise `requireFields`, `readString`,
+`readNumber`, `readVector3` et le résolveur commun. Un futur format binaire peut
+partir de la même valeur. Le round-trip d’une porte en mouvement conserve sa
+progression et sa référence au pivot ; la rotation fermée de base est redérivée
+au démarrage, jamais enregistrée comme état natif.
+
+L’inspecteur parcourt World en lecture seule, sélectionne par ID persistant et
+regroupe les demandes de TRS par ID. Runtime les applique au prochain pas par
+`teleport` ; la propagation suit le gameplay. Une entité supprimée ou une échelle
+invalide donne un diagnostic visible sans arrêter le jeu ni rejouer la demande.
+Euler JSON et UI utilisent les mêmes fonctions de conversion dans scene.
+
+La [preuve analytique](SCENE_VALIDATION.md) reste le JSON pivot/enfant, trois poses,
+référence et provenance inchangées. Les tests CPU de game chargent la fixture de
+courtyard sans MeshRenderer ni GPU et vérifient vitesse, glissement, non-traversée,
+portée/temps d’ouverture, passage, caméra et codecs. Voir le [bilan final](validation/phase-3/FIN_DE_PHASE.md).

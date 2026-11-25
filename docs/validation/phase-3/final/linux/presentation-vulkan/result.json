@@ -1,0 +1,64 @@
+{
+  "origin": "CI Linux",
+  "backend": "vulkan",
+  "source_commit": "5a4745e084a72b5b33754bacfa7cb8821994f6f8",
+  "source_dirty": false,
+  "binary_sha256": "47cc7947d18c8ef7a3017eccb5b7b76b692e627b645a781ab491b62cbf08acaf",
+  "replay_sha256": "70086d39e288d12dd8512bbbdc17f58371897c71962a156561ede1144fa01971",
+  "scenario_sha256": "20f0555f7cfecfd89cae87374c58083a183615db58fa5ddf11bb7d7ed2e64db4",
+  "input_source": "platform fixed-step replay (no OS input)",
+  "status": "validé",
+  "captures": [
+    {
+      "name": "initial.png",
+      "steps": 1,
+      "sha256": "175cba53f4560dbf23c54fe956983f5c80eae8f580f2aac02dd05b9ff1024fa9"
+    },
+    {
+      "name": "movement.png",
+      "steps": 45,
+      "sha256": "2844e5b81e7ec261b4f7e68acae881442aaec2dbc5c5d97cf0cf86d2c1e71687"
+    },
+    {
+      "name": "wall.png",
+      "steps": 205,
+      "sha256": "0b0129c5b26926e85e185d3bd0c96f7e5e14476ce16e21cc0a610f2f98133940"
+    },
+    {
+      "name": "door-open.png",
+      "steps": 345,
+      "sha256": "c8a62454113bf6b6fb589175082acfac85ebc5e1e1a9bfef8b01aad9dc64844b"
+    },
+    {
+      "name": "inspector.png",
+      "steps": 415,
+      "sha256": "28c1a146b5cb9fac0e1b3e60c5737492f13861aa7326cc63efd386df4a8bb77c"
+    }
+  ],
+  "comparisons": [
+    {
+      "a": "initial",
+      "b": "movement",
+      "minimum": 1000,
+      "different_pixels": 57318
+    },
+    {
+      "a": "movement",
+      "b": "wall",
+      "minimum": 1000,
+      "different_pixels": 158492
+    },
+    {
+      "a": "wall",
+      "b": "door-open",
+      "minimum": 1000,
+      "different_pixels": 149068
+    },
+    {
+      "a": "door-open",
+      "b": "inspector",
+      "minimum": 1000,
+      "different_pixels": 127161
+    }
+  ]
+}

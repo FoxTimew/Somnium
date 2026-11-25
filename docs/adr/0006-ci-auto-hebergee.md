@@ -26,9 +26,10 @@ la CI, ou l'ouverture d'un dépôt public acceptant des PR. Il faudra alors revo
 aussi les ACL et l'accès aux disques Windows depuis WSL.
 
 Windows/D3D12/Vulkan matériel et Linux/lavapipe sont requis : quatre presets,
-format, architecture, test de fenêtre, D5/cube ; tidy 18 et ASan/UBSan sur Linux.
-Les captures Windows injectant souris/clavier sont **exclusivement dans un job
-manuel workflow_dispatch**, hors job requis. Linux capture dans Xvfb isolé.
+format, architecture, test de fenêtre, D5/cube/scène ; tidy 18 et ASan/UBSan sur Linux.
+Les captures utilisent un rejeu neutre dans platform, sans injection système.
+Windows reste **exclusivement en job manuel workflow_dispatch**, car les fenêtres
+visibles peuvent gêner la session personnelle ou être masquées. Linux utilise Xvfb.
 macOS reste best effort, manuel : build macos-latest, build/Metal macos-15, cible
 13.3. **WARP n'est plus prouvé** ; les anciens résultats restent historiques.
 
@@ -51,6 +52,6 @@ La disponibilité dépend du poste, de la session Windows et de WSL. Les capture
 manuelles demandent un bureau libre ; le job requis n'injecte aucun input global.
 Le risque d'accès aux données personnelles est accepté dans le périmètre ci-dessus.
 Installation : [CI_RUNNER.md](../CI_RUNNER.md) ; démarrage : [guide](../DEMARRER_RUNNERS.md).
-Les futurs ADR scène/input prennent les numéros 0007/0008.
+Les contrats scène/input sont dans ADR-0007/0008.
 
 Preuves : CI des deux runners et capture D3D12 par job manuel vertes le 25 novembre sur 36f1824 (run 45622048422) ; D5/cube Radeon et lavapipe, fenêtre, tidy et ASan/UBSan validés ; aucun blocage du contrôle d'application Windows ; pièces dans le bilan de phase 2.

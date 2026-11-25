@@ -14,8 +14,9 @@ par défaut. Infrastructure auto-hébergée intégrée ; [bilan et preuves](vali
 [ADR-0008](adr/0008-inputs-configurables.md). World et ses codecs sont décrits dans
 [SCENE.md](SCENE.md) ; extraction/interpolation et preuve hors écran sont raccordées.
 Le [point de contrôle intermédiaire](validation/phase-3/README.md) valide les
-trois backends hors écran et précède input configurable et le gameplay cible.
-Le scénario de présentation Metal reste en échec sur orbite/zoom/reset.
+trois backends hors écran. Input configurable, rejeu, gameplay cible et inspecteur
+sont maintenant implémentés ; résultats finaux et limites dans le
+[bilan de phase 3](validation/phase-3/FIN_DE_PHASE.md).
 Voir les
 [ADR-0001](adr/0001-stack-dependances-licences.md) et
 [ADR-0002](adr/0002-conventions.md).
@@ -27,10 +28,10 @@ sol et pièces, collisions AABB dans `game/`, portes articulées autour d'un piv
 action `Interact`, clavier/souris et manette. Le MVP final charge une scène JSON
 et affiche sa hiérarchie dans ImGui. Chaque capacité du moteur doit servir ce jeu.
 
-Le sandbox charge `assets/scenes/orbit.json` : modèle glTF, caméra racine et
-lumière. Le jeu pilote cette caméra ; runtime extrait la scène interpolée et
-renderer présente avec profondeur et overlay. Le mapping input de phase 2 reste
-en place jusqu’au point de contrôle, sans gameplay cible anticipé.
+Le sandbox charge `assets/scenes/courtyard.json` et `assets/input/courtyard.json`.
+Le jeu pilote personnage, collisions, portes et caméra racine ; runtime extrait
+la scène interpolée et renderer présente avec profondeur, lumière et ambiant.
+L’inspecteur affiche la hiérarchie et applique les demandes de TRS au prochain pas.
 Windows, Linux et macOS sont les seules plateformes ciblées.
 
 Les conventions mathématiques, de mémoire, d'erreurs et de style sont décrites
@@ -202,8 +203,7 @@ constituent pas une promesse de sûreté concurrente du moteur.
 
 ## 5. Contrats de données
 
-Ces descriptions fixent la sémantique, sans promettre des signatures C++ déjà
-implémentées.
+Ces contrats décrivent les structures et possessions actuellement implémentées.
 
 | Contrat | Contenu et invariants | Propriétaire / emprunteur |
 | --- | --- | --- |
@@ -256,7 +256,7 @@ Le `FileReader` résout dans l’ordre `<exécutable>/assets` (shaders compilés
 `<dépôt>/assets` en mode DEVELOPMENT. Le preset shipping choisit COOKED : seule
 la première racine existe, aucun repli vers le dépôt ni le répertoire courant.
 CMake ne copie aucun asset source dans le build. Un package shipping doit apporter
-le modèle dans cette racine ; le test de conditionnement le prépare explicitement
+la scène, le mapping et les modèles dans cette racine ; le test de conditionnement le prépare explicitement
 dans un dossier temporaire extérieur au build, avant le cuiseur de phase 4. Son implémentation boucle sur les lectures partielles
 jusqu'à complétion ; erreur, zéro progression prématuré ou taille supérieure à
 256 MiB échouent explicitement. Les tests injectent un flux SDL fragmenté privé.
@@ -316,14 +316,23 @@ que si `SOMNIUM_ENABLE_DEBUG_UI=ON` ; leurs dépendances ne créent aucun cycle.
 d’intégration sans type SDL. Les pointeurs natifs demeurent dans la coopération
 privée. La phase 1 initialise contexte, adaptateur plateforme puis adaptateur GPU.
 Elle affiche FPS/temps moyen et compteurs draw calls/soumissions/uploads ;
-l'inspecteur de scène reste en phase 3. Les en-têtes publics des adaptateurs
+l’inspecteur ajoute hiérarchie, sélection, TRS locaux et inputs en lecture seule. Les en-têtes publics des adaptateurs
 ne contiennent aucun type SDL. Le scanner teste aussi les violations synthétiques
 de D2 ; la CI shipping vérifie les cibles et la base de compilation.
 
 Les événements de relâchement, perte de focus et déconnexion sont conservés.
-L’overlay de phase 2 est passif (`NoInputs`) ; aucune capture UI ne masque le
-gameplay. Le routage d’une UI interactive et le mapping JSON appartiennent
-à la phase 3/ADR-0008. Le mapping actuel est décrit dans [INPUT.md](INPUT.md).
+Le mapping JSON est compilé avant start en IDs stables ; seules les valeurs et
+les IDs circulent dans les pas fixes. Le panneau lit les états sans les consommer.
+L’entrée en capture UI libère les actions concernées une seule fois, ignore les
+nouveaux appuis/deltas et attend une pression fraîche après sortie. Le routage
+ne perd ni ne rejoue les transitions pendant les frames sans pas ou le rattrapage.
+
+Le rejeu JSON versionné est une source de `core::InputEvent` dans platform, livrée
+à chaque frontière de pas. Il écarte les entrées physiques de gameplay et désactive
+l’interaction avec l’inspecteur ; le cycle de fenêtre reste actif. Les scripts de
+capture lisent les pixels présentés, sans injection système ni changement de focus.
+Windows reste manuel (session personnelle visible), Linux utilise Xvfb ; Metal est
+best effort sur un runner hébergé. Détails : [INPUT.md](INPUT.md).
 
 ## 7. Boucle et flux d'une frame
 
@@ -332,30 +341,34 @@ L'horloge monotone de `core` exprime les durées en secondes.
 
 Au démarrage, sandbox fournit le chemin de scène et la table de codecs (moteur
 puis ajouts game). Runtime charge le World transactionnel via le lecteur et le
-contexte d’assets, appelle `Gameplay::start(World&)`, propage et prépare les
-ressources. `requestModel`, `camera()` et les réglages de rendu ont quitté le
+contexte d’assets, compile le mapping, appelle
+`Gameplay::start(World&, const input::Configuration&)`, propage et prépare les ressources. `requestModel`, `camera()` et les réglages de rendu ont quitté le
 contrat Gameplay ; modèle, lumière, ambiant et fond proviennent du JSON.
 
-1. Collecter les événements avec l’indice du prochain pas et les mettre en file.
-   Traiter fermeture, minimisation/restauration et remise à zéro de l’horloge.
-2. Mesurer le delta ; exécuter les pas fixes bornés : `World::beginStep`,
-   `input.advance(tick)`, `game.fixedUpdate(world,{seconds,tick,inputs})`,
-   `World::propagate`. Les transitions et impulsions sont consommées une fois.
-3. SceneRendering prépare les nouveaux handles de Model et retire les ressources
-   inutilisées avant l’enregistrement ; réserve matrices, draws et scratch renderer.
-4. Acquérir le command buffer puis la swapchain par
-   `SDL_WaitAndAcquireGPUSwapchainTexture`, VSYNC, deux frames en vol. Un deuxième
-   poll conserve les entrées pour le prochain pas ; une fermeture soumet la frame.
-5. Sans texture, soumettre sans rendu puis attendre un événement. Au resize,
-   recréer la profondeur D32 à l’extent acquis ; libérer l’ancienne selon ADR-0004.
-6. Interpoler les TRS locaux (lerp position/échelle, slerp court normalisé), puis
-   recomposer parent avant enfant. La caméra active utilise cette même pose :
-   vue inverse, `perspectiveRH_ZO`, aspect acquis. La lumière est transformée ;
-   DrawList = pose interpolée d’entité × instance glTF. Buffers pmr réutilisés,
-   aucune croissance implicite dans l’extraction, renderer ne voit pas World.
-7. Préparer l’overlay et ses uploads, enregistrer la passe renderer puis l’UI.
-   Textures sRGB → facteur × (Lambert + ambiant) linéaire → swapchain SDR_LINEAR.
-8. Soumettre, présenter et marquer la frame CPU Tracy. Aucun délai artificiel.
+1. Platform collecte les événements natifs, transmet les événements à son adaptateur
+   ImGui et produit les entrées neutres horodatées. Fermeture et suspension sont traitées.
+2. Mesurer le delta ; debug_ui construit l’UI CPU depuis World et le dernier état
+   d’input. Runtime applique la demande neutre de capture, puis met en file les
+   événements différés du poll précédent et ceux du poll courant, dans cet ordre.
+3. Pour chaque pas fixe : demander le rejeu éventuel à platform, `input.advance(tick)`,
+   `World::beginStep`, appliquer les éditions UI par `World::teleport`, appeler
+   `game.fixedUpdate(world,{seconds,tick,inputs})`, puis `World::propagate`.
+   Seul game exécute déplacement, collisions, portes et caméra. Chaque transition
+   et impulsion n’est consommée qu’une fois.
+4. SceneRendering prépare les nouveaux handles de Model et retire les ressources
+   inutilisées avant enregistrement ; matrices, draws et scratch renderer sont réservés.
+5. Acquérir command buffer puis swapchain par `SDL_WaitAndAcquireGPUSwapchainTexture`,
+   VSYNC, deux frames en vol. Le second poll met les entrées en attente jusqu’à la
+   prochaine décision de capture UI. Une fermeture après acquisition soumet toujours.
+6. Sans texture, soumettre sans rendu et attendre un événement. Au resize, recréer
+   D32 à l’extent acquis et différer la libération précédente selon ADR-0004.
+7. Interpoler les TRS locaux (lerp/slerp court), recomposer parent avant enfant,
+   caméra et lumière comprises. Vue inverse, `perspectiveRH_ZO`, aspect acquis ;
+   DrawList = monde interpolé × instance glTF. Buffers pmr réutilisés ; renderer
+   ne voit jamais World. Un rejeu figé pour capture utilise alpha=1.
+8. Préparer les uploads UI, enregistrer renderer puis l’UI ; textures sRGB → facteur
+   × (Lambert + ambiant) linéaire → swapchain SDR_LINEAR. Soumettre, présenter et
+   marquer la frame Tracy ; aucune attente artificielle.
 
 Le test cube garde un ambiant nul et son shader Lambert original : référence,
 sondes et provenance inchangées. L’ambiant non nul sélectionne une variante de
@@ -373,11 +386,14 @@ Une action pressée entre deux pas fixes est mémorisée jusqu'au prochain pas e
 consommée une seule fois. Un état tenu reste disponible pour chaque pas ;
 les deltas souris ne sont pas répétés à chaque pas de rattrapage. Une frame sans
 simulation ne perd pas les transitions. Ces politiques sont testées sur CPU en
-phase 2 ; une perte de focus réinitialise les états sans touche bloquée.
+phase 3 ; une perte de focus réinitialise les états sans touche bloquée.
 
 Les conteneurs chauds sont réservés avant la scène, réutilisés et, lorsque
 pertinent, de type `std::pmr`. Une croissance déclenche une étape documentée de
-montée en charge. La DrawList est figée pendant sa consommation ; le stockage
+montée en charge. Input et file différée réservent 128 événements, avec croissance
+exceptionnelle journalisée. Le jeu réserve ses listes depuis la scène ; l’inspecteur
+réutilise sa pile de hiérarchie. Les demandes d’édition allouent seulement lors
+d’une interaction utilisateur, hors simulation ordinaire. La DrawList est figée pendant sa consommation ; le stockage
 reste valide jusqu'à la fin de l'enregistrement au MVP. Un futur thread de rendu
 devra transférer ou doubler ce stockage et différer les libérations de ressources,
 sans changer le contenu des packets.
@@ -401,8 +417,9 @@ Le test de fenêtre borné en CI ne remplace pas le contrôle visuel local ;
 l'exécution ASan doit couvrir les chemins réellement exercés, sans prétendre
 valider un backend non exécuté.
 
-La CI couvre configure, build, CTest et clang-format sur les trois OS en debug,
-release, shipping et profiling, plus ASan/UBSan et clang-tidy 18 sur Linux. La fenêtre Linux est testée sur X11
+La CI automatique couvre configure, build, CTest et clang-format sur Windows/Linux,
+en debug/release/shipping/profiling ; le workflow macOS manuel exécute les mêmes
+presets. ASan/UBSan et clang-tidy 18 sont requis sur Linux. La fenêtre Linux est testée sur X11
 avec Xvfb ; Wayland n'est pas exercé par ces jobs. Les presets sont `debug`,
 `release`, `profiling`, `shipping` sans UI et `asan-ubsan` sur Linux/macOS.
 Le README décrit les commandes de build et les prérequis
@@ -485,20 +502,11 @@ du graphe shipping accompagnent le cube hors écran et les captures interactives
 Le jalon cube est validé ; le triangle est remplacé, input et caméra orbitale
 sont implémentés. `scene` et l’extraction interpolée sont maintenant raccordés. L'[ADR-0005](adr/0005-pipeline-assets.md) fixe ces contrats.
 
-La phase 3 apporte World/EnTT, codecs extensibles par game et IDs persistants
-indépendants du registre. Les contrats acceptés ADR-0007/0008 fixent aussi les
-Euler, l'interpolation des TRS locaux avant recomposition et les mappings
-d'inputs compilés en IDs, à raccorder après les tests CPU de scène.
-La cible est un personnage non animé sur un sol,
-caméra suiveuse avec orbite, murs AABB et portes Interact à pivot (90°), chargés
-depuis `assets/scenes/*.json` ; collisions et composants associés vivent dans
-game. L'inspecteur affiche la hiérarchie et permet l'édition des transforms.
-
-Ordre après validation : scene (composants, hiérarchie, propagation, JSON) →
-extraction/interpolation et preuve analytique de scène hors écran → **arrêt pour
-validation intermédiaire** → input configurable → gameplay cible → inspecteur
-et affichage des inputs → documentation et bilan. Le module input reste inchangé
-jusqu'à la validation intermédiaire de la scène rendue hors écran.
+La phase 3 raccorde World/EnTT, codecs extensibles par game, IDs persistants,
+interpolation locale, mappings compilés, rejeu et inspecteur. La cible jouable
+est dans `game/` ; les composants AABB, portes, personnage et caméra se sérialisent
+sans modifier les codecs moteur. La preuve analytique de scène et les tests CPU
+précèdent le gameplay. Les phases suivantes attendent une nouvelle validation.
 
 | Extension hors MVP | Frontière préservée dès maintenant |
 | --- | --- |

@@ -1,79 +1,65 @@
-<!--
-Contrats de scène validés avant leur implémentation.
-Le format détaillé et les cas de vérification sont décrits dans SCENE.md.
--->
+<!-- Contrat de scène accepté ; schéma et exemples détaillés dans SCENE.md. -->
 # ADR-0007 — Scène, entités et sérialisation
 
 Date : 25 novembre 2026. Statut : **accepté**.
 
 ## Contexte
 
-Les scènes `assets/scenes/*.json` portent personnage, sol, murs, caméra et portes.
-EnTT v4.0.0 est utilisé depuis les en-têtes du cache CPM.
+La scène JSON doit porter personnage, murs et portes articulées, avec composants
+définis par game, interpolation et inspection. EnTT v4.0.0 est utilisé depuis ses en-têtes épinglés.
 
 ## Décision
 
-- **World.** `scene::World` possède un `entt::registry` directement accessible.
-  Structs plates dans `somnium` : PersistentId, Name, Transform (TRS locaux
-  précédent/courant, monde dérivé), Hierarchy, MeshRenderer (handle de Model),
-  Camera (FOV vertical, near/far), DirectionalLight (direction locale vers la source).
-  SceneSettings porte ambiant scalaire et fond RGBA linéaire ; caméra active par
-  entité, au plus une lumière. Caméras/lumières et ancêtres : échelle unitaire,
-  vérifiée au chargement, reparentage et changement de TRS, avec erreur contextualisée.
-  La caméra de suivi du jeu est une racine.
-- **Identités.** ID textuel stable, indépendant de Name et d'EnTT. World maintient
-  l'index ID → entité et `find(id)` pour le jeu. Création à l'exécution :
-  `runtime:<compteur hexadécimal 64 bits>`, compteur monotone sauvegardé dans
-  `nextId`, collisions sautées, épuisement signalé ; jamais de réutilisation
-  après destruction. Les IDs importés sont contrôlés pour unicité.
-- **Hiérarchie/temps.** Parent/premier enfant/frères précédent-suivant intrusifs :
-  aucune liste allouée par entité. Création, destruction de sous-arbre et
-  reparentage via World sont **immédiats**, interdits pendant un parcours gardé
-  (assertion debug, erreur en release). Les vues EnTT manuelles utilisent la même
-  garde. Cycles/parents invalides rejetés avant mutation ; parcours parent avant
-  enfant reconstruit aux changements structurels. Avant chaque pas : courant →
-  précédent ; après gameplay : propagation `mondeParent × T × R × S`.
-  `teleport`, création et reparentage synchronisent les historiques du sous-arbre.
-- **JSON/codecs.** Schéma v1 : version/nextId/settings/activeCamera/entities ;
-  entité id/components, composant version/data. Parents/caméra par ID, assets
-  par chemin logique ; aucun identifiant EnTT, handle ou monde sérialisé.
-  Table extensible de noms/versions et fonctions serialize/deserialize avec Result ;
-  game enregistre ses composants sans modifier le moteur. Par décision, l’en-tête
-  public des codecs expose `nlohmann::json` : les codecs du jeu sont des
-  sérialiseurs ; un format binaire peut partir de la même valeur. Ils utilisent
-  les lecteurs vérifiés `readString`, `readNumber`, `readVector3`, `requireFields`.
-  Contexte commun :
-  résolution différée d'IDs en **seconde passe**, accessible aussi aux codecs game
-  (porte → pivot). Composant/version inconnus, référence absente ou donnée invalide :
-  erreur contextualisée ; scène active inchangée. Sauvegarde ordonnée par ID.
-- **Assets/transaction.** Le contexte demande les modèles et contrôle Ready ;
-  Failed annule le chargement. World possède les demandes comptées et les libère
-  au déchargement ou à l'échec ; les demandes d'une autre scène restent valides.
-  Runtime fournit le contexte et le chemin inverse des handles.
-- **Rotations/extraction.** Euler fichier/UI en degrés, extrinsèques X puis Y
-  puis Z : `Rz × Ry × Rx` ; quaternions normalisés en mémoire. TRS finis,
-  échelles non nulles ; inversion de signe par téléportation. Runtime interpole
-  les TRS locaux à l'alpha fixe (lerp/slerp court), puis recompose la hiérarchie,
-  caméra comprise (vue inverse, RH_ZO, aspect cible). DrawList = monde interpolé
-  × instances glTF aplaties ; cache renderer par handle. **Une entité par modèle** :
-  porte = pivot de scène + mesh enfant, ouvrant/bâti séparés.
-- **Gameplay/UI.** start emprunte World et la configuration d’input, stop emprunte World ; fixedUpdate reçoit World, inputs,
-  dt et indice de pas. requestModel/lightDirection/ambient/clearColor/camera()
-  disparaissent du contrat ; aucun type renderer visible du jeu. Sandbox fournit
-  les chemins. Inspecteur : éditions en frontière de pas, via World/téléportation.
+- **World** possède directement `entt::registry`. Structs plates dans `somnium` :
+  PersistentId, Name, Transform (TRS locaux précédent/courant, monde dérivé),
+  Hierarchy, MeshRenderer (handle CPU Model), Camera, DirectionalLight ; réglages
+  de scène ambiant/fond et caméra active. Camera porte FOV vertical et near/far.
+  Caméras/lumières et ancêtres ont une échelle exactement unitaire, contrôlée au
+  chargement, reparentage et édition, avec erreur contextualisée. Caméra de suivi racine.
+- **Identité** : ID textuel stable, jamais EnTT ni Name. Index World ID → entité,
+  `find(id)` public. Création runtime : `runtime:<compteur hexadécimal 64 bits>`,
+  monotone persisté dans `nextId`, collisions sautées, épuisement signalé ; aucune
+  réutilisation après destruction. IDs importés uniques.
+- **Hiérarchie** intrusive parent/premier-dernier enfant/frères, sans liste allouée
+  par entité. Création, destruction de sous-arbre et reparentage immédiats via World,
+  interdits pendant un parcours gardé (assertion debug, erreur release), y compris
+  les vues EnTT manuelles. Cycles/parents invalides rejetés avant mutation ; ordre
+  parent avant enfant reconstruit aux changements structurels.
+- **Persistance** : JSON v1 `version/nextId/settings/activeCamera/entities`, composants
+  `version/data`. Références par ID, assets par chemin logique ; aucun handle,
+  EnTT ou monde dérivé persisté. Table de codecs extensible par game, fonctions
+  avec Result ; version/composant inconnu ou donnée invalide fait échouer le chargement.
+  Par décision, les codecs exposent publiquement `nlohmann::json` : ce sont des
+  sérialiseurs, un format binaire pouvant partir de la même valeur. Game utilise
+  `readString/readNumber/readVector3/requireFields` et le même résolveur d’entités
+  en seconde passe que le moteur (porte → pivot), sans adresse de composant capturée.
+- **Transaction** : World temporaire, résolution, validation et propagation avant
+  publication. Le contexte demande les modèles ; Failed annule tout. World relâche
+  ses demandes comptées à l’échec/déchargement, sans invalider celles d’une autre scène.
+  Sauvegarde ordonnée par ID ; schéma détaillé dans [SCENE.md](../SCENE.md).
+- **Temps/extraction** : début de pas courant → précédent ; gameplay puis propagation
+  `mondeParent × T × R × S`. Téléportation/création/reparentage synchronisent le
+  sous-arbre. Euler fichier/UI en degrés, extrinsèques X/Y/Z (`Rz × Ry × Rx`),
+  quaternions normalisés en mémoire ; TRS finis, échelle non nulle, changement de signe
+  par téléportation. Runtime interpole les TRS locaux (lerp/slerp court), recompose,
+  puis extrait DrawList, caméra et lumière ; vue inverse, RH_ZO, aspect acquis.
+  Une entité par modèle glTF aplati : porte = pivot de scène + modèle enfant séparé.
+- **Gameplay/UI** : start emprunte World et Configuration ; fixedUpdate reçoit World,
+  inputs, dt et tick ; stop reçoit World. Aucun requestModel, réglage de rendu ou
+  camera() dans le contrat, aucun type renderer visible du jeu. L’inspecteur lit
+  World et groupe les demandes par ID ; runtime les applique par teleport au prochain
+  pas. Actions/axes sont affichés en lecture seule ; UI absente de shipping.
 
 ## Alternatives
 
-Nœuds glTF exposés : refonte d'import inutile ici. Handles persistés : identité
-fragile. Interpolation monde : pivots incorrects. Composants ignorés : collisions perdues.
+Nœuds glTF exposés : import inutilement remanié. Handles persistés : identité fragile.
+Interpolation monde : pivots incorrects. Composants inconnus ignorés : collisions perdues.
 
 ## Conséquences
 
-Runtime → renderer devient privé ; AABB et portes Interact à 90° restent dans game.
-Tests CPU : identités, garde structurelle, codecs game/références, transaction/assets,
-échelles, aller-retour, cycles, propagation et interpolation/extraction/caméra.
-Preuve JSON : pivot/enfant décentré tourné, occultation, trois poses ; oracle
-analytique, références/sondes/provenance versionnées, PNG LFS. Centres exacts,
-2/255 et 0,1 %, régénération explicite et validation GPU comme D5/cube.
+Runtime → renderer est privé ; AABB et portes restent dans game. Tests CPU de
+persistance, transactions, structure, extraction/interpolation et gameplay. La scène
+hors écran utilise trois poses, un oracle analytique commun et des sondes exactes
+avec seuils D5 ; aucune référence dérivée d’une capture.
 
-Preuves : CPU et trois poses GPU validés en CI D3D12/Vulkan Radeon, lavapipe et Metal (images exactes) ; présentation Metal orbite/zoom/reset en échec, inspecteur et gameplay cible après validation du point de contrôle.
+Preuves : CPU et trois poses GPU validés sur les trois backends ; captures finales Windows en cours, comparaison de présentation Metal en échec non bloquant (voir le bilan de phase 3).

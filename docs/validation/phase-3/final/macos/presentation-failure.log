@@ -1,0 +1,40 @@
+[capture-metal] /Users/runner/somnium-ci/tools/python/bin/python3 /Users/runner/work/Somnium/Somnium/tools/presentation/capture_macos.py --executable /Users/runner/somnium-ci/runs/45704526805-1/build/debug/bin/sandbox --output /Users/runner/somnium-ci/runs/45704526805-1/presentation-metal
+{
+  "origin": "CI Darwin",
+  "backend": "metal",
+  "source_commit": "f54d0e52d7f7109063f1adf146f64750b788c17f",
+  "source_dirty": false,
+  "binary_sha256": "dda7f5ebe1b7d17d9054e89d9c155630f09d272cd2d3d8bd4ce25b5e7333ab9c",
+  "replay_sha256": "70086d39e288d12dd8512bbbdc17f58371897c71962a156561ede1144fa01971",
+  "scenario_sha256": "20f0555f7cfecfd89cae87374c58083a183615db58fa5ddf11bb7d7ed2e64db4",
+  "input_source": "platform fixed-step replay (no OS input)",
+  "status": "échec",
+  "captures": [
+    {
+      "name": "initial.png",
+      "steps": 1,
+      "sha256": "dee99646444484b783d24acd4d0b71e9196898d524e913f8bf2c6df8fb5cf7c5"
+    },
+    {
+      "name": "movement.png",
+      "steps": 45,
+      "sha256": "04cf4ad9104d4c899bd5c3b1655cc17bd063d603d396e17f5bf9271d845ceaa4"
+    },
+    {
+      "name": "wall.png",
+      "steps": 205,
+      "sha256": "e95b2749eb439ea5cff6829ebc3de224e6b8608eeaafcb2f8e7266c89ce50b29"
+    },
+    {
+      "name": "door-open.png",
+      "steps": 345,
+      "sha256": "eff0abf0f0e108b3a41333715c9caea9b943814e93ceec63e1dc15653a62b4d1"
+    },
+    {
+      "name": "inspector.png",
+      "steps": 415,
+      "sha256": "c40ee03cf2a7c7e6a843a3a20e87643bc7fe6e2e5b3bc9d542e1c30af64b539b"
+    }
+  ],
+  "reason": "Capture dimensions differ"
+}

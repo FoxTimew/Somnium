@@ -1,7 +1,7 @@
 <!-- Mapping et rejeu neutres : contrat public de phase 3. -->
 # Entrées configurables à pas fixe
 
-`assets/input/orbit.json` illustre le schéma **version 1** : tableaux `actions`
+`assets/input/courtyard.json` illustre le schéma **version 1** : tableaux `actions`
 et `axes`, noms uniques entre les deux. Une action contient `name`, `bindings` ;
 un axe ajoute `mode` (`rate` ou `delta`). Chaque binding contient `source` :
 `key`, `mouseButton`, `gamepadButton`, `gamepadAxis`, `mouseX`, `mouseY`,
@@ -46,14 +46,14 @@ La file et le journal réservent 128 entrées, grandissent si nécessaire ; les
 
 ## Rejeu et captures
 
-`assets/replays/orbit.json`, schéma version 1, contient `events` ordonnés par
+`assets/replays/courtyard.json`, schéma version 1, contient `events` ordonnés par
 `step` (entier depuis zéro), puis `kind` : key/mouseButton/gamepadButton avec
 control/down ; mouseMotion/mouseWheel avec x/y ; gamepadAxis avec control/value ;
 gamepadConnected/gamepadDisconnected ; focusLost. Les événements manette ont
 un `device` entier neutre. Champs inconnus, contrôles inconnus, valeurs non finies,
 axes hors [-32768,32767] et pas désordonnés sont rejetés avant installation.
 
-`sandbox --replay replays/orbit.json` installe `platform::InputReplay` : les
+`sandbox --replay replays/courtyard.json` installe `platform::InputReplay` : les
 événements physiques de gameplay sont écartés, les événements de fenêtre restent
 actifs. Runtime demande les événements à platform avant chaque pas, y compris
 pendant un rattrapage. `--capture-step N` exige un rejeu, fige la simulation après
@@ -65,3 +65,21 @@ lecture dans la session personnelle peuvent gêner le travail ou être masquées
 Les preuves GPU hors écran et le test de fenêtre restent requis. Les scénarios
 Linux/macOS utilisent exactement le même rejeu ; leurs pixels restent des
 captures de présentation, distinctes des références analytiques hors écran.
+
+## Mapping de la cible et routage UI
+
+`Orbit`, `Reset`, `Interact` appartiennent à game ; axes `MoveX/MoveZ`,
+`MouseYaw/MousePitch/WheelZoom`, `StickYaw/StickPitch/TriggerZoom`.
+Les touches sont physiques : W/A/S/D correspondent aux positions Z/Q/S/D sur
+AZERTY. Le stick gauche déplace ; E/bouton sud interagit, R/bouton nord réinitialise.
+
+Runtime construit l’UI après le premier poll et applique sa demande de capture
+avant de mettre en file les événements de cette frame. Le second poll, après
+acquisition, est différé jusqu’à la décision UI suivante. Les événements déjà
+en file gardent leur ordre. Les éditions TRS passent par une autre file, consommée
+après `World::beginStep`, sans modifier World pendant son affichage.
+
+Le scénario `tools/presentation/courtyard.json` choisit les pas de capture et la
+région de comparaison hors panneaux : déplacement, mur, porte ouverte, inspecteur.
+Il contrôle aussi les marqueurs du gameplay (personnage bloqué et état des deux
+portes). Ces comparaisons de présentation ne remplacent pas les oracles D5/cube/scène.

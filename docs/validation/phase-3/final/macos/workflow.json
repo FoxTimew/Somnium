@@ -1,0 +1,8 @@
+{
+  "run": 45704526805,
+  "job": 139522960620,
+  "url": "https://github.com/FoxTimew/Somnium/actions/runs/45704526805/job/139522960620",
+  "head_sha": "f54d0e52d7f7109063f1adf146f64750b788c17f",
+  "conclusion": "failure",
+  "archive": "Selected evidence; checkout source SHA is recorded in each result or run.json."
+}

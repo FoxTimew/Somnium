@@ -178,9 +178,13 @@ Il réutilise le build debug Windows du même run, sans transfert d'artefact. La
 le bureau libre pendant ce job ; voir le [guide](DEMARRER_RUNNERS.md).
 Aucun assouplissement de politique
 de contrôle d'application. Un blocage doit être rapporté avec le message exact.
-macOS est manuel, ses deux jobs indépendants conservent leurs résultats seulement
-sur le runner éphémère et dans les résumés ; publier une pièce retenue nécessite
-une copie explicite pendant le run. Les anciennes preuves Metal restent historiques.
+macOS est manuel, ses deux jobs indépendants utilisent des disques éphémères.
+Les petits PNG de scène et, après succès de la comparaison, de présentation sont
+aussi conservés dans le journal avec empreinte SHA-256 et données encodées, puis
+archivés explicitement dans le dépôt sous LFS. Limite actuelle : un échec avant
+cette publication laisse les PNG de présentation sur le disque éphémère seulement
+(cas macOS de phase 3 documenté dans le bilan). Aucun service d’artefacts GitHub. Les anciens résultats Metal
+restent historiques et ne prouvent pas un nouveau commit.
 
 Sources : [runner GitHub](https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/configure-the-application),
 [approbations des forks](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository),
@@ -195,3 +199,6 @@ Windows, Linux et macOS. Les scripts ne changent ni focus ni pointeur. La fenêt
 visible et sa capture peuvent néanmoins gêner la session personnelle ou être
 masquées : ce risque justifie le maintien manuel. Le job requis conserve le test
 de fenêtre et D5/cube/scène hors écran. Voir [INPUT.md](INPUT.md).
+Le contrôle Windows refuse aussi toute fenêtre visible au-dessus qui recouvre
+la zone cliente, même si le sandbox possède le premier plan ; vérification avant
+et après capture, sans lire le titre ou le contenu des autres fenêtres.

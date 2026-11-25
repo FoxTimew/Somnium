@@ -1,0 +1,160 @@
+{
+  "width": 192,
+  "height": 192,
+  "channel_tolerance": 2,
+  "max_different_fraction": 0.001,
+  "shaders": {
+    "vertex": "modelVertex.vsMain.vert.json",
+    "fragment": "modelFragment.psMain.frag.json"
+  },
+  "fixture": "hierarchy.glb",
+  "scene": "hierarchy.json",
+  "pivot": "pivot",
+  "next_rotation_degrees": [
+    0,
+    90,
+    0
+  ],
+  "poses": [
+    {
+      "name": "previous",
+      "alpha": 0,
+      "probes": [
+        {
+          "name": "background",
+          "x": 10,
+          "y": 10,
+          "face": "background",
+          "rgba": [
+            0,
+            0,
+            0,
+            255
+          ]
+        },
+        {
+          "name": "front",
+          "x": 105,
+          "y": 96,
+          "face": "front",
+          "rgba": [
+            0,
+            255,
+            255,
+            255
+          ]
+        }
+      ]
+    },
+    {
+      "name": "actual",
+      "alpha": 0.5,
+      "probes": [
+        {
+          "name": "background",
+          "x": 10,
+          "y": 10,
+          "face": "background",
+          "rgba": [
+            0,
+            0,
+            0,
+            255
+          ]
+        },
+        {
+          "name": "front",
+          "x": 100,
+          "y": 96,
+          "face": "front",
+          "rgba": [
+            0,
+            219,
+            219,
+            255
+          ]
+        },
+        {
+          "name": "top",
+          "x": 86,
+          "y": 96,
+          "face": "top",
+          "rgba": [
+            219,
+            219,
+            0,
+            255
+          ]
+        }
+      ]
+    },
+    {
+      "name": "current",
+      "alpha": 1,
+      "probes": [
+        {
+          "name": "background",
+          "x": 10,
+          "y": 10,
+          "face": "background",
+          "rgba": [
+            0,
+            0,
+            0,
+            255
+          ]
+        },
+        {
+          "name": "top",
+          "x": 70,
+          "y": 96,
+          "face": "top",
+          "rgba": [
+            255,
+            255,
+            0,
+            255
+          ]
+        }
+      ]
+    }
+  ],
+  "probes": [
+    {
+      "name": "background",
+      "x": 10,
+      "y": 10,
+      "face": "background",
+      "rgba": [
+        0,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "front",
+      "x": 100,
+      "y": 96,
+      "face": "front",
+      "rgba": [
+        0,
+        219,
+        219,
+        255
+      ]
+    },
+    {
+      "name": "top",
+      "x": 86,
+      "y": 96,
+      "face": "top",
+      "rgba": [
+        219,
+        219,
+        0,
+        255
+      ]
+    }
+  ]
+}

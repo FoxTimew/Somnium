@@ -25,7 +25,8 @@ Les scripts [tools/ci](../tools/ci/) sont communs au local et aux workflows.
 Caches CPM/shaders/sccache sur disque par hash, sorties par run et rétention
 14 jours ; aucune action cache/upload/download. Installation, sécurité et preuves
 reproductibles dans [CI_RUNNER.md](CI_RUNNER.md). Les résultats des nouveaux
-runners sont consignés dans le [bilan de phase 2](validation/phase-2/FIN_DE_PHASE.md) ; aucun ancien résultat WARP
+runners sont consignés dans les [bilans de phase 2](validation/phase-2/FIN_DE_PHASE.md) et
+[phase 3](validation/phase-3/FIN_DE_PHASE.md) ; aucun ancien résultat WARP
 ou Metal n'est présenté comme validation d'un commit non exécuté.
 
 ## Ce qui est déjà prouvé
@@ -75,7 +76,7 @@ captures ont le même SHA-256 que la référence commune ; celle-ci n'a pas chan
 Le label de rendu `macos-15` désigne ici **arm64**, pas `macos-15-intel`.
 GitHub évoque le retrait de macOS 15 à l’**automne 2027**
 [dans l’annonce de fin du support Intel](https://github.blog/changelog/2025-09-19-github-actions-macos-13-runner-image-is-closing-down/).
-Cet horizon sert à préparer la migration ; au 21 octobre 2026, l’annonce ne donne
+Cet horizon sert à préparer la migration ; vérifié le 25 novembre 2026, l’annonce ne donne
 aucun jour de retrait propre au label arm64. La date **août 2027** du [ticket Intel](https://github.com/actions/runner-images/issues/13045)
 concerne `macos-15-intel` et ne doit pas être présentée comme date arm64 confirmée.
 La migration du job Metal exige d'abord un probe SDK indépendant et D5 verts

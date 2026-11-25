@@ -1,0 +1,79 @@
+[shader-toolchain] /Users/runner/somnium-ci/tools/python/bin/python3 /Users/runner/work/Somnium/Somnium/tools/shader_toolchain/build.py --provider source --jobs 3 --cache-root /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a --report-dir /Users/runner/somnium-ci/runs/45704526805-1/shader-toolchain
+[dxc-init] git init /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/sources/dxc-01b62ad47db7dee3dd33f90e7339cf9e860b3f93
+[dxc-init] exit=0, 0.052s
+[dxc-remote] git remote add origin https://github.com/microsoft/DirectXShaderCompiler.git
+[dxc-remote] exit=0, 0.01s
+[dxc-fetch] git fetch --depth 1 origin 01b62ad47db7dee3dd33f90e7339cf9e860b3f93
+[dxc-fetch] exit=0, 6.01s
+[dxc-checkout] git checkout --detach FETCH_HEAD
+[dxc-checkout] exit=0, 3.267s
+[dxc-revision] git rev-parse HEAD
+[dxc-revision] exit=0, 0.015s
+[dxc-submodules] git submodule update --init --recursive --depth 1
+[dxc-submodules] exit=0, 5.471s
+[dxc-submodule-revisions] git submodule status --recursive
+[dxc-submodule-revisions] exit=0, 0.349s
+[dxc-configure] cmake -S /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/sources/dxc-01b62ad47db7dee3dd33f90e7339cf9e860b3f93 -B /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/dxc-build -G Ninja -C /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/sources/dxc-01b62ad47db7dee3dd33f90e7339cf9e860b3f93/cmake/caches/PredefinedParams.cmake -DCMAKE_BUILD_TYPE=Release -DHLSL_INCLUDE_TESTS=OFF -DLLVM_INCLUDE_TESTS=OFF -DSPIRV_BUILD_TESTS=OFF -DLLVM_INCLUDE_BENCHMARKS=OFF -DLLVM_ENABLE_ASSERTIONS=OFF -DLLVM_PARALLEL_LINK_JOBS=1
+[dxc-configure] exit=0, 26.09s
+[dxc-build] cmake --build /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/dxc-build --target dxc dxcompiler dxildll --parallel 3
+[dxc-build] exit=0, 653.548s
+[sdl-init] git init /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/sources/sdl-829a65d769d935c4852f8159e964312c0957260a
+[sdl-init] exit=0, 0.034s
+[sdl-remote] git remote add origin https://github.com/libsdl-org/SDL.git
+[sdl-remote] exit=0, 0.017s
+[sdl-fetch] git fetch --depth 1 origin 829a65d769d935c4852f8159e964312c0957260a
+[sdl-fetch] exit=0, 1.361s
+[sdl-checkout] git checkout --detach FETCH_HEAD
+[sdl-checkout] exit=0, 0.463s
+[sdl-revision] git rev-parse HEAD
+[sdl-revision] exit=0, 0.008s
+[spirv_cross-init] git init /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/sources/spirv_cross-f11ba9f0b21ba8fc15153d50a2a1ae31ab1cf8f7
+[spirv_cross-init] exit=0, 0.013s
+[spirv_cross-remote] git remote add origin https://github.com/KhronosGroup/SPIRV-Cross.git
+[spirv_cross-remote] exit=0, 0.008s
+[spirv_cross-fetch] git fetch --depth 1 origin f11ba9f0b21ba8fc15153d50a2a1ae31ab1cf8f7
+[spirv_cross-fetch] exit=0, 0.731s
+[spirv_cross-checkout] git checkout --detach FETCH_HEAD
+[spirv_cross-checkout] exit=0, 0.969s
+[spirv_cross-revision] git rev-parse HEAD
+[spirv_cross-revision] exit=0, 0.021s
+[shadercross-init] git init /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/sources/shadercross-1ff05bec573988a98ef9e0260b4da44f512b8367
+[shadercross-init] exit=0, 0.04s
+[shadercross-remote] git remote add origin https://github.com/libsdl-org/SDL_shadercross.git
+[shadercross-remote] exit=0, 0.019s
+[shadercross-fetch] git fetch --depth 1 origin 1ff05bec573988a98ef9e0260b4da44f512b8367
+[shadercross-fetch] exit=0, 0.472s
+[shadercross-checkout] git checkout --detach FETCH_HEAD
+[shadercross-checkout] exit=0, 0.024s
+[shadercross-revision] git rev-parse HEAD
+[shadercross-revision] exit=0, 0.009s
+[shadercross-configure] cmake -S /Users/runner/work/Somnium/Somnium/tools/shader_toolchain -B /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/cli-build -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/install/source -DSOMNIUM_DXC_ROOT=/Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/source-dxc -DSOMNIUM_SDL_SOURCE=/Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/sources/sdl-829a65d769d935c4852f8159e964312c0957260a -DSOMNIUM_SPIRV_CROSS_SOURCE=/Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/sources/spirv_cross-f11ba9f0b21ba8fc15153d50a2a1ae31ab1cf8f7 -DSOMNIUM_SHADERCROSS_SOURCE=/Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/sources/shadercross-1ff05bec573988a98ef9e0260b4da44f512b8367
+[shadercross-configure] exit=0, 31.656s
+[shadercross-build] cmake --build /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/cli-build --target shadercross --parallel 3
+[shadercross-build] exit=0, 48.739s
+[shadercross-install] cmake --install /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/cli-build
+[shadercross-install] exit=0, 1.821s
+[consumer-configure] cmake -S /Users/runner/work/Somnium/Somnium/tools/shader_toolchain/verify -B /Users/runner/somnium-ci/runs/45704526805-1/shader-toolchain/consumer -DSOMNIUM_SHADERCROSS_EXECUTABLE=/Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/install/source/bin/shadercross
+[consumer-configure] exit=0, 0.13s
+[consumer-missing-tool] cmake -S /Users/runner/work/Somnium/Somnium/tools/shader_toolchain/verify -B /Users/runner/somnium-ci/runs/45704526805-1/shader-toolchain/consumer-missing -DSOMNIUM_SHADERCROSS_EXECUTABLE=/Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/absent-shadercross
+[consumer-missing-tool] exit=1, 0.095s
+[dxc-version] /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/install/source/bin/dxc --version
+[dxc-version] exit=0, 0.013s
+[compile-vert-SPIRV] /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/install/source/bin/shadercross /Users/runner/work/Somnium/Somnium/tools/shader_toolchain/fixtures/probe.vert.hlsl -s HLSL -t vertex -e vsMain -I /Users/runner/work/Somnium/Somnium/tools/shader_toolchain/fixtures -d SPIRV --msl-version 2.3.0 -o /Users/runner/somnium-ci/runs/45704526805-1/shader-toolchain/probe.vert.spirv
+[compile-vert-SPIRV] exit=0, 0.033s
+[compile-vert-DXIL] /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/install/source/bin/shadercross /Users/runner/work/Somnium/Somnium/tools/shader_toolchain/fixtures/probe.vert.hlsl -s HLSL -t vertex -e vsMain -I /Users/runner/work/Somnium/Somnium/tools/shader_toolchain/fixtures -d DXIL --msl-version 2.3.0 -o /Users/runner/somnium-ci/runs/45704526805-1/shader-toolchain/probe.vert.dxil
+[compile-vert-DXIL] exit=0, 0.033s
+[compile-vert-MSL] /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/install/source/bin/shadercross /Users/runner/work/Somnium/Somnium/tools/shader_toolchain/fixtures/probe.vert.hlsl -s HLSL -t vertex -e vsMain -I /Users/runner/work/Somnium/Somnium/tools/shader_toolchain/fixtures -d MSL --msl-version 2.3.0 -o /Users/runner/somnium-ci/runs/45704526805-1/shader-toolchain/probe.vert.msl
+[compile-vert-MSL] exit=0, 0.024s
+[reflect-vert] /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/install/source/bin/shadercross /Users/runner/somnium-ci/runs/45704526805-1/shader-toolchain/probe.vert.spirv -s SPIRV -d JSON -t vertex -e vsMain -o /Users/runner/somnium-ci/runs/45704526805-1/shader-toolchain/probe.vert.json
+[reflect-vert] exit=0, 0.025s
+[compile-frag-SPIRV] /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/install/source/bin/shadercross /Users/runner/work/Somnium/Somnium/tools/shader_toolchain/fixtures/probe.frag.hlsl -s HLSL -t fragment -e psMain -I /Users/runner/work/Somnium/Somnium/tools/shader_toolchain/fixtures -d SPIRV --msl-version 2.3.0 -o /Users/runner/somnium-ci/runs/45704526805-1/shader-toolchain/probe.frag.spirv
+[compile-frag-SPIRV] exit=0, 0.024s
+[compile-frag-DXIL] /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/install/source/bin/shadercross /Users/runner/work/Somnium/Somnium/tools/shader_toolchain/fixtures/probe.frag.hlsl -s HLSL -t fragment -e psMain -I /Users/runner/work/Somnium/Somnium/tools/shader_toolchain/fixtures -d DXIL --msl-version 2.3.0 -o /Users/runner/somnium-ci/runs/45704526805-1/shader-toolchain/probe.frag.dxil
+[compile-frag-DXIL] exit=0, 0.031s
+[compile-frag-MSL] /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/install/source/bin/shadercross /Users/runner/work/Somnium/Somnium/tools/shader_toolchain/fixtures/probe.frag.hlsl -s HLSL -t fragment -e psMain -I /Users/runner/work/Somnium/Somnium/tools/shader_toolchain/fixtures -d MSL --msl-version 2.3.0 -o /Users/runner/somnium-ci/runs/45704526805-1/shader-toolchain/probe.frag.msl
+[compile-frag-MSL] exit=0, 0.032s
+[reflect-frag] /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/install/source/bin/shadercross /Users/runner/somnium-ci/runs/45704526805-1/shader-toolchain/probe.frag.spirv -s SPIRV -d JSON -t fragment -e psMain -o /Users/runner/somnium-ci/runs/45704526805-1/shader-toolchain/probe.frag.json
+[reflect-frag] exit=0, 0.02s
+[invalid-hlsl] /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a/install/source/bin/shadercross /Users/runner/somnium-ci/runs/45704526805-1/shader-toolchain/invalid.hlsl -s HLSL -d SPIRV -t vertex -e vsMain -o /Users/runner/somnium-ci/runs/45704526805-1/shader-toolchain/invalid.spirv
+[invalid-hlsl] exit=1, 0.023s

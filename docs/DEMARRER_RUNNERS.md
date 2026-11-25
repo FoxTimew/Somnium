@@ -57,7 +57,11 @@ injection clavier/souris, aucun clic d’activation ni déplacement du pointeur.
 Elles restent manuelles car leurs fenêtres visibles peuvent gêner la session de
 travail ou être masquées. Garder la session déverrouillée et le bureau libre.
 Si Windows refuse le premier plan au sandbox, le script échoue explicitement ;
-il ne tente pas de reprendre le focus. Voir [le contrat de rejeu](INPUT.md).
+il ne tente pas de reprendre le focus. Fermer aussi les fenêtres flottantes
+(vidéo, notifications persistantes) : le premier plan ne suffit pas à exclure
+une fenêtre toujours au-dessus. Le script vérifie les recouvrements avant et
+après lecture des pixels et refuse l’image si la surface est masquée ou déplacée.
+Voir [le contrat de rejeu](INPUT.md).
 
 Depuis un terminal disposant de GitHub CLI, sélectionner explicitement la branche :
 
@@ -65,13 +69,9 @@ Depuis un terminal disposant de GitHub CLI, sélectionner explicitement la branc
 gh workflow run ci.yml --repo FoxTimew/Somnium --ref phase/3-scene -f presentation=true
 ```
 
-Ce lancement par branche a été exécuté le 25 novembre 2026, après la fusion de
-la PR #5, sans changement de la branche par défaut.
-
-Le bouton Actions → CI self-hosted → Run workflow sera disponible lorsque la
-version de `ci.yml` sur la branche par défaut déclarera workflow_dispatch. Choisir
-alors la branche à prouver et cocher presentation. Ne pas fusionner dans main
-uniquement pour faire apparaître ce bouton.
+Le workflow est présent sur `main`, branche par défaut. Dans Actions →
+CI self-hosted → Run workflow, choisir la branche à prouver et cocher presentation.
+Le lancement manuel ne change ni la branche par défaut ni les commits.
 
 Le job windows-presentation attend le build Windows du même run, utilise ses
 binaires debug puis conserve les captures dans

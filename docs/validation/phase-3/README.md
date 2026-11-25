@@ -4,8 +4,8 @@ Les images sont les captures des jobs, vérifiées contre leurs empreintes publi
 
 Code : `02340d9a7c1f876365fcb0f59640a077840c0713`, branche `phase/3-scene`,
 [PR #6](https://github.com/FoxTimew/Somnium/pull/6). Aucun tag de phase 3 ni fusion
-dans main. Le point de contrôle attend la validation avant input configurable,
-gameplay cible et inspecteur.
+dans main. Le point de contrôle est validé par le propriétaire. Les étapes suivantes et
+leurs preuves sont consignées dans le [bilan de fin de phase](FIN_DE_PHASE.md).
 
 [CI requise verte](https://github.com/FoxTimew/Somnium/actions/runs/45682666750),
 25 novembre 2026. GitHub a testé la fusion provisoire de PR

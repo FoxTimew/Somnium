@@ -1,0 +1,18 @@
+{
+  "cube-metal/result.json": "ad9084f7eb2933bd3ef260bf5243234d04250d6faa87af275e743e74fe8a63aa",
+  "cube-metal/validation.log": "7fdfc5ebd39beb405fc6e41b1bbadb2ce3c9374c1505bc8f8edf18f50431062b",
+  "d5-metal/result.json": "d99041738b682afe6f87ca9a8dc92563f57637ca5e0d80ed9172c213afa21076",
+  "d5-metal/validation.log": "132e369016440f248f70ef9e753dc7fe56ab919681ffde0b7d13c368d2b9d368",
+  "format.log": "cbfb3612bb258e6924ef064a07dc500da9e467887d6d663ef21e9731ed5fed59",
+  "presentation-failure.log": "08d04f0d11861fd31cdc836818ad51a6d9a6d84ea25b4dbf060990ff0a05849c",
+  "presentation-result.json": "19bd8a5b744d00c4653b47e6617827e4cd3b1308ea1b145085a1b1bf7e378e45",
+  "scene-metal/actual.png": "2289aa8dca6d1b9a951993577e2bf5554ea4ea1ee553d28531457626f12e4975",
+  "scene-metal/current.png": "214827bb532201a4468e1c9fd22f2637a86d2ba0e6e627219ad65a6f515437c3",
+  "scene-metal/previous.png": "403d9f4b0f3ca769f4a3b9480083f1ced8d272e9ffa10afae659c1cac1f2eaf9",
+  "scene-metal/result.json": "464c75a54dabb405a97d9e4347278e2d05b2eaac011ef44b7fa2019dd9832178",
+  "scene-metal/validation.log": "8393a61f852b3a48291f105024fdf0375e557384b0398ef41f8b26de69606d81",
+  "shader-toolchain.log": "b8ab71c44942b988ba74bfaa284e2b704987aaa61adc5b3e3df1fa1b07f96a88",
+  "SUMMARY.md": "23b0ec73ab1a1c306c84c607ce77d505fcf33509613078f301c2b6391cd28776",
+  "test-debug.log": "d6f51490885493be519e2fbcbf16ac85e110f2672769651a5614542e9602a571",
+  "workflow.json": "7b7b4589dd03617b1ebad64411567f6fc645370184ffa6ce4c011e5fb7cb2b51"
+}
