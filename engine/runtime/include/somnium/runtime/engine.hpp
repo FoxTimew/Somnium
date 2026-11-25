@@ -4,6 +4,7 @@
 
 #include <somnium/core/result.hpp>
 #include <somnium/runtime/gameplay.hpp>
+#include <somnium/scene/serialization.hpp>
 
 #include <cstdint>
 #include <memory>
@@ -11,10 +12,11 @@
 
 namespace somnium::runtime {
 struct EngineConfig {
-    std::string_view title = "Somnium - Phase 2";
+    std::string_view title = "Somnium - Phase 3";
     int width = 1280;
     int height = 720;
     std::string_view resourceRoot;
+    std::string_view scenePath;
     // Empty selects D3D12 on Windows, Metal on macOS and Vulkan on Linux.
     std::string_view backend;
 };
@@ -35,7 +37,8 @@ class Engine final {
     ~Engine();
     Engine(const Engine&) = delete;
     Engine& operator=(const Engine&) = delete;
-    [[nodiscard]] Result<RunStats> run(Gameplay& game, RunOptions options = {});
+    [[nodiscard]] Result<RunStats> run(Gameplay& game, const scene::CodecRegistry& codecs,
+                                       RunOptions options = {});
 
   private:
     struct Impl;

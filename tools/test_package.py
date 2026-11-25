@@ -10,6 +10,7 @@ import tempfile
 parser = argparse.ArgumentParser()
 parser.add_argument("--executable", type=Path, required=True)
 parser.add_argument("--model", type=Path, required=True)
+parser.add_argument("--scene", type=Path, required=True)
 args = parser.parse_args()
 source = args.executable.resolve()
 with tempfile.TemporaryDirectory(prefix="somnium-package-") as temporary:
@@ -26,7 +27,13 @@ with tempfile.TemporaryDirectory(prefix="somnium-package-") as temporary:
                               stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=30)
     missing = launch()
     print(missing.stdout)
-    assert missing.returncode == 1 and "Model load failed: models/orbit-cube.glb" in missing.stdout, "Shipping must not fall back to repository sources"
+    assert missing.returncode == 1 and "scenes/orbit.json" in missing.stdout, "Shipping must not fall back to repository scenes"
+    scenes = package / "assets/scenes"
+    scenes.mkdir()
+    shutil.copy2(args.scene, scenes / "orbit.json")
+    missing_model = launch()
+    print(missing_model.stdout)
+    assert missing_model.returncode == 1 and "models/orbit-cube.glb" in missing_model.stdout, "Shipping must not fall back to repository models"
     models = package / "assets/models"
     models.mkdir()
     shutil.copy2(args.model, models / "orbit-cube.glb")

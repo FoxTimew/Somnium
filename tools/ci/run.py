@@ -3,6 +3,7 @@
 Only summaries use GitHub environment variables; no operation requires GitHub.
 """
 import argparse
+import base64
 import contextlib
 import ctypes
 from datetime import datetime, timezone
@@ -277,7 +278,7 @@ class Runner:
 
     def gpu(self, backend):
         env = self.gpu_environment(backend)
-        for test, executable in [("d5", "somnium_gpu_offscreen"), ("cube", "somnium_renderer_offscreen")]:
+        for test, executable in [("d5", "somnium_gpu_offscreen"), ("cube", "somnium_renderer_offscreen"), ("scene", "somnium_scene_offscreen")]:
             output = self.run / (test + "-" + backend)
             arguments = ["--test", test, "--executable", self.build_dir("debug") / "bin" / (executable + self.suffix),
                          "--backend", backend, "--output", output]
@@ -288,6 +289,18 @@ class Runner:
             if SYSTEM == "Windows" and "6600M" not in report.get("device", {}).get("device", ""):
                 raise RuntimeError("Windows GPU proof did not use Radeon RX 6600M")
             self.summary(f"{test} {backend}: **{report['status']}** — `{output}`")
+            # Hosted macOS disks disappear after the job. Preserve only the three
+            # small scene images in ordinary logs, without an artifact service.
+            if SYSTEM == "Darwin" and test == "scene":
+                for name in ["previous", "actual", "current"]:
+                    path = output / (name + ".png")
+                    if path.exists():
+                        data = path.read_bytes()
+                        if len(data) > 1024 * 1024:
+                            raise RuntimeError("Scene log capture exceeds 1 MiB")
+                        print("SOMNIUM_SCENE_IMAGE " + json.dumps({"name": path.name,
+                              "sha256": hashlib.sha256(data).hexdigest(),
+                              "base64": base64.b64encode(data).decode("ascii")}), flush=True)
         self.call("composition-" + backend, [self.build_dir("debug") / "bin" / ("somnium_gpu_capabilities" + self.suffix), backend,
                   self.run / ("composition-" + backend + ".json")], env=env, window=True)
         log = (self.logs / ("composition-" + backend + ".log")).read_text(encoding="utf-8")

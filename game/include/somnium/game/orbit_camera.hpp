@@ -8,7 +8,7 @@ class OrbitCamera final {
   public:
     void reset();
     void update(const input::State& input, double seconds);
-    [[nodiscard]] renderer::Camera camera() const;
+    [[nodiscard]] Trs pose() const;
 
   private:
     float m_yaw = 0.65F, m_pitch = 0.45F, m_distance = 10.F;

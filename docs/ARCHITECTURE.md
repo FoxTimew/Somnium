@@ -12,8 +12,8 @@ par défaut. Infrastructure auto-hébergée intégrée ; [bilan et preuves](vali
 `phase/3-scene` implémente les contrats acceptés des
 [ADR-0007](adr/0007-scene-entites-serialisation.md) et
 [ADR-0008](adr/0008-inputs-configurables.md). World et ses codecs sont décrits dans
-[SCENE.md](SCENE.md) ; extraction/interpolation puis preuve hors écran précèdent
-le point de contrôle intermédiaire, avant input configurable et le gameplay cible.
+[SCENE.md](SCENE.md) ; extraction/interpolation et preuve hors écran sont raccordées.
+Le point de contrôle intermédiaire précède input configurable et le gameplay cible.
 Voir les
 [ADR-0001](adr/0001-stack-dependances-licences.md) et
 [ADR-0002](adr/0002-conventions.md).
@@ -25,10 +25,10 @@ sol et pièces, collisions AABB dans `game/`, portes articulées autour d'un piv
 action `Interact`, clavier/souris et manette. Le MVP final charge une scène JSON
 et affiche sa hiérarchie dans ImGui. Chaque capacité du moteur doit servir ce jeu.
 
-Le sandbox de phase 2 charge un modèle glTF texturé, le présente avec profondeur et overlay,
-et permet son exploration par une caméra orbitale de gameplay. Assets, renderer
-et input sont actifs. World/ECS et JSON ont maintenant leurs tests CPU ; le sandbox
-reste en phase 2 jusqu'au raccordement de l'extraction, sans nouveau mapping input.
+Le sandbox charge `assets/scenes/orbit.json` : modèle glTF, caméra racine et
+lumière. Le jeu pilote cette caméra ; runtime extrait la scène interpolée et
+renderer présente avec profondeur et overlay. Le mapping input de phase 2 reste
+en place jusqu’au point de contrôle, sans gameplay cible anticipé.
 Windows, Linux et macOS sont les seules plateformes ciblées.
 
 Les conventions mathématiques, de mémoire, d'erreurs et de style sont décrites
@@ -78,7 +78,7 @@ l'ADR-0001.
 | `debug_ui` | Contexte ImGui, statistiques, inspecteur et édition | `core` | `platform_imgui`, `gpu_imgui`, `scene`, `input` |
 | `platform_imgui` | Backend officiel SDL3 et coopération privée | aucune | `platform` |
 | `gpu_imgui` | Backend officiel SDL GPU et coopération privée | aucune | `gpu` |
-| `runtime` | Engine, orchestration, simulation, extraction et correspondance assets/rendu | `core`, `scene`, `input`, `renderer` | `platform`, `gpu`, `assets`, `debug_ui` si activé |
+| `runtime` | Engine, orchestration, simulation, extraction et correspondance assets/rendu | `core`, `scene`, `input` | `platform`, `gpu`, `assets`, `renderer`, `debug_ui` si activé |
 
 `game/` produit une bibliothèque statique `somnium_game`, consommant `runtime`.
 `sandbox/` contient l'exécutable et assemble le gameplay et `Engine`. C'est la
@@ -86,9 +86,9 @@ lecture retenue de « game/ et sandbox/ sont les seuls exécutables » : aucun
 `main` dans le moteur ; un éventuel autre lanceur restera dans ces répertoires.
 Le jeu est compilé dès la phase 0. Sa frontière dynamique n'est pas implémentée.
 
-La table reflète le contrat de phase 2 : `Gameplay::camera()` expose encore
-renderer. L'ADR-0007 accepté prévoit sa suppression et le passage de la dépendance
-runtime → renderer à PRIVATE à l'étape d'extraction ; le raccordement reste à réaliser.
+Le contrat Gameplay emprunte World et les inputs ; aucun type renderer n’est
+visible du jeu. Runtime → renderer est PRIVATE, vérifié au configure et par le
+scanner d’architecture (en-têtes publics runtime et sources du jeu).
 
 Le graphe moteur, lu dans le sens « dépend de », est :
 
@@ -148,9 +148,11 @@ le réalise. L'appel passe par ce contrat, jamais par un include de `game`.
 Les références de scène et d'inputs sont empruntées pour l'appel. L'état moteur,
 la registry et les ressources restent possédés par `Engine`.
 
-En phase 2, `Engine` possède plateforme/fenêtre, lecteur, device, renderer, loader
-et AssetManager de modèles, adaptateur ModelRendering, cible de profondeur,
-overlay optionnel et état de boucle. Le gameplay possède sa caméra orbitale.
+`Engine` possède plateforme/fenêtre, lecteur, device, renderer, loader,
+AssetManager, contexte d’assets, World, SceneRendering et sa préparation par
+handle de Model, profondeur, overlay et boucle. Le jeu conserve les paramètres
+d’orbite et modifie le Transform de la caméra racine. SceneRendering est détruit
+avant World, World libère ses demandes avant AssetManager.
 L'overlay et les ressources renderer sont détruits avant le device. Tous les modules ont
 leurs répertoires et CMakeLists ; aucune cible sans sources réelles ni fonction
 factice n’est créée.
@@ -182,7 +184,7 @@ implémentées.
 | Asset CPU | Mesh, matériau ou image immuable après `Ready` ; références internes par handles | `AssetManager` ; emprunts bornés au traitement |
 | `Transform` | Position, quaternion et échelle locaux ; matrice monde dérivée ; historique nécessaire à l'interpolation | composant plat dans le namespace `somnium`, stocké dans World |
 | Hiérarchie | Parent et liens enfants utilisant les identités EnTT ; arbre acyclique, ordre de propagation défini | `scene` |
-| Caméra | Pose et FOV/near/far explicites ; `cameraFrame` produit vue/projection RH_ZO depuis l’extent | gameplay fournit une `renderer::Camera` par valeur |
+| Caméra | Entité Camera + Transform interpolé ; vue inverse, projection RH_ZO, aspect de l’extent | World possède ; game pilote la pose ; runtime extrait |
 | Draw packet | Matrice monde interpolée, handle renderer de mesh, handle renderer de matériau, clé de tri | stockage réutilisable détenu par `runtime` |
 | `DrawList` | Séquence de mesh/matériau/monde ; `FrameData` porte séparément vue/projection/lumière/ambiant ; aucune registry ni donnée CPU empruntée | `runtime` produit, `renderer` lit |
 | État d'input | Actions tenues et transitions, axes, deltas et informations de périphérique utiles | `input` produit, gameplay consulte |
@@ -239,7 +241,7 @@ données CPU aux vues de création acceptées par `renderer`.
 
 L'upload a lieu au chargement ou dans une étape de préparation explicitement
 séparée, jamais implicitement au milieu du parcours chaud d'extraction. Un asset
-non prêt est omis avec un diagnostic limité ; un shader obligatoire absent fait
+non prêt fait échouer le chargement transactionnel ; un shader obligatoire absent fait
 échouer le démarrage graphique. Aucun chargement disque n'est déclenché par un
 draw packet. Les matériaux de rendu regroupent données et handle de pipeline.
 
@@ -248,14 +250,15 @@ draw packet. Les matériaux de rendu regroupent données et handle de pipeline.
 `World` possède directement une registry EnTT ; il ne masque pas EnTT derrière
 une abstraction d'ECS. Les composants restent des structs plates dans
 `somnium`. Les opérations de hiérarchie vérifient les cycles et les parents
-invalides ; la destruction d'un parent doit appliquer une politique explicite,
-précisée avec l'ADR-0007 avant l'implémentation de scène.
+invalides ; la destruction supprime le sous-arbre. Création, destruction et
+reparentage sont immédiats, interdits pendant un parcours gardé.
 
 Le JSON porte `"version": 1` et des versions de composants. Les références
 persistées utilisent des identités de scène et des identifiants logiques
 d'assets, jamais les bits des handles runtime ni les valeurs brutes d'EnTT.
-Les détails du schéma et la politique de migration seront soumis avec
-l'ADR-0007 en phase 3.
+Le schéma est décrit dans [SCENE.md](SCENE.md). Une version inconnue est une
+erreur, sans migration implicite. Les codecs game partagent le résolveur d’IDs
+de seconde passe ; un échec libère les demandes d’assets du World temporaire.
 
 Pour l'interpolation, les positions et échelles locales sont interpolées
 linéairement, les quaternions par interpolation sphérique normalisée. Les
@@ -298,25 +301,29 @@ gameplay. Le routage d’une UI interactive et le mapping JSON appartiennent
 La boucle appartient à `runtime` ; le gameplay fournit ses mises à jour fixes.
 L'horloge monotone de `core` exprime les durées en secondes.
 
-Au démarrage, `Gameplay::start(GameContext&)` demande le modèle par chemin
-logique et fournit lumière/ambiant/clear. Runtime interroge AssetManager :
-Failed retourne son diagnostic ; Loading reste en attente ; Ready déclenche les
-uploads et la DrawList via ModelRendering. Aucun chemin d’asset, vertex de test
-ni logique de caméra n’est codé dans runtime ou sandbox.
+Au démarrage, sandbox fournit le chemin de scène et la table de codecs (moteur
+puis ajouts game). Runtime charge le World transactionnel via le lecteur et le
+contexte d’assets, appelle `Gameplay::start(World&)`, propage et prépare les
+ressources. `requestModel`, `camera()` et les réglages de rendu ont quitté le
+contrat Gameplay ; modèle, lumière, ambiant et fond proviennent du JSON.
 
 1. Collecter les événements avec l’indice du prochain pas et les mettre en file.
    Traiter fermeture, minimisation/restauration et remise à zéro de l’horloge.
-2. Préparer un modèle devenu Ready avant l’enregistrement, puis mesurer le delta.
-3. Exécuter les pas fixes bornés : `input.advance(tick)` consomme transitions et
-   impulsions une fois ; `game.fixedUpdate({seconds,tick,inputs})` pilote l’orbite.
+2. Mesurer le delta ; exécuter les pas fixes bornés : `World::beginStep`,
+   `input.advance(tick)`, `game.fixedUpdate(world,{seconds,tick,inputs})`,
+   `World::propagate`. Les transitions et impulsions sont consommées une fois.
+3. SceneRendering prépare les nouveaux handles de Model et retire les ressources
+   inutilisées avant l’enregistrement ; réserve matrices, draws et scratch renderer.
 4. Acquérir le command buffer puis la swapchain par
    `SDL_WaitAndAcquireGPUSwapchainTexture`, VSYNC, deux frames en vol. Un deuxième
    poll conserve les entrées pour le prochain pas ; une fermeture soumet la frame.
 5. Sans texture, soumettre sans rendu puis attendre un événement. Au resize,
    recréer la profondeur D32 à l’extent acquis ; libérer l’ancienne selon ADR-0004.
-6. Lire `game.camera()` par valeur. Renderer calcule `lookAtRH` et
-   `perspectiveRH_ZO`, aspect de l’extent ; runtime ajoute lumière et ambiant.
-   La DrawList réutilisée contient les primitives et matrices monde du modèle.
+6. Interpoler les TRS locaux (lerp position/échelle, slerp court normalisé), puis
+   recomposer parent avant enfant. La caméra active utilise cette même pose :
+   vue inverse, `perspectiveRH_ZO`, aspect acquis. La lumière est transformée ;
+   DrawList = pose interpolée d’entité × instance glTF. Buffers pmr réutilisés,
+   aucune croissance implicite dans l’extraction, renderer ne voit pas World.
 7. Préparer l’overlay et ses uploads, enregistrer la passe renderer puis l’UI.
    Textures sRGB → facteur × (Lambert + ambiant) linéaire → swapchain SDR_LINEAR.
 8. Soumettre, présenter et marquer la frame CPU Tracy. Aucun délai artificiel.
@@ -447,7 +454,7 @@ de scratch est réservée au chargement ; aucun accroissement implicite dans rec
 shipping sélectionne COOKED et exclut la racine du dépôt. Tests CPU et vérification
 du graphe shipping accompagnent le cube hors écran et les captures interactives.
 Le jalon cube est validé ; le triangle est remplacé, input et caméra orbitale
-sont implémentés. `scene` reste prévu en phase 3. L'[ADR-0005](adr/0005-pipeline-assets.md) fixe ces contrats.
+sont implémentés. `scene` et l’extraction interpolée sont maintenant raccordés. L'[ADR-0005](adr/0005-pipeline-assets.md) fixe ces contrats.
 
 La phase 3 apporte World/EnTT, codecs extensibles par game et IDs persistants
 indépendants du registre. Les contrats acceptés ADR-0007/0008 fixent aussi les

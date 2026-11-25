@@ -73,7 +73,7 @@ le même modèle sans qu'abandonner l'un invalide l'autre. Le manager refuse un 
 forcé tant qu'une demande comptée existe et fournit le chemin inverse du handle
 pour la sérialisation. Le manager et son lecteur vivent plus longtemps que World.
 
-## Couverture CPU et prochaine preuve
+## Extraction et couverture
 
 Tests CPU : génération/recherche/rechargement d'IDs, garde des trois opérations
 structurelles, liens/sous-arbres/cycles, propagation/historique/téléportation,
@@ -81,7 +81,15 @@ structurelles, liens/sous-arbres/cycles, propagation/historique/téléportation,
 hors du moteur, référence vers une entité déclarée plus loin, diagnostic des
 références absentes, rollback et libération des assets partagés.
 
-L'étape suivante vérifie l'interpolation locale et l'extraction, caméra comprise,
-puis une scène JSON pivot/enfant avec occultation et trois poses hors écran.
-Les références sont analytiques ; le résultat de chaque backend est publié au
-point de contrôle avant input configurable et le gameplay de la cible.
+Runtime prépare les ressources GPU par handle de Model et réutilise des buffers
+pmr réservés pour l’extraction. À alpha, il interpole les TRS locaux (slerp sur
+le chemin court), recompose les parents, puis multiplie chaque instance glTF.
+Caméra active et lumière utilisent les mêmes poses. Les tests CPU vérifient
+l’arc du pivot (et non une corde interpolée en monde), l’instance glTF, la caméra
+parente et locale, le signe équivalent q/-q, les limites, la téléportation et
+l’absence de croissance des buffers réservés.
+
+Le sandbox charge `scenes/orbit.json` ; son jeu existant pilote la caméra racine
+par World sans type renderer. La [preuve analytique de scène](SCENE_VALIDATION.md)
+charge un JSON pivot/enfant tourné, rend trois poses et conserve les captures et
+journaux au point de contrôle, avant input configurable et gameplay cible.

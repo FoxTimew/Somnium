@@ -34,6 +34,8 @@ for module, dependencies in allowed.items():
         for dependency in re.findall(r"#include\s*[<\"]somnium/([^/]+)/", text):
             if dependency != module and dependency not in dependencies:
                 errors.append(f"{path}: forbidden {module} -> {dependency}")
+        if module == "runtime" and public and re.search(r"#include.*somnium/renderer/|\brenderer::", text):
+            errors.append(f"{path}: renderer leaked into gameplay contract")
         if public and re.search(r"\bSDL_\w+|#include\s*[<\"](?:SDL3|spdlog)/", text):
             errors.append(f"{path}: third-party type in public interface")
         if module not in {"gpu", "gpu_imgui"} and re.search(r"#include\s*[<\"]SDL3/(?:SDL|SDL_gpu)\.h", text):
@@ -48,6 +50,11 @@ for module, dependencies in allowed.items():
             errors.append(f"{path}: native event escaped its boundary")
         if re.search(r"\b(?:int|auto)\s+main\s*\(", text) and "tests" not in path.parts:
             errors.append(f"{path}: engine must not define main")
+for path in (root / "game").rglob("*"):
+    if path.suffix in {".hpp", ".cpp"}:
+        text = path.read_text(encoding="utf-8")
+        if re.search(r"#include.*somnium/(?:renderer|gpu)/|\b(?:renderer|gpu)::", text):
+            errors.append(f"{path}: game depends on rendering implementation")
 if errors:
     sys.exit("\n".join(errors))
 print("Architecture include boundaries: OK")

@@ -1,5 +1,5 @@
 <!--
-Décrit le moteur implémenté en phase 2 et les commandes de vérification reproductibles.
+Décrit le moteur et le point de contrôle scène de phase 3 et les commandes de vérification reproductibles.
 Les résultats de rendu et les limites de l'environnement restent explicitement identifiés.
 -->
 # Somnium
@@ -7,7 +7,7 @@ Les résultats de rendu et les limites de l'environnement restent explicitement 
 Moteur de jeu 3D C++20 pour Windows, Linux et macOS. `main` charge un modèle glTF
 texturé et le présente en VSYNC avec profondeur, caméra orbitale et overlay ImGui.
 Les phases 0 à 2 sont validées, fusionnées et taguées ; `main` est la branche
-par défaut. `phase/3-scene` prépare le jalon documentaire scène et inputs.
+par défaut. `phase/3-scene` implémente World, JSON et l’extraction interpolée.
 
 État au 25 novembre : phase 2 clôturée, tag `phase-2` sur `bf0976a`.
 Windows/Radeon et Linux/WSL2 sont requis ; macOS est manuel
@@ -18,8 +18,8 @@ Le lancement macOS sur `main` a échoué au test de rétention, avant compilatio
 aucune nouvelle preuve Metal à cette clôture. Le défaut de rétention est corrigé
 en phase 3, avec régression reproduite puis couverte sous Windows/Linux.
 Les ADR de phase 3 sont **acceptés** ; [World et les codecs JSON](docs/SCENE.md)
-ont leurs tests CPU. Extraction et preuve GPU précèdent le prochain point de
-contrôle ; input configurable et le gameplay de la cible viennent ensuite.
+et l’extraction interpolée ont leurs tests CPU et leur [preuve hors écran](docs/SCENE_VALIDATION.md).
+Input configurable et le gameplay de la cible viennent après validation du point de contrôle.
 
 - [Architecture](docs/ARCHITECTURE.md) et [conventions](docs/adr/0002-conventions.md)
 - [Dépendances et licences](docs/adr/0001-stack-dependances-licences.md)
@@ -97,13 +97,14 @@ provoque un diagnostic, jamais un modèle factice.
 `cmake --install build/debug --prefix <dossier>` installe binaire et shaders ;
 il ne conditionne pas les modèles. Avant le cuiseur de phase 4, constituer
 explicitement un package de démonstration hors du build avec le GLB sous
-`bin/assets/models/orbit-cube.glb`. Le test shipping vérifie d’abord l’échec sans
-modèle, puis ce paquet temporaire depuis un répertoire courant sans rapport.
+`bin/assets/models/orbit-cube.glb` et le JSON sous `bin/assets/scenes/orbit.json`.
+Le test shipping vérifie l’échec sans scène puis sans modèle, et enfin le paquet
+complet depuis un répertoire courant sans rapport.
 Ce staging de test ne remplace pas le cuiseur, ni le `.metallib` requis pour shipping macOS.
 
 La chaîne actuelle est glTF/GLB + PNG/JPEG → loaders CPU cgltf/stb_image →
 AssetManager typé (Unloaded/Loading/Ready/Failed) → préparation renderer par runtime
-→ DrawList indexée. Les sources restent l’autorité ; KTX2/BC, mipmaps, formats cuits,
+→ World JSON → DrawList indexée interpolée. Les sources restent l’autorité ; KTX2/BC, mipmaps, formats cuits,
 jobs et hot-reload sont reportés. La lecture boucle sur les retours partiels,
 limite chaque fichier à 256 MiB et interdit les chemins natifs ou sortant des racines.
 
@@ -161,7 +162,7 @@ ambiant de 0,15 dans une variante shader et utilise SDR_LINEAR : un seul encodag
 sRGB à la sortie. Les tests input/caméra sont entièrement CPU.
 
 La CI requise configure, construit et teste **debug, release, shipping et profiling
-sur Windows et Linux**, puis vérifie D5/cube et le test de fenêtre ; clang-tidy **18**
+sur Windows et Linux**, puis vérifie D5/cube/scène et le test de fenêtre ; clang-tidy **18**
 et ASan/UBSan tournent sous Linux. macOS est un workflow manuel best effort.
 Les captures Windows injectant souris/clavier sont réservées au job manuel
 workflow_dispatch ; [démarrer les runners et les captures](docs/DEMARRER_RUNNERS.md).

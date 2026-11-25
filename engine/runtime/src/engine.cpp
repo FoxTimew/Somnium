@@ -1,6 +1,6 @@
 // Drives bounded simulation and VSYNC presentation on the window thread.
 // An initialized game's stop hook runs on both successful and failed exits.
-#include "model_rendering.hpp"
+#include "scene_rendering.hpp"
 #include <somnium/runtime/engine.hpp>
 
 #include <somnium/core/assert.hpp>
@@ -27,7 +27,10 @@ struct Engine::Impl {
     std::unique_ptr<renderer::Renderer> renderer;
     assets::ModelLoader loader;
     assets::AssetManager<assets::Model> models;
-    std::unique_ptr<ModelRendering> model;
+    scene::AssetContext assets{models};
+    std::unique_ptr<scene::World> world;
+    std::unique_ptr<SceneRendering> scene;
+    std::string scenePath;
     gpu::Texture depth{};
     Impl(std::unique_ptr<platform::Platform> window, platform::FileReader reader,
          std::unique_ptr<gpu::Device> device, std::unique_ptr<renderer::Renderer> rendering)
@@ -51,6 +54,8 @@ Engine::~Engine() {
 }
 
 Result<std::unique_ptr<Engine>> Engine::create(const EngineConfig& config) {
+    if (config.scenePath.empty())
+        return tl::unexpected(Error{ErrorCode::InvalidArgument, "Scene path is required"});
     auto platform = platform::Platform::create({config.title, config.width, config.height});
     if (!platform) {
         return tl::unexpected(platform.error());
@@ -90,6 +95,7 @@ Result<std::unique_ptr<Engine>> Engine::create(const EngineConfig& config) {
     Log::write("gpu", Log::Level::Info, (*device)->info().driver + ": " + (*device)->info().name);
     auto impl = std::make_unique<Impl>(std::move(*platform), std::move(*resources),
                                        std::move(*device), std::move(*renderer));
+    impl->scenePath = config.scenePath;
 #if defined(SOMNIUM_ENABLE_DEBUG_UI)
     auto overlay = debug_ui::Overlay::create(*impl->platform, *impl->gpu);
     if (!overlay)
@@ -99,54 +105,34 @@ Result<std::unique_ptr<Engine>> Engine::create(const EngineConfig& config) {
     return std::unique_ptr<Engine>(new Engine(std::move(impl)));
 }
 
-Result<RunStats> Engine::run(Gameplay& game, RunOptions options) {
+Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
+                             RunOptions options) {
     if (m_impl->hasRun) {
         return tl::unexpected(Error{ErrorCode::InvalidState, "An engine session runs only once"});
     }
     m_impl->hasRun = true;
-    GameContext context{m_impl->resources};
-    auto started = game.start(context);
-    if (!started) {
+    auto loaded = scene::load(m_impl->resources, m_impl->scenePath, codecs, &m_impl->assets);
+    if (!loaded)
+        return tl::unexpected(loaded.error());
+    m_impl->world = std::move(*loaded);
+    auto& world = *m_impl->world;
+    auto started = game.start(world);
+    if (!started)
         return tl::unexpected(started.error());
-    }
     struct StopGame {
         Gameplay& game;
+        scene::World& world;
         ~StopGame() {
-            game.stop();
+            game.stop(world);
         }
-    } stopGame{game};
-    if (context.modelPath().empty())
-        return tl::unexpected(Error{ErrorCode::InvalidState, "Gameplay did not request a model"});
-    const auto requested = m_impl->models.request(context.modelPath());
-    if (!requested)
-        return tl::unexpected(requested.error());
-    const auto prepareModel = [&]() -> Result<bool> {
-        if (m_impl->model)
-            return false;
-        const auto state = m_impl->models.state(*requested);
-        if (!state)
-            return tl::unexpected(state.error());
-        if (*state == assets::State::Failed) {
-            const auto error = m_impl->models.error(*requested);
-            if (!error)
-                return tl::unexpected(error.error());
-            return tl::unexpected(
-                Error{error->code, "Model load failed: " + std::string(context.modelPath()) + ": " +
-                                       error->message});
-        }
-        if (*state != assets::State::Ready)
-            return false;
-        const auto asset = m_impl->models.get(*requested);
-        if (!asset)
-            return tl::unexpected(asset.error());
-        auto prepared = ModelRendering::create(*m_impl->renderer, asset->get());
-        if (!prepared)
-            return tl::unexpected(prepared.error());
-        m_impl->model = std::move(*prepared);
-        Log::write("runtime", Log::Level::Info, "Model ready: {} ({} draws)", context.modelPath(),
-                   m_impl->model->draws().size());
-        return true;
-    };
+    } stopGame{game, world};
+    auto propagated = world.propagate();
+    if (!propagated)
+        return tl::unexpected(propagated.error());
+    m_impl->scene = std::make_unique<SceneRendering>(*m_impl->renderer, m_impl->models);
+    auto resources = m_impl->scene->prepare(world);
+    if (!resources)
+        return tl::unexpected(resources.error());
     core::Clock clock;
     FixedStep accumulator;
     RunStats stats;
@@ -166,13 +152,6 @@ Result<RunStats> Engine::run(Gameplay& game, RunOptions options) {
             clock.reset();
             accumulator.reset();
         }
-        auto preparedModel = prepareModel();
-        if (!preparedModel)
-            return tl::unexpected(preparedModel.error());
-        if (*preparedModel) {
-            clock.reset();
-            accumulator.reset();
-        }
         const auto frameSeconds = clock.sampleSeconds();
         auto batch = accumulator.advance(frameSeconds);
         if (!batch) {
@@ -183,9 +162,19 @@ Result<RunStats> Engine::run(Gameplay& game, RunOptions options) {
             auto state = input.advance(stats.fixedSteps);
             if (!state)
                 return tl::unexpected(state.error());
-            game.fixedUpdate({core::kFixedStepSeconds, stats.fixedSteps, *state});
+            world.beginStep();
+            auto updated =
+                game.fixedUpdate(world, {core::kFixedStepSeconds, stats.fixedSteps, *state});
+            if (!updated)
+                return tl::unexpected(updated.error());
+            propagated = world.propagate();
+            if (!propagated)
+                return tl::unexpected(propagated.error());
             ++stats.fixedSteps;
         }
+        resources = m_impl->scene->prepare(world);
+        if (!resources)
+            return tl::unexpected(resources.error());
         auto begun = m_impl->gpu->beginFrame();
         if (!begun)
             return tl::unexpected(begun.error());
@@ -264,16 +253,12 @@ Result<RunStats> Engine::run(Gameplay& game, RunOptions options) {
         if (!prepared)
             return tl::unexpected(prepared.error());
 #endif
-        auto uniforms = renderer::cameraFrame(game.camera(), *size);
-        if (!uniforms)
-            return tl::unexpected(uniforms.error());
-        uniforms->lightDirection = context.lightDirection;
-        uniforms->ambient = context.ambient;
-        const std::span<const renderer::Draw> draws =
-            m_impl->model ? std::span<const renderer::Draw>(m_impl->model->draws())
-                          : std::span<const renderer::Draw>{};
-        auto rendered =
-            m_impl->renderer->record({{}, m_impl->depth, context.clearColor}, *uniforms, draws);
+        auto extracted = m_impl->scene->extract(world, static_cast<float>(batch->alpha), *size);
+        if (!extracted)
+            return tl::unexpected(extracted.error());
+        const auto& sceneFrame = m_impl->scene->frame();
+        auto rendered = m_impl->renderer->record({{}, m_impl->depth, sceneFrame.clearColor},
+                                                 sceneFrame.uniforms, sceneFrame.draws);
         if (!rendered)
             return tl::unexpected(rendered.error());
 #if defined(SOMNIUM_ENABLE_DEBUG_UI)
@@ -286,7 +271,7 @@ Result<RunStats> Engine::run(Gameplay& game, RunOptions options) {
         if (!submitted)
             return tl::unexpected(submitted.error());
         ++stats.frames;
-        if (firstModelFrame && m_impl->model) {
+        if (firstModelFrame && !sceneFrame.draws.empty()) {
             Log::write("runtime", Log::Level::Info, "First model frame presented");
             Log::flush();
             firstModelFrame = false;

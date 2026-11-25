@@ -72,4 +72,4 @@ Preuve JSON : pivot/enfant décentré tourné, occultation, trois poses ; oracle
 analytique, références/sondes/provenance versionnées, PNG LFS. Centres exacts,
 2/255 et 0,1 %, régénération explicite et validation GPU comme D5/cube.
 
-Preuves : extraction/interpolation et preuve GPU de scène restent à réaliser ; Windows/Radeon et Linux/lavapipe requis, Metal best effort.
+Preuves : CPU scène/codecs/extraction/interpolation validés localement ; trois poses GPU à publier en CI Windows/Radeon et Linux/lavapipe, Metal à relancer ; inspecteur et gameplay cible après le point de contrôle.

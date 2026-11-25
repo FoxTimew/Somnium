@@ -2,6 +2,7 @@
 // Spherical reconstruction avoids accumulating a drifting Euler rotation matrix.
 #include <algorithm>
 #include <cmath>
+#include <glm/gtc/quaternion.hpp>
 #include <numbers>
 #include <somnium/game/orbit_camera.hpp>
 
@@ -28,14 +29,10 @@ void OrbitCamera::update(const input::State& input, double seconds) {
         input.axis(input::Axis::WheelZoom) + delta * input.axis(input::Axis::TriggerZoom);
     m_distance = std::clamp(m_distance * std::exp(-zoom), 4.F, 30.F);
 }
-renderer::Camera OrbitCamera::camera() const {
+Trs OrbitCamera::pose() const {
     const auto horizontal = m_distance * std::cos(m_pitch);
-    return {{horizontal * std::sin(m_yaw), m_distance * std::sin(m_pitch),
-             horizontal * std::cos(m_yaw)},
-            {0, 0, 0},
-            {0, 1, 0},
-            std::numbers::pi_v<float> / 3.F,
-            .1F,
-            100.F};
+    const glm::vec3 eye{horizontal * std::sin(m_yaw), m_distance * std::sin(m_pitch),
+                        horizontal * std::cos(m_yaw)};
+    return {eye, glm::quatLookAtRH(glm::normalize(-eye), glm::vec3(0, 1, 0)), glm::vec3(1)};
 }
 } // namespace somnium::game

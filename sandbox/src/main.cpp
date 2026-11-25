@@ -11,6 +11,7 @@
 int main(int argc, char** argv) {
     somnium::runtime::RunOptions options;
     somnium::runtime::EngineConfig config;
+    config.scenePath = "scenes/orbit.json";
     for (int index = 1; index < argc; index += 2) {
         if (index + 1 >= argc) {
             std::fputs("Usage: sandbox [--frames N] [--backend vulkan|direct3d12|metal]\n", stderr);
@@ -34,7 +35,13 @@ int main(int argc, char** argv) {
         somnium::Log::write("sandbox", somnium::Log::Level::Error, engine.error().message);
         return 1;
     }
-    auto result = (*engine)->run(game, options);
+    somnium::scene::CodecRegistry codecs;
+    auto registered = somnium::scene::registerBuiltinCodecs(codecs);
+    if (!registered) {
+        somnium::Log::write("sandbox", somnium::Log::Level::Error, registered.error().message);
+        return 1;
+    }
+    auto result = (*engine)->run(game, codecs, options);
     if (!result) {
         somnium::Log::write("sandbox", somnium::Log::Level::Error, result.error().message);
         return 1;
