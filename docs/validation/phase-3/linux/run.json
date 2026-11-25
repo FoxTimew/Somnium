@@ -1,0 +1,239 @@
+{
+  "owner": "somnium-ci",
+  "operation": "pipeline",
+  "status": "success",
+  "source": "b68d5aca593cd77bb067b6e9a1b25df0bbf39397",
+  "source_dirty": false,
+  "os": "Linux",
+  "records": [
+    {
+      "step": "version-cmake",
+      "seconds": 0.005,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/version-cmake.log"
+    },
+    {
+      "step": "version-ninja",
+      "seconds": 0.002,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/version-ninja.log"
+    },
+    {
+      "step": "version-format",
+      "seconds": 0.009,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/version-format.log"
+    },
+    {
+      "step": "version-sccache",
+      "seconds": 0.002,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/version-sccache.log"
+    },
+    {
+      "step": "version-lfs",
+      "seconds": 0.008,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/version-lfs.log"
+    },
+    {
+      "step": "version-clang",
+      "seconds": 0.023,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/version-clang.log"
+    },
+    {
+      "step": "version-tidy",
+      "seconds": 0.026,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/version-tidy.log"
+    },
+    {
+      "step": "platform-packages",
+      "seconds": 0.016,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/platform-packages.log"
+    },
+    {
+      "step": "format",
+      "seconds": 0.266,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/format.log"
+    },
+    {
+      "step": "architecture",
+      "seconds": 0.047,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/architecture.log"
+    },
+    {
+      "step": "architecture-rules",
+      "seconds": 0.735,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/architecture-rules.log"
+    },
+    {
+      "step": "ci-contract",
+      "seconds": 0.138,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/ci-contract.log"
+    },
+    {
+      "step": "sccache-start",
+      "seconds": 0.009,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/sccache-start.log"
+    },
+    {
+      "step": "compiler-cache-dependencies",
+      "seconds": 4.352,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/compiler-cache-dependencies.log"
+    },
+    {
+      "step": "shader-toolchain",
+      "seconds": 0.214,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/shader-toolchain.log"
+    },
+    {
+      "step": "configure-debug",
+      "seconds": 26.729,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/configure-debug.log"
+    },
+    {
+      "step": "build-debug",
+      "seconds": 57.594,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/build-debug.log"
+    },
+    {
+      "step": "test-debug",
+      "seconds": 7.243,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/test-debug.log"
+    },
+    {
+      "step": "d5-vulkan",
+      "seconds": 0.676,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/d5-vulkan.log"
+    },
+    {
+      "step": "cube-vulkan",
+      "seconds": 1.462,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/cube-vulkan.log"
+    },
+    {
+      "step": "scene-vulkan",
+      "seconds": 1.858,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/scene-vulkan.log"
+    },
+    {
+      "step": "composition-vulkan",
+      "seconds": 0.208,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/composition-vulkan.log"
+    },
+    {
+      "step": "capture-vulkan",
+      "seconds": 17.419,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/capture-vulkan.log"
+    },
+    {
+      "step": "tidy",
+      "seconds": 264.113,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/tidy.log"
+    },
+    {
+      "step": "configure-release",
+      "seconds": 33.73,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/configure-release.log"
+    },
+    {
+      "step": "build-release",
+      "seconds": 75.391,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/build-release.log"
+    },
+    {
+      "step": "test-release",
+      "seconds": 6.723,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/test-release.log"
+    },
+    {
+      "step": "configure-shipping",
+      "seconds": 26.821,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/configure-shipping.log"
+    },
+    {
+      "step": "shipping-graph",
+      "seconds": 0.066,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/shipping-graph.log"
+    },
+    {
+      "step": "build-shipping",
+      "seconds": 48.535,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/build-shipping.log"
+    },
+    {
+      "step": "test-shipping",
+      "seconds": 6.821,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/test-shipping.log"
+    },
+    {
+      "step": "configure-profiling",
+      "seconds": 26.3,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/configure-profiling.log"
+    },
+    {
+      "step": "build-profiling",
+      "seconds": 70.161,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/build-profiling.log"
+    },
+    {
+      "step": "test-profiling",
+      "seconds": 10.261,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/test-profiling.log"
+    },
+    {
+      "step": "configure-asan-ubsan",
+      "seconds": 26.39,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/configure-asan-ubsan.log"
+    },
+    {
+      "step": "build-asan-ubsan",
+      "seconds": 62.943,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/build-asan-ubsan.log"
+    },
+    {
+      "step": "sanitizers",
+      "seconds": 8.562,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/sanitizers.log"
+    },
+    {
+      "step": "sccache-statistics",
+      "seconds": 0.009,
+      "exit_code": 0,
+      "log": "/home/foxti/somnium-ci/runs/45682666750-1/logs/sccache-statistics.log"
+    }
+  ],
+  "finished": "2026-11-25T19:24:31.903374+00:00"
+}

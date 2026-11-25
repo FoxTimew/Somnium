@@ -13,7 +13,9 @@ par défaut. Infrastructure auto-hébergée intégrée ; [bilan et preuves](vali
 [ADR-0007](adr/0007-scene-entites-serialisation.md) et
 [ADR-0008](adr/0008-inputs-configurables.md). World et ses codecs sont décrits dans
 [SCENE.md](SCENE.md) ; extraction/interpolation et preuve hors écran sont raccordées.
-Le point de contrôle intermédiaire précède input configurable et le gameplay cible.
+Le [point de contrôle intermédiaire](validation/phase-3/README.md) valide les
+trois backends hors écran et précède input configurable et le gameplay cible.
+Le scénario de présentation Metal reste en échec sur orbite/zoom/reset.
 Voir les
 [ADR-0001](adr/0001-stack-dependances-licences.md) et
 [ADR-0002](adr/0002-conventions.md).

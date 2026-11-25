@@ -1,0 +1,18 @@
+{
+  "origin": "GitHub Actions macos-15",
+  "run": 45682684508,
+  "job": 139447055240,
+  "commit": "02340d9a7c1f876365fcb0f59640a077840c0713",
+  "job_conclusion": "failure",
+  "retention": "9/9",
+  "debug_tests": "23/23",
+  "d5": "validé",
+  "cube": "validé",
+  "scene": "validé",
+  "metal_validation": "API and shader enabled",
+  "presentation": "échec",
+  "reason": "Orbit/zoom/reset must produce three camera poses and restore the initial pose",
+  "observed_camera_poses": 1,
+  "later_presets": "not executed in this job after presentation failure",
+  "cause": "not established"
+}

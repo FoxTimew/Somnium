@@ -1,0 +1,7 @@
+[ci-contract] /Users/runner/somnium-ci/tools/python/bin/python3 /Users/runner/work/Somnium/Somnium/tools/ci/test_ci.py
+.........
+----------------------------------------------------------------------
+Ran 9 tests in 0.011s
+
+OK
+ci-contract: OK — 0.343 s — `/Users/runner/somnium-ci/runs/45682684508-1/logs/ci-contract.log`

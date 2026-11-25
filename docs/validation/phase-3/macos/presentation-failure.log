@@ -1,0 +1,341 @@
+[capture-metal] /Users/runner/somnium-ci/tools/python/bin/python3 /Users/runner/work/Somnium/Somnium/tools/presentation/capture_macos.py --executable /Users/runner/somnium-ci/runs/45682684508-1/build/debug/bin/sandbox --output /Users/runner/somnium-ci/runs/45682684508-1/presentation-metal
+/Users/runner/work/Somnium/Somnium/tools/presentation/macos_window.swift:14:71: warning: 'activateIgnoringOtherApps' was deprecated in macOS 14.0: ignoringOtherApps is deprecated in macOS 14 and will have no effect.
+12 |           let bounds = window[kCGWindowBounds as String] as? [String: Any],
+13 |           let rect = CGRect(dictionaryRepresentation: bounds as CFDictionary) else { exit(77) }
+14 |     NSRunningApplication(processIdentifier: pid)?.activate(options: [.activateIgnoringOtherApps])
+   |                                                                       `- warning: 'activateIgnoringOtherApps' was deprecated in macOS 14.0: ignoringOtherApps is deprecated in macOS 14 and will have no effect.
+15 |     Thread.sleep(forTimeInterval: 0.2)
+16 |     var point = CGPoint(x: rect.minX + rect.width * 0.6, y: rect.minY + rect.height * 0.6)
+{
+  "origin": "GitHub Actions macOS runner",
+  "backend": "metal",
+  "commit": "02340d9a7c1f876365fcb0f59640a077840c0713",
+  "status": "échec",
+  "binary_sha256": "3617424544f094799941249711df7bda0ca64de8b0e6fbbf365fa29300b452b3",
+  "captures": [
+    "model-overlay.png",
+    "orbit.png",
+    "zoom.png",
+    "reset.png",
+    "resize.png",
+    "minimized-desktop.png",
+    "restore.png"
+  ],
+  "actions": {
+    "orbit": {
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    "zoom": {
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    "reset": {
+      "exit_code": 0,
+      "diagnostic": ""
+    },
+    "resize": {
+      "exit_code": 0,
+      "diagnostic": "",
+      "windows": [
+        {
+          "kCGWindowAlpha": 1,
+          "kCGWindowOwnerPID": 60230,
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowLayer": 0,
+          "kCGWindowSharingState": 1,
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          },
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowNumber": 51,
+          "kCGWindowName": "",
+          "kCGWindowStoreType": 1
+        },
+        {
+          "kCGWindowStoreType": 1,
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          },
+          "kCGWindowOwnerPID": 60230,
+          "kCGWindowLayer": 0,
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowAlpha": 1,
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowNumber": 48,
+          "kCGWindowSharingState": 1,
+          "kCGWindowName": ""
+        },
+        {
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 600,
+            "Y": 25,
+            "Width": 960
+          },
+          "kCGWindowStoreType": 1,
+          "kCGWindowOwnerPID": 60230,
+          "kCGWindowLayer": 0,
+          "kCGWindowAlpha": 1,
+          "kCGWindowSharingState": 1,
+          "kCGWindowNumber": 47,
+          "kCGWindowName": "Somnium - Phase 3",
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowIsOnscreen": true
+        },
+        {
+          "kCGWindowLayer": 0,
+          "kCGWindowAlpha": 1,
+          "kCGWindowOwnerPID": 60230,
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowNumber": 50,
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          },
+          "kCGWindowStoreType": 1,
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowSharingState": 1,
+          "kCGWindowName": ""
+        },
+        {
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowNumber": 49,
+          "kCGWindowStoreType": 1,
+          "kCGWindowLayer": 0,
+          "kCGWindowOwnerPID": 60230,
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          },
+          "kCGWindowSharingState": 1,
+          "kCGWindowName": "",
+          "kCGWindowAlpha": 1,
+          "kCGWindowMemoryUsage": 2288
+        }
+      ],
+      "observed_resized": true
+    },
+    "minimize": {
+      "exit_code": 0,
+      "diagnostic": "",
+      "windows": [
+        {
+          "kCGWindowAlpha": 1,
+          "kCGWindowOwnerPID": 60230,
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          },
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowName": "",
+          "kCGWindowLayer": 0,
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowNumber": 51,
+          "kCGWindowSharingState": 1,
+          "kCGWindowStoreType": 1
+        },
+        {
+          "kCGWindowName": "",
+          "kCGWindowStoreType": 1,
+          "kCGWindowSharingState": 1,
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowNumber": 48,
+          "kCGWindowOwnerPID": 60230,
+          "kCGWindowAlpha": 1,
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          },
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowLayer": 0
+        },
+        {
+          "kCGWindowAlpha": 1,
+          "kCGWindowName": "Somnium - Phase 3",
+          "kCGWindowLayer": 0,
+          "kCGWindowNumber": 47,
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 600,
+            "Y": 25,
+            "Width": 960
+          },
+          "kCGWindowStoreType": 1,
+          "kCGWindowSharingState": 1,
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowOwnerPID": 60230
+        },
+        {
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          },
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowSharingState": 1,
+          "kCGWindowAlpha": 1,
+          "kCGWindowName": "",
+          "kCGWindowNumber": 50,
+          "kCGWindowOwnerPID": 60230,
+          "kCGWindowLayer": 0,
+          "kCGWindowStoreType": 1
+        },
+        {
+          "kCGWindowName": "",
+          "kCGWindowLayer": 0,
+          "kCGWindowAlpha": 1,
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowSharingState": 1,
+          "kCGWindowNumber": 49,
+          "kCGWindowOwnerPID": 60230,
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          },
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowStoreType": 1
+        }
+      ],
+      "observed_minimized": true
+    },
+    "restore": {
+      "exit_code": 0,
+      "diagnostic": "",
+      "windows": [
+        {
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          },
+          "kCGWindowName": "",
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowNumber": 51,
+          "kCGWindowAlpha": 1,
+          "kCGWindowOwnerPID": 60230,
+          "kCGWindowStoreType": 1,
+          "kCGWindowLayer": 0,
+          "kCGWindowSharingState": 1,
+          "kCGWindowOwnerName": "sandbox"
+        },
+        {
+          "kCGWindowName": "",
+          "kCGWindowSharingState": 1,
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowStoreType": 1,
+          "kCGWindowOwnerPID": 60230,
+          "kCGWindowAlpha": 1,
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          },
+          "kCGWindowNumber": 48,
+          "kCGWindowLayer": 0,
+          "kCGWindowMemoryUsage": 2288
+        },
+        {
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 600,
+            "Y": 25,
+            "Width": 960
+          },
+          "kCGWindowIsOnscreen": true,
+          "kCGWindowLayer": 0,
+          "kCGWindowStoreType": 1,
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowNumber": 47,
+          "kCGWindowAlpha": 1,
+          "kCGWindowSharingState": 1,
+          "kCGWindowOwnerPID": 60230,
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowName": "Somnium - Phase 3"
+        },
+        {
+          "kCGWindowAlpha": 1,
+          "kCGWindowName": "",
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          },
+          "kCGWindowOwnerPID": 60230,
+          "kCGWindowSharingState": 1,
+          "kCGWindowNumber": 50,
+          "kCGWindowStoreType": 1,
+          "kCGWindowLayer": 0,
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowOwnerName": "sandbox"
+        },
+        {
+          "kCGWindowOwnerPID": 60230,
+          "kCGWindowName": "",
+          "kCGWindowLayer": 0,
+          "kCGWindowMemoryUsage": 2288,
+          "kCGWindowSharingState": 1,
+          "kCGWindowAlpha": 1,
+          "kCGWindowOwnerName": "sandbox",
+          "kCGWindowStoreType": 1,
+          "kCGWindowNumber": 49,
+          "kCGWindowBounds": {
+            "X": 0,
+            "Height": 24,
+            "Y": 0,
+            "Width": 1024
+          }
+        }
+      ],
+      "observed_restored": true
+    }
+  },
+  "window": {
+    "kCGWindowOwnerName": "sandbox",
+    "kCGWindowSharingState": 1,
+    "kCGWindowStoreType": 1,
+    "kCGWindowNumber": 47,
+    "kCGWindowOwnerPID": 60230,
+    "kCGWindowIsOnscreen": true,
+    "kCGWindowLayer": 0,
+    "kCGWindowName": "Somnium - Phase 3",
+    "kCGWindowBounds": {
+      "X": 0,
+      "Height": 681,
+      "Y": 25,
+      "Width": 1024
+    },
+    "kCGWindowAlpha": 1,
+    "kCGWindowMemoryUsage": 2288
+  },
+  "exit_code": 0,
+  "camera_poses": [
+    "eye=(5.4494,4.3497,7.1683) distance=10.0000"
+  ],
+  "reason": "Orbit/zoom/reset must produce three camera poses and restore the initial pose",
+  "validation_errors": false,
+  "validation_enabled": true
+}

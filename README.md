@@ -16,7 +16,10 @@ best effort et WARP n'est plus couvert. Installation et commandes dans
 [bilan de phase 2](docs/validation/phase-2/FIN_DE_PHASE.md).
 Le lancement macOS sur `main` a échoué au test de rétention, avant compilation :
 aucune nouvelle preuve Metal à cette clôture. Le défaut de rétention est corrigé
-en phase 3, avec régression reproduite puis couverte sous Windows/Linux.
+en phase 3, avec régression reproduite puis couverte sous Windows/Linux/macOS.
+Le [point de contrôle scène](docs/validation/phase-3/README.md) valide les trois
+backends hors écran ; le scénario de présentation Metal échoue ensuite sur
+l’observation orbite/zoom/reset. Cette limite reste distincte de la preuve GPU.
 Les ADR de phase 3 sont **acceptés** ; [World et les codecs JSON](docs/SCENE.md)
 et l’extraction interpolée ont leurs tests CPU et leur [preuve hors écran](docs/SCENE_VALIDATION.md).
 Input configurable et le gameplay de la cible viennent après validation du point de contrôle.
