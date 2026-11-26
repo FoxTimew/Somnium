@@ -1,5 +1,6 @@
 """Run identical fixed-step replay captures on all desktop platforms.
-Only pixels are read from the OS. The sandbox freezes at the requested tick and exits itself.
+The engine reads its composed scene/UI target, copies it to the swapchain and exits.
+No desktop pixels, window queries, focus changes or system input are involved.
 """
 import argparse
 import hashlib
@@ -9,12 +10,37 @@ from pathlib import Path
 import platform
 import subprocess
 import sys
-import time
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools/gpu"))
-from compare import read_png
+from compare import read_png, write_png
 from run import native_validation_error
+
+
+def convert_frame(prefix, steps):
+    metadata = json.loads(prefix.with_suffix(".json").read_text(encoding="utf-8"))
+    if (metadata.get("version") != 1 or metadata.get("format") != "RGBA8" or
+            metadata.get("encoding") != "sRGB" or metadata.get("source") != "engine-composed-frame" or
+            metadata.get("steps") != steps or metadata.get("debug_ui") is not True):
+        raise ValueError("Invalid composed frame metadata (exact replay step and UI required)")
+    width, height = metadata.get("width"), metadata.get("height")
+    if any(type(value) is not int or value <= 0 or value > 16384 for value in (width, height)):
+        raise ValueError("Invalid composed frame extent")
+    write_png(prefix.with_suffix(".png"), width, height, prefix.with_suffix(".rgba").read_bytes())
+    return metadata
+
+
+def check_ui(width, height, rgba, probes):
+    results = []
+    for probe in probes:
+        left, top, right, bottom = probe["region"]
+        count = sum(min(rgba[i:i+3]) >= probe["minimum_channel"]
+                    for y in range(int(height * top), int(height * bottom))
+                    for x in range(int(width * left), int(width * right)) for i in [4 * (y * width + x)])
+        if count < probe["minimum_pixels"]:
+            raise ValueError(f"Missing UI witness {probe['name']}: {count} pixels")
+        results.append({"name": probe["name"], "pixels": count})
+    return results
 
 
 def main():
@@ -38,43 +64,31 @@ def main():
               "binary_sha256": hashlib.sha256(executable.read_bytes()).hexdigest(),
               "replay_sha256": hashlib.sha256(replay.read_bytes().replace(b"\r\n", b"\n")).hexdigest(),
               "scenario_sha256": hashlib.sha256(args.scenario.read_bytes().replace(b"\r\n", b"\n")).hexdigest(),
-              "input_source": "platform fixed-step replay (no OS input)", "status": "échec", "captures": []}
+              "input_source": "platform fixed-step replay (no OS input)",
+              "capture_source": "engine-composed-frame (scene + UI, swapchain extent)",
+              "status": "échec", "captures": []}
     environment = dict(os.environ, SDL_ASSERT="abort", SDL_LOGGING="*=verbose")
     if system == "Darwin":
-        import capture_macos
-        helper = capture_macos.prepare(output)
-        snapshot = lambda pid, path: capture_macos.snapshot(pid, path, helper)
         environment.update(MTL_DEBUG_LAYER="1", MTL_SHADER_VALIDATION="1", MTL_SHADER_VALIDATION_REPORT_TO_STDERR="1")
-    elif system == "Windows":
-        from capture_windows import snapshot
-    else:
-        from capture_linux import snapshot
     combined = []
     try:
         for case in scenario["cases"]:
             name, steps = case["name"], case["steps"]
             log_path = output / (name + ".log")
             with log_path.open("w", encoding="utf-8") as log:
-                command = [str(executable), "--backend", backend, "--replay", scenario["replay"], "--capture-step", str(steps)]
+                prefix = output / name
+                # A failed invocation must never consume files left by an earlier run.
+                for suffix in [".rgba", ".json", ".png"]:
+                    prefix.with_suffix(suffix).unlink(missing_ok=True)
+                command = [str(executable), "--backend", backend, "--replay", scenario["replay"],
+                           "--capture-step", str(steps), "--capture-output", str(prefix)]
                 process = subprocess.Popen(command, cwd=output, env=environment, stdout=log, stderr=subprocess.STDOUT)
                 try:
-                    deadline = time.monotonic() + 30 + steps / 30
-                    while time.monotonic() < deadline:
-                        text = log_path.read_text(encoding="utf-8", errors="replace")
-                        if f"CAPTURE_READY steps={steps}\n" in text:
-                            break
-                        if process.poll() is not None:
-                            raise RuntimeError(f"{name}: exited before capture ({process.returncode})")
-                        time.sleep(.05)
-                    else:
-                        raise RuntimeError(f"{name}: replay capture timed out")
-                    time.sleep(.15) # Let the compositor display the submitted stable frame.
                     path = output / (name + ".png")
-                    snapshot(process.pid, path)
-                    if process.wait(timeout=15) != 0:
+                    if process.wait(timeout=30 + steps / 30) != 0:
                         raise RuntimeError(f"{name}: sandbox failed on shutdown")
+                    metadata = convert_frame(prefix, steps)
                     text = log_path.read_text(encoding="utf-8", errors="replace")
-                    combined.append(text)
                     if native_validation_error(text):
                         raise RuntimeError(f"{name}: native validation diagnostic")
                     enabled = ("Validation layers enabled" in text if backend != "metal" else
@@ -88,15 +102,20 @@ def main():
                     for marker in case.get("markers", []):
                         if marker not in text:
                             raise RuntimeError(f"{name}: missing gameplay evidence: {marker}")
-                    report["captures"].append({"name": path.name, "steps": steps, "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})
+                    width, height, rgba = read_png(path)
+                    witnesses = check_ui(width, height, rgba, scenario.get("ui_probes", []))
+                    report["captures"].append({"name": path.name, "steps": steps, "width": width, "height": height,
+                                              "metadata": metadata, "ui_probes": witnesses,
+                                              "sha256": hashlib.sha256(path.read_bytes()).hexdigest()})
                 finally:
                     if process.poll() is None:
                         process.kill()
                         process.wait(timeout=10)
+                    combined.append(log_path.read_text(encoding="utf-8", errors="replace"))
         differences = []
         for comparison in scenario["comparisons"]:
-            width, height, a = read_png(output / (comparison["a"] + ".png"), allow_rgb=True)
-            bw, bh, b = read_png(output / (comparison["b"] + ".png"), allow_rgb=True)
+            width, height, a = read_png(output / (comparison["a"] + ".png"))
+            bw, bh, b = read_png(output / (comparison["b"] + ".png"))
             if (width, height) != (bw, bh):
                 raise RuntimeError("Capture dimensions differ")
             # The versioned region excludes diagnostic/inspector panels.
@@ -110,12 +129,14 @@ def main():
         report["status"] = "validé"
     except (OSError, RuntimeError, subprocess.SubprocessError, ValueError) as error:
         report["reason"] = str(error)
+        if combined:
+            print("\n".join(combined[-1].splitlines()[-120:]), file=sys.stderr)
     (output / "validation.log").write_text("\n".join(combined), encoding="utf-8")
     (output / "result.json").write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(json.dumps(report, indent=2, ensure_ascii=False))
     if os.getenv("GITHUB_STEP_SUMMARY"):
         with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
-            summary.write(f"\nPrésentation {backend}, rejeu sans injection : **{report['status']}** ({output}).\n")
+            summary.write(f"\nFrame moteur scène + UI, {backend}, rejeu sans injection : **{report['status']}** ({output}).\n")
     return 0 if report["status"] == "validé" else 1
 
 

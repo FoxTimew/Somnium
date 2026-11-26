@@ -7,17 +7,20 @@
 
 #include <charconv>
 #include <cstdio>
+#include <fstream>
+#include <string>
 #include <string_view>
 
 int main(int argc, char** argv) {
     somnium::runtime::RunOptions options;
+    std::string captureOutput;
     somnium::runtime::EngineConfig config;
     config.scenePath = "scenes/courtyard.json";
     config.inputPath = "input/courtyard.json";
     for (int index = 1; index < argc; index += 2) {
         if (index + 1 >= argc) {
             std::fputs("Usage: sandbox [--frames N] [--backend vulkan|direct3d12|metal] [--replay "
-                       "path] [--capture-step N]\n",
+                       "path] [--capture-step N] [--capture-output prefix]\n",
                        stderr);
             return 2;
         }
@@ -26,7 +29,10 @@ int main(int argc, char** argv) {
             config.backend = value;
         else if (key == "--replay")
             config.replayPath = value;
-        else if (key == "--frames" || key == "--capture-step") {
+        else if (key == "--capture-output") {
+            captureOutput = value;
+            options.captureFrame = true;
+        } else if (key == "--frames" || key == "--capture-step") {
             auto& count = key == "--frames" ? options.frameLimit : options.captureSteps;
             const auto parsed = std::from_chars(value.data(), value.data() + value.size(), count);
             if (parsed.ec != std::errc{} || parsed.ptr != value.data() + value.size() || count == 0)
@@ -60,6 +66,29 @@ int main(int argc, char** argv) {
                 static_cast<unsigned long long>(result->frames),
                 static_cast<unsigned long long>(result->fixedSteps), result->interpolationAlpha,
                 result->droppedSeconds);
+    if (result->capture) {
+        const auto& capture = *result->capture;
+        std::ofstream pixels(captureOutput + ".rgba", std::ios::binary);
+        pixels.write(reinterpret_cast<const char*>(capture.rgba.data()),
+                     static_cast<std::streamsize>(capture.rgba.size()));
+        pixels.close();
+        std::ofstream metadata(captureOutput + ".json");
+        const somnium::scene::Json description = {{"version", 1},
+                                                  {"width", capture.width},
+                                                  {"height", capture.height},
+                                                  {"format", "RGBA8"},
+                                                  {"encoding", "sRGB"},
+                                                  {"steps", result->fixedSteps},
+                                                  {"debug_ui", capture.debugUi},
+                                                  {"source", "engine-composed-frame"}};
+        metadata << description.dump(2) << '\n';
+        metadata.close();
+        if (!pixels || !metadata) {
+            somnium::Log::write("sandbox", somnium::Log::Level::Error,
+                                "Could not write frame capture");
+            return 1;
+        }
+    }
     somnium::Log::flush();
     return 0;
 }

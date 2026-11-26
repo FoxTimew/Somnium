@@ -3,7 +3,7 @@
 
 Windows et Linux/WSL2 sont requis. Le workflow macOS manuel reste best effort.
 La politique est fixée par l'[ADR-0006](adr/0006-ci-auto-hebergee.md), amendé le
-25 novembre 2026. Exploitation quotidienne : [Démarrer les runners Somnium](DEMARRER_RUNNERS.md).
+26 novembre 2026. Exploitation quotidienne : [Démarrer les runners Somnium](DEMARRER_RUNNERS.md).
 
 ## Installation Windows
 
@@ -109,9 +109,9 @@ suivies d'une opération et des mêmes options. Exemples :
 
 Autres opérations : `format`, `compiler-cache`, `tidy`, `sanitizers`, `cleanup`, `pipeline`.
 `pipeline` ordonne version/format/architecture → shaders → debug/tests/GPU hors
-écran (et captures Xvfb Linux) → tidy Linux → release/shipping/profiling → sanitizers
-Linux. **Aucune capture Windows dans le pipeline requis** : test de fenêtre et
-probes GPU restent obligatoires. Un échec interrompt la suite.
+écran/captures moteur → tidy Linux → release/shipping/profiling → sanitizers
+Linux. Captures D3D12/Vulkan **requises** sous Windows interactif, Vulkan sous
+Xvfb Linux : aucun pixel n'est lu sur le bureau. Un échec interrompt la suite.
 Garder le même `--run-id` pour reprendre un configure/build/test. Aucun accès
 GitHub n'est requis hors acquisition des dépendances publiques au premier passage.
 
@@ -171,19 +171,17 @@ l'approbation des contributeurs externes. Aucun de ces déclencheurs n'est suppo
 couvert par le simple passage à un jeton non élevé.
 
 Windows exige Radeon RX 6600M pour D3D12 et Vulkan, avec couches actives ; **WARP
-n'est plus couvert**. Linux impose lavapipe. Les captures Windows viennent de la
-fenêtre réelle et du rejeu neutre de platform, **uniquement dans le job manuel
-windows-presentation**, déclenché avec workflow_dispatch et presentation=true.
-Il réutilise le build debug Windows du même run, sans transfert d'artefact. Laisser
-le bureau libre pendant ce job ; voir le [guide](DEMARRER_RUNNERS.md).
+n'est plus couvert**. Linux impose lavapipe. Les captures Windows sont produites
+par le moteur à l'extent de la swapchain, avec rejeu neutre de platform. Elles
+font partie du pipeline requis, utilisent le build debug du même run et ne
+dépendent ni du focus ni des fenêtres superposées ; voir le [guide](DEMARRER_RUNNERS.md).
 Aucun assouplissement de politique
 de contrôle d'application. Un blocage doit être rapporté avec le message exact.
 macOS est manuel, ses deux jobs indépendants utilisent des disques éphémères.
-Les petits PNG de scène et, après succès de la comparaison, de présentation sont
+Les petits PNG de scène et les frames composées produites, même si la comparaison échoue, sont
 aussi conservés dans le journal avec empreinte SHA-256 et données encodées, puis
-archivés explicitement dans le dépôt sous LFS. Limite actuelle : un échec avant
-cette publication laisse les PNG de présentation sur le disque éphémère seulement
-(cas macOS de phase 3 documenté dans le bilan). Aucun service d’artefacts GitHub. Les anciens résultats Metal
+archivés explicitement dans le dépôt sous LFS. Un arrêt avant production des images
+ne fournit qu'un journal d'échec. Aucun service d’artefacts GitHub. Les anciens résultats Metal
 restent historiques et ne prouvent pas un nouveau commit.
 
 Sources : [runner GitHub](https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/configure-the-application),
@@ -193,12 +191,13 @@ Sources : [runner GitHub](https://docs.github.com/en/actions/how-tos/manage-runn
 
 ### Rejeu de présentation (phase 3)
 
-Les captures Windows restent dans le job manuel `workflow_dispatch`, sur D3D12
-et Vulkan. Le rejeu neutre de platform remplace toute injection système sur
-Windows, Linux et macOS. Les scripts ne changent ni focus ni pointeur. La fenêtre
-visible et sa capture peuvent néanmoins gêner la session personnelle ou être
-masquées : ce risque justifie le maintien manuel. Le job requis conserve le test
-de fenêtre et D5/cube/scène hors écran. Voir [INPUT.md](INPUT.md).
-Le contrôle Windows refuse aussi toute fenêtre visible au-dessus qui recouvre
-la zone cliente, même si le sandbox possède le premier plan ; vérification avant
-et après capture, sans lire le titre ou le contenu des autres fenêtres.
+Le rejeu neutre remplace toute injection système. `--capture-output` demande au
+moteur une cible intermédiaire de même format et taille que la swapchain : scène,
+UI, copie GPU vers swapchain, soumission, relecture par transfer buffer/fence.
+Le script commun `tools/presentation/capture.py` produit les PNG et vérifie les
+pas, marqueurs gameplay, témoins UI et différences entre poses. Aucun accès aux
+pixels du bureau, aux titres de fenêtres ou au focus. Les captures redeviennent
+requises sous Windows ; des fenêtres apparaissent toujours, mais les recouvrements
+et décorations ne contaminent plus les preuves. La session doit rester ouverte
+avec une swapchain utilisable. Metal emploie le même chemin dans son workflow
+manuel non bloquant. Voir [INPUT.md](INPUT.md).

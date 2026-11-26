@@ -1,7 +1,7 @@
 <!-- Infrastructure et compromis de sécurité du poste personnel ; exploitation dans CI_RUNNER.md. -->
 # ADR-0006 — CI auto-hébergée
 
-Date : 5 novembre 2026, amendé le 25 novembre 2026. Statut : **accepté**.
+Date : 5 novembre 2026, amendé le 26 novembre 2026. Statut : **accepté**.
 
 ## Contexte
 
@@ -27,9 +27,10 @@ aussi les ACL et l'accès aux disques Windows depuis WSL.
 
 Windows/D3D12/Vulkan matériel et Linux/lavapipe sont requis : quatre presets,
 format, architecture, test de fenêtre, D5/cube/scène ; tidy 18 et ASan/UBSan sur Linux.
-Les captures utilisent un rejeu neutre dans platform, sans injection système.
-Windows reste **exclusivement en job manuel workflow_dispatch**, car les fenêtres
-visibles peuvent gêner la session personnelle ou être masquées. Linux utilise Xvfb.
+Les captures utilisent un rejeu neutre dans platform et une relecture GPU de la
+frame composée scène + UI, copiée vers la swapchain. Sans injection système ni
+lecture du bureau, elles redeviennent **requises** sous Windows interactif et
+Linux/Xvfb : focus, recouvrement et décorations ne déterminent plus les pixels.
 macOS reste best effort, manuel : build macos-latest, build/Metal macos-15, cible
 13.3. **WARP n'est plus prouvé** ; les anciens résultats restent historiques.
 
@@ -49,7 +50,7 @@ de présentation. CI hébergée requise : coûts et indisponibilité précédemm
 ## Conséquences
 
 La disponibilité dépend du poste, de la session Windows et de WSL. Les captures
-manuelles demandent un bureau libre ; le job requis n'injecte aucun input global.
+nécessitent encore une swapchain utilisable ; aucun input global n'est injecté.
 Le risque d'accès aux données personnelles est accepté dans le périmètre ci-dessus.
 Installation : [CI_RUNNER.md](../CI_RUNNER.md) ; démarrage : [guide](../DEMARRER_RUNNERS.md).
 Les contrats scène/input sont dans ADR-0007/0008.

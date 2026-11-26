@@ -100,9 +100,12 @@ Rejouer les mêmes événements sans injection dans le système :
 ```sh
 build/debug/bin/sandbox --replay replays/courtyard.json
 build/debug/bin/sandbox --backend vulkan --replay replays/courtyard.json --capture-step 345
+build/debug/bin/sandbox --backend vulkan --replay replays/courtyard.json --capture-step 345 --capture-output /tmp/door
 ```
 
 Le second mode fige la pose après 345 pas, la présente trois secondes puis ferme.
+Le troisième écrit `door.rgba` et `door.json` depuis la frame composée scène + UI,
+à la taille réelle de la swapchain, après présentation de la même texture.
 Le panneau reste visible, non interactif. Schémas et garanties : [INPUT.md](docs/INPUT.md).
 
 Les chemins sont **logiques et indépendants du répertoire courant**. En mode
@@ -184,8 +187,9 @@ sRGB à la sortie. Les tests input/caméra sont entièrement CPU.
 La CI requise configure, construit et teste **debug, release, shipping et profiling
 sur Windows et Linux**, puis vérifie D5/cube/scène et le test de fenêtre ; clang-tidy **18**
 et ASan/UBSan tournent sous Linux. macOS est un workflow manuel best effort.
-Les captures de présentation utilisent le rejeu neutre, sans injection système.
-Windows reste en job manuel `workflow_dispatch` pour ses fenêtres visibles ; [démarrer les runners et les captures](docs/DEMARRER_RUNNERS.md).
+Les captures utilisent le rejeu neutre et la relecture GPU de la frame scène + UI,
+sans injection système ni lecture du bureau. Elles sont requises sous Windows
+interactif et Linux/Xvfb ; Metal reste manuel. [Démarrer les runners](docs/DEMARRER_RUNNERS.md).
 Logs, binaires et images restent sur le disque du runner par run, pendant 14 jours ;
 le résumé GitHub indique leurs chemins. Les actions restantes sont épinglées par SHA.
 

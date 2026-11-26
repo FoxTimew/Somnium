@@ -40,11 +40,57 @@ int main(int argc, char** argv) {
         *format == gpu::ColorFormat::Rgba8Srgb || *format == gpu::ColorFormat::Bgra8Srgb;
     if (srgb != *support)
         return 1;
+    gpu::TextureKind kind{};
+    switch (*format) {
+    case gpu::ColorFormat::Rgba8:
+        kind = gpu::TextureKind::ColorRgba8;
+        break;
+    case gpu::ColorFormat::Bgra8:
+        kind = gpu::TextureKind::ColorBgra8;
+        break;
+    case gpu::ColorFormat::Rgba8Srgb:
+        kind = gpu::TextureKind::ColorRgba8Srgb;
+        break;
+    case gpu::ColorFormat::Bgra8Srgb:
+        kind = gpu::TextureKind::ColorBgra8Srgb;
+        break;
+    }
+    const std::array clear{0.25F, 0.5F, 0.75F, 1.F};
+    auto target = (*device)->createTexture({kind, extent->width, extent->height, clear});
+    auto small = (*device)->createTexture({kind, 1, 1});
+    auto wrongFormat = (*device)->createTexture(
+        {srgb ? gpu::TextureKind::ColorRgba8 : gpu::TextureKind::ColorRgba8Srgb, extent->width,
+         extent->height});
+    if (!target || !small || !wrongFormat || !(*device)->beginFrame())
+        return 1;
+    auto acquired = (*device)->acquireSwapchain();
+    if (!acquired || !acquired->drawable() || (*device)->setPresentationTarget(*small) ||
+        (*device)->copyToSwapchain(*wrongFormat) || !(*device)->setPresentationTarget(*target) ||
+        !(*device)->recordPass({{}, {}, clear}, {}) || !(*device)->copyToSwapchain(*target) ||
+        !(*device)->submitFrame())
+        return 1;
+    auto pixels = (*device)->readback(*target);
+    if (!pixels || pixels->size() != std::size_t(extent->width) * extent->height * 4)
+        return 1;
+    // Selected target handles retire immediately, even while their native texture is in use.
+    if (!(*device)->beginFrame())
+        return 1;
+    acquired = (*device)->acquireSwapchain();
+    if (!acquired || !acquired->drawable() || !(*device)->setPresentationTarget(*target) ||
+        !(*device)->recordPass({{}, {}, clear}, {}) || !(*device)->copyToSwapchain(*target) ||
+        !(*device)->destroy(*target))
+        return 1;
+    const auto stale = (*device)->recordPass({{}, {}, clear}, {});
+    if (stale || stale.error().code != ErrorCode::InvalidHandle ||
+        (*device)->copyToSwapchain(*target) || (*device)->statistics().pendingReleases != 1 ||
+        !(*device)->finishFrame() || (*device)->statistics().pendingReleases != 0)
+        return 1;
     std::ofstream report(argv[2]);
     report << nlohmann::json{{"backend", name},
                              {"device", (*device)->info().name},
                              {"sdr_linear", *support},
                              {"srgb_target", srgb},
+                             {"composed_target_copy_readback_retirement", "passed"},
                              {"acquisition_submission", "passed"}}
                   .dump(2)
            << '\n';

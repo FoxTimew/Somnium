@@ -334,8 +334,9 @@ ne perd ni ne rejoue les transitions pendant les frames sans pas ou le rattrapag
 Le rejeu JSON versionné est une source de `core::InputEvent` dans platform, livrée
 à chaque frontière de pas. Il écarte les entrées physiques de gameplay et désactive
 l’interaction avec l’inspecteur ; le cycle de fenêtre reste actif. Les scripts de
-capture lisent les pixels présentés, sans injection système ni changement de focus.
-Windows reste manuel (session personnelle visible), Linux utilise Xvfb ; Metal est
+capture relisent la texture composée scène + UI à l’extent de la swapchain,
+copiée vers celle-ci avant soumission, sans lecture du bureau ni injection système.
+Windows interactif est requis, Linux utilise Xvfb ; Metal est
 best effort sur un runner hébergé. Détails : [INPUT.md](INPUT.md).
 
 ## 7. Boucle et flux d'une frame

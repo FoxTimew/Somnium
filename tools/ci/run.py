@@ -200,7 +200,7 @@ class Runner:
         self.py("architecture", "tools/check_architecture.py", ROOT)
         self.py("architecture-rules", "tools/test_architecture.py")
         self.py("ci-contract", "tools/ci/test_ci.py")
-        self.py("capture-replay-contract", "tools/presentation/test_capture_windows.py")
+        self.py("capture-replay-contract", "tools/presentation/test_capture.py")
 
     def compiler_cache(self):
         self.py("compiler-cache-dependencies", "tools/ci/test_compiler_cache.py", "--cmake", self.cmake, "--work", self.run)
@@ -316,21 +316,20 @@ class Runner:
             (output / "result.json").write_text(json.dumps({"status": "non validé", "reason": "Session 0/service; manual proof required"}), encoding="utf-8")
             self.summary("Presentation: **non validé** (service mode)")
             return
-        script = {"Windows": "capture_windows.py", "Linux": "capture_linux.py", "Darwin": "capture_macos.py"}[SYSTEM]
-        arguments = ["--executable", self.build_dir("debug") / "bin" / ("sandbox" + self.suffix), "--output", output]
-        if SYSTEM == "Windows":
-            arguments += ["--backend", backend]
-        self.py("capture-" + backend, "tools/presentation/" + script, *arguments, env=self.gpu_environment(backend), window=True)
-        # Hosted disks are ephemeral: retain presentation pixels in bounded log records,
-        # using the same transport as the scene proof (no upload/download action).
-        if SYSTEM == "Darwin":
-            for path in sorted(output.glob("*.png")):
-                data = path.read_bytes()
-                if len(data) > 2 * 1024 * 1024:
-                    raise RuntimeError("Presentation log capture exceeds 2 MiB")
-                print("SOMNIUM_PRESENTATION_IMAGE " + json.dumps({"name": path.name,
-                      "sha256": hashlib.sha256(data).hexdigest(),
-                      "base64": base64.b64encode(data).decode("ascii")}), flush=True)
+        arguments = ["--executable", self.build_dir("debug") / "bin" / ("sandbox" + self.suffix),
+                     "--output", output, "--backend", backend]
+        try:
+            self.py("capture-" + backend, "tools/presentation/capture.py", *arguments, env=self.gpu_environment(backend), window=True)
+        finally:
+            # Hosted disks are ephemeral. Retain produced frames even if comparison fails.
+            if SYSTEM == "Darwin":
+                for path in sorted(output.glob("*.png")):
+                    data = path.read_bytes()
+                    if len(data) > 2 * 1024 * 1024:
+                        raise RuntimeError("Presentation log capture exceeds 2 MiB")
+                    print("SOMNIUM_PRESENTATION_IMAGE " + json.dumps({"name": path.name,
+                          "sha256": hashlib.sha256(data).hexdigest(),
+                          "base64": base64.b64encode(data).decode("ascii")}), flush=True)
 
     def pipeline(self):
         # One job per OS: cheap checks first, GPU smoke before four full build variants.
@@ -348,12 +347,9 @@ class Runner:
             self.summary("Metal: **non validé** on this build-only host; the independent macos-15 job probes Metal")
         for backend in backends:
             self.gpu(backend)
-            # Windows replay captures still open visible presentation windows; keep
-            # them manual. Xvfb/hosted macOS have isolated desktop sessions.
-            if SYSTEM != "Windows":
-                self.captures(backend)
-        if SYSTEM == "Windows":
-            self.summary("Presentation captures: manual workflow_dispatch job only; window tests and offscreen GPU proofs remain required")
+            # Engine readback is independent of desktop overlap/focus and injects no OS input.
+            # A usable window/swapchain is still required, as for the existing window tests.
+            self.captures(backend)
         if SYSTEM == "Linux":
             self.tidy()
         for preset in ["release", "shipping", "profiling"]:

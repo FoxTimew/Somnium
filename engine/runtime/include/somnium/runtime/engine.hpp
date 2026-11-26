@@ -6,9 +6,12 @@
 #include <somnium/runtime/gameplay.hpp>
 #include <somnium/scene/serialization.hpp>
 
+#include <cstddef>
 #include <cstdint>
 #include <memory>
+#include <optional>
 #include <string_view>
+#include <vector>
 
 namespace somnium::runtime {
 struct EngineConfig {
@@ -23,16 +26,24 @@ struct EngineConfig {
     std::string_view backend;
 };
 struct RunOptions {
-    // Replay capture: freeze after this many ticks, present for three seconds, then quit.
+    // Freeze the replay at this tick. Without captureFrame, present for three seconds.
     std::uint64_t captureSteps = 0;
+    bool captureFrame = false;
     std::uint64_t frameLimit =
         0; // Zero means interactive; bounded runs enqueue the normal quit event.
+};
+struct FrameCapture {
+    std::uint32_t width = 0, height = 0;
+    bool debugUi = false;
+    // Composed frame in display-encoded RGBA8, copied unchanged to the swapchain.
+    std::vector<std::byte> rgba;
 };
 struct RunStats {
     std::uint64_t frames = 0;
     std::uint64_t fixedSteps = 0;
     double droppedSeconds = 0.0;
     double interpolationAlpha = 0.0;
+    std::optional<FrameCapture> capture;
 };
 
 class Engine final {

@@ -1,6 +1,10 @@
 {
   "version": 1,
   "replay": "replays/courtyard.json",
+  "ui_probes": [
+    {"name": "inspector", "region": [0.75, 0.05, 0.98, 0.9], "minimum_channel": 230, "minimum_pixels": 200},
+    {"name": "diagnostics", "region": [0.02, 0.02, 0.24, 0.25], "minimum_channel": 230, "minimum_pixels": 200}
+  ],
   "region": [
     0.25,
     0.3,

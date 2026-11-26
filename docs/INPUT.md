@@ -58,13 +58,24 @@ axes hors [-32768,32767] et pas désordonnés sont rejetés avant installation.
 actifs. Runtime demande les événements à platform avant chaque pas, y compris
 pendant un rattrapage. `--capture-step N` exige un rejeu, fige la simulation après
 N pas, présente la pose courante pendant trois secondes puis ferme normalement.
-Les scripts `tools/presentation/` lisent la fenêtre après `CAPTURE_READY` ; ils
-n’injectent aucun événement système et ne déplacent ni focus ni pointeur.
-Les captures Windows restent **manuelles** : les fenêtres visibles et leur
-lecture dans la session personnelle peuvent gêner le travail ou être masquées.
-Les preuves GPU hors écran et le test de fenêtre restent requis. Les scénarios
-Linux/macOS utilisent exactement le même rejeu ; leurs pixels restent des
-captures de présentation, distinctes des références analytiques hors écran.
+Avec `--capture-output prefix`, le moteur compose scène et UI dans une texture
+au format et à l’extent exacts de la swapchain acquise, la copie vers celle-ci,
+soumet puis relit cette texture par transfer buffer/fence. Le premier frame figé
+stabilise l’UI ; le suivant fournit les pixels au même pas. Le sandbox écrit
+`prefix.rgba` (RGBA8 sRGB) et `prefix.json`, puis ferme normalement. La relecture
+BGRA est réordonnée en RGBA sans nouvel encodage colorimétrique.
+La copie utilise `SDL_CopyGPUTextureToTexture` sur Vulkan/D3D12 et un blit SDL
+1:1 nearest sur Metal : le drawable `framebufferOnly` conservé par SDL 3.4.18
+interdit une copie Metal par blit-encoder. Le blit dessiné utilise les mêmes
+formats sRGB source/destination ([restriction Apple](https://developer.apple.com/documentation/metal/mtltexture/isframebufferonly)).
+
+`tools/presentation/capture.py` utilise cette option sur les trois OS, convertit
+en PNG et vérifie les métadonnées, le pas exact et des témoins de texte UI.
+Aucune lecture du bureau, injection système ou modification du focus/pointeur.
+Les captures Windows redeviennent **requises** : recouvrements et décorations
+n’influencent plus les pixels. La session interactive et une swapchain utilisable
+restent nécessaires ; Linux utilise Xvfb et macOS reste manuel best effort.
+Ces captures de frames composées ne remplacent pas les références analytiques.
 
 ## Mapping de la cible et routage UI
 

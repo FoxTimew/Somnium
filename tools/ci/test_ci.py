@@ -138,22 +138,18 @@ class InfrastructureTests(unittest.TestCase):
         self.assertNotIn("  push:", optional)
         self.assertNotIn("  pull_request:", optional)
 
-    def test_windows_pipeline_keeps_presentation_manual(self):
-        # Run orchestration with inert build operations; any accidental desktop
-        # capture in the required Windows pipeline is an immediate test failure.
+    def test_windows_pipeline_requires_both_engine_captures(self):
         runner = object.__new__(run.Runner)
         for name in ["doctor", "format", "cache_server", "compiler_cache", "shader_toolchain",
                      "configure", "build", "test", "gpu", "call", "summary"]:
             setattr(runner, name, lambda *args, **kwargs: None)
-        runner.captures = lambda *_: self.fail("Required Windows pipeline opened presentation captures")
+        captures = []
+        runner.captures = captures.append
         with patch.object(run, "SYSTEM", "Windows"):
             runner.pipeline()
+        self.assertEqual(captures, ["direct3d12", "vulkan"])
         workflow = (run.ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
-        required, manual = workflow.split("  windows-presentation:", 1)
-        self.assertNotIn("windows.ps1 captures", required)
-        self.assertIn("github.event_name == 'workflow_dispatch' && inputs.presentation", manual)
-        self.assertIn("needs: windows", manual)
-        self.assertIn("windows.ps1 captures --backend direct3d12", manual)
+        self.assertNotIn("windows-presentation:", workflow)
 
 
 if __name__ == "__main__":

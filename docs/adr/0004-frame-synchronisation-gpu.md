@@ -26,6 +26,8 @@ D2 et D5 ; détails dans [GPU_VALIDATION.md](../GPU_VALIDATION.md).
   seulement sans texture acquise ; **après acquisition, toujours soumettre**,
   y compris sur fermeture/erreur. `renderOffscreen` compose la même API sans
   swapchain. Uploads moteur avant la frame ; uploads ImGui avant les passes.
+  Capture explicite : cible possédée de même format/extent, scène puis UI,
+  copie vers swapchain avant soumission, relecture avec fence après soumission.
 - **Ressources.** Handles générationnels détenus par le device. Destruction
   pendant l'enregistrement : invalidation immédiate, `SDL_ReleaseGPU*` différé
   jusqu'à soumission/annulation ; SDL diffère ensuite la libération native jusqu'à

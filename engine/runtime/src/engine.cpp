@@ -32,11 +32,15 @@ struct Engine::Impl {
     std::unique_ptr<SceneRendering> scene;
     std::string scenePath, inputPath;
     gpu::Texture depth{};
+    gpu::Texture captureTarget{};
+    gpu::ColorFormat presentationFormat{};
     Impl(std::unique_ptr<platform::Platform> window, platform::FileReader reader,
          std::unique_ptr<gpu::Device> device, std::unique_ptr<renderer::Renderer> rendering)
         : platform(std::move(window)), resources(std::move(reader)), gpu(std::move(device)),
           renderer(std::move(rendering)), models(resources, loader) {}
     ~Impl() {
+        if (captureTarget)
+            (void)gpu->destroy(captureTarget);
         if (depth)
             (void)gpu->destroy(depth);
     }
@@ -96,6 +100,7 @@ Result<std::unique_ptr<Engine>> Engine::create(const EngineConfig& config) {
     auto impl = std::make_unique<Impl>(std::move(*platform), std::move(*resources),
                                        std::move(*device), std::move(*renderer));
     impl->scenePath = config.scenePath;
+    impl->presentationFormat = *format;
     impl->inputPath = config.inputPath;
     if (!config.replayPath.empty()) {
         auto replay = platform::InputReplay::load(impl->resources, config.replayPath);
@@ -118,6 +123,9 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
         return tl::unexpected(Error{ErrorCode::InvalidState, "An engine session runs only once"});
     }
     m_impl->hasRun = true;
+    if (options.captureFrame && options.captureSteps == 0)
+        return tl::unexpected(
+            Error{ErrorCode::InvalidArgument, "Frame capture requires a replay tick"});
     auto loaded = scene::load(m_impl->resources, m_impl->scenePath, codecs, &m_impl->assets);
     if (!loaded)
         return tl::unexpected(loaded.error());
@@ -233,7 +241,7 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
             return tl::unexpected(size.error());
         // A bounded sandbox run exercises closing after acquisition, before a render pass.
         if ((options.frameLimit != 0 && stats.frames >= options.frameLimit) ||
-            captureSeconds >= 3.0) {
+            stats.capture.has_value() || captureSeconds >= 3.0) {
             auto quit = m_impl->platform->requestQuit();
             if (!quit)
                 return tl::unexpected(quit.error());
@@ -291,16 +299,44 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
             m_impl->depth = *depth;
             previousSize = *size;
         }
-#if defined(SOMNIUM_ENABLE_DEBUG_UI)
-        auto prepared = m_impl->overlay->prepare();
-        if (!prepared)
-            return tl::unexpected(prepared.error());
-#endif
         auto extracted =
             m_impl->scene->extract(world, frozen ? 1.F : static_cast<float>(batch->alpha), *size);
         if (!extracted)
             return tl::unexpected(extracted.error());
         const auto& sceneFrame = m_impl->scene->frame();
+        // The first frozen frame primes the UI. On the next frame both the scene
+        // and the UI were built from the exact requested fixed-step state.
+        const bool capture = options.captureFrame && captureReady;
+        if (capture) {
+            gpu::TextureKind kind{};
+            switch (m_impl->presentationFormat) {
+            case gpu::ColorFormat::Rgba8:
+                kind = gpu::TextureKind::ColorRgba8;
+                break;
+            case gpu::ColorFormat::Bgra8:
+                kind = gpu::TextureKind::ColorBgra8;
+                break;
+            case gpu::ColorFormat::Rgba8Srgb:
+                kind = gpu::TextureKind::ColorRgba8Srgb;
+                break;
+            case gpu::ColorFormat::Bgra8Srgb:
+                kind = gpu::TextureKind::ColorBgra8Srgb;
+                break;
+            }
+            auto target = m_impl->gpu->createTexture(
+                {kind, size->width, size->height, sceneFrame.clearColor});
+            if (!target)
+                return tl::unexpected(target.error());
+            m_impl->captureTarget = *target;
+            auto selected = m_impl->gpu->setPresentationTarget(*target);
+            if (!selected)
+                return tl::unexpected(selected.error());
+        }
+#if defined(SOMNIUM_ENABLE_DEBUG_UI)
+        auto prepared = m_impl->overlay->prepare();
+        if (!prepared)
+            return tl::unexpected(prepared.error());
+#endif
         auto rendered = m_impl->renderer->record({{}, m_impl->depth, sceneFrame.clearColor},
                                                  sceneFrame.uniforms, sceneFrame.draws);
         if (!rendered)
@@ -310,11 +346,29 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
         if (!overlayRendered)
             return tl::unexpected(overlayRendered.error());
 #endif
+        if (capture) {
+            auto copied = m_impl->gpu->copyToSwapchain(m_impl->captureTarget);
+            if (!copied)
+                return tl::unexpected(copied.error());
+        }
         frame.active = false;
         auto submitted = m_impl->gpu->submitFrame();
         if (!submitted)
             return tl::unexpected(submitted.error());
         ++stats.frames;
+        if (capture) {
+            auto pixels = m_impl->gpu->readback(m_impl->captureTarget);
+            if (!pixels)
+                return tl::unexpected(pixels.error());
+            stats.capture = FrameCapture{size->width, size->height, false, std::move(*pixels)};
+#if defined(SOMNIUM_ENABLE_DEBUG_UI)
+            stats.capture->debugUi = true;
+#endif
+            auto released = m_impl->gpu->destroy(m_impl->captureTarget);
+            m_impl->captureTarget = {};
+            if (!released)
+                return tl::unexpected(released.error());
+        }
         if (frozen && !captureReady) {
             captureReady = true;
             Log::write("runtime", Log::Level::Info, "CAPTURE_READY steps={}", stats.fixedSteps);
@@ -329,6 +383,8 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
         stats.droppedSeconds += batch->droppedSeconds;
         SOMNIUM_PROFILE_FRAME();
     }
+    if (options.captureFrame && !stats.capture)
+        return tl::unexpected(Error{ErrorCode::InvalidState, "Session ended before frame capture"});
     return stats;
 }
 } // namespace somnium::runtime

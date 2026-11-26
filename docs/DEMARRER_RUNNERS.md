@@ -49,32 +49,29 @@ foxti. Ne pas relancer run.sh à côté du service. Avant une maintenance, atten
 que les jobs finissent. Arrêter le service avec systemctl stop si nécessaire ;
 ne pas utiliser wsl --shutdown, qui interromprait aussi les autres distributions.
 
-## Captures Windows, uniquement à la demande
+## Captures moteur requises
 
-Le job requis ouvre brièvement une fenêtre de test et vérifie D5/cube/scène hors
-écran. Les captures utilisent désormais un rejeu neutre dans platform : aucune
-injection clavier/souris, aucun clic d’activation ni déplacement du pointeur.
-Elles restent manuelles car leurs fenêtres visibles peuvent gêner la session de
-travail ou être masquées. Garder la session déverrouillée et le bureau libre.
-Si Windows refuse le premier plan au sandbox, le script échoue explicitement ;
-il ne tente pas de reprendre le focus. Fermer aussi les fenêtres flottantes
-(vidéo, notifications persistantes) : le premier plan ne suffit pas à exclure
-une fenêtre toujours au-dessus. Le script vérifie les recouvrements avant et
-après lecture des pixels et refuse l’image si la surface est masquée ou déplacée.
-Voir [le contrat de rejeu](INPUT.md).
+Le job requis vérifie la fenêtre, D5/cube/scène hors écran et cinq poses du
+sandbox sur D3D12 et Vulkan. Le rejeu neutre n'injecte aucun clavier/souris dans
+le système. Le moteur relit sa frame composée scène + UI, qu'il copie aussi
+vers la swapchain pour présentation normale. Les autres fenêtres peuvent la
+recouvrir sans contaminer les images ; aucun besoin de laisser souris/clavier
+inactifs. La session doit rester déverrouillée, la fenêtre non minimisée et sa
+swapchain utilisable. Aucun changement de focus par les outils.
+Voir [le contrat de rejeu et de capture](INPUT.md).
 
 Depuis un terminal disposant de GitHub CLI, sélectionner explicitement la branche :
 
 ```sh
-gh workflow run ci.yml --repo FoxTimew/Somnium --ref phase/3-scene -f presentation=true
+gh workflow run ci.yml --repo FoxTimew/Somnium --ref phase/3-scene
 ```
 
-Le workflow est présent sur `main`, branche par défaut. Dans Actions →
-CI self-hosted → Run workflow, choisir la branche à prouver et cocher presentation.
+Dans Actions → CI self-hosted → Run workflow, choisir la branche à prouver.
 Le lancement manuel ne change ni la branche par défaut ni les commits.
 
-Le job windows-presentation attend le build Windows du même run, utilise ses
-binaires debug puis conserve les captures dans
+Le job Windows utilise ses binaires debug puis conserve les captures dans
 C:\SomniumCI\runs\<run-id>-<tentative>\presentation-direct3d12 et presentation-vulkan.
-Les journaux et GITHUB_STEP_SUMMARY donnent le résultat et les chemins. Sans
-l'option presentation, même un workflow_dispatch ne capture pas le bureau.
+Les journaux et GITHUB_STEP_SUMMARY donnent le résultat et les chemins. Les
+commandes locales `tools/ci/windows.ps1 captures --backend direct3d12 --run-id ...`
+et `--backend vulkan` réutilisent le même build debug. Linux/Xvfb et macOS utilisent
+la même relecture moteur ; macOS reste un workflow manuel non bloquant.
