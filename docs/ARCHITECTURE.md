@@ -375,6 +375,13 @@ contrat Gameplay ; modèle, lumière, ambiant et fond proviennent du JSON.
    × (Lambert + ambiant) linéaire → swapchain SDR_LINEAR. Soumettre, présenter et
    marquer la frame Tracy ; aucune attente artificielle.
 
+Sur demande explicite de capture, après un premier frame figé stabilisant l’UI,
+le frame suivant utilise une cible couleur possédée au format/extent acquis.
+Renderer et intégration UI la partagent par la coopération privée GPU ; copie
+vers swapchain avant soumission, relecture par transfer buffer après fence.
+Le sandbox écrit RGBA8 sRGB et métadonnées ; aucun contenu de bureau n’est lu.
+Cette attente GPU est limitée aux captures/outils, pas à la boucle interactive.
+
 Le test cube garde un ambiant nul et son shader Lambert original : référence,
 sondes et provenance inchangées. L’ambiant non nul sélectionne une variante de
 shader avec uniforme de frame PS b2 ; le sandbox utilise 0,15. Chaque variante

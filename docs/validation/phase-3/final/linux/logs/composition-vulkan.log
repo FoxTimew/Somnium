@@ -701,6 +701,7 @@ LAYER:                        Library:  /home/foxti/somnium-ci/tools/vulkan/1.4.
 LAYER:                  ||
 DRIVER | LAYER:       <Device>
 DRIVER | LAYER:           Using "llvmpipe (LLVM 20.1.2, 256 bits)" with driver: "libvulkan_lvp.so"
+Integrated memory detected, allocating TransferBuffers on device-local memory!
 DEBUG | LAYER:     Unloading layer library libVkLayer_MESA_device_select.so
 DEBUG | LAYER:     Unloading layer library /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/../../../lib/libVkLayer_khronos_validation.so
 COMPOSITION_PROBE_COMPLETE: SDR_LINEAR=1

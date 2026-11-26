@@ -544,9 +544,9 @@ D5_CAPTURE_COMPLETE
   "backend": "vulkan",
   "test": "cube",
   "status": "valid\u00e9",
-  "binary_sha256": "c28fcf2d4493d8e7a8bd64285983bb2f85a4af71164fe3e8ae9d4fb2d615a38b",
-  "source_commit": "5a4745e084a72b5b33754bacfa7cb8821994f6f8",
-  "ci_run": "45709436402",
+  "binary_sha256": "b3f14af6d309820a421544ff0cb1daa2dd179c7f7761583144975b7e32bec1c4",
+  "source_commit": "740467076a4b3865ec1ac5a2eb42692a5f608628",
+  "ci_run": "45795328234",
   "shader_manifests": {
     "modelVertex.vsMain.vert.json": "a4c561b351dc9243d1c939bef5151664c79e04d07b4e4c0f7c4d227379d3b0cb",
     "modelFragment.psMain.frag.json": "28212311aaef424fdbce9000610115cc9799170b8a098e51ece8c052e3fb0dbf"

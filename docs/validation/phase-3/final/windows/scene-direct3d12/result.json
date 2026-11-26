@@ -2,9 +2,9 @@
   "backend": "direct3d12",
   "test": "scene",
   "status": "valid\u00e9",
-  "binary_sha256": "63fa344f19288c8b6767b71210abbfcec82527d8b3b84db51586fd3353c1d290",
-  "source_commit": "5a4745e084a72b5b33754bacfa7cb8821994f6f8",
-  "ci_run": "45709436402",
+  "binary_sha256": "61406526251447b3cfe74b50a3a25fd5fa758baec49d158cc8586f37ff515aab",
+  "source_commit": "740467076a4b3865ec1ac5a2eb42692a5f608628",
+  "ci_run": "45795328234",
   "shader_manifests": {
     "modelVertex.vsMain.vert.json": "a4c561b351dc9243d1c939bef5151664c79e04d07b4e4c0f7c4d227379d3b0cb",
     "modelFragment.psMain.frag.json": "28212311aaef424fdbce9000610115cc9799170b8a098e51ece8c052e3fb0dbf"

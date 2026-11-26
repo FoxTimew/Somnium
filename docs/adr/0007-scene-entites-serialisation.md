@@ -62,4 +62,4 @@ persistance, transactions, structure, extraction/interpolation et gameplay. La s
 hors écran utilise trois poses, un oracle analytique commun et des sondes exactes
 avec seuils D5 ; aucune référence dérivée d’une capture.
 
-Preuves : CPU et trois poses GPU validés sur les trois backends ; captures finales Windows en cours, comparaison de présentation Metal en échec non bloquant (voir le bilan de phase 3).
+Preuves : CPU, gameplay et trois poses GPU validés ; frames composées scène + inspecteur validées sur D3D12/Vulkan Radeon, lavapipe et Metal CI, pièces et commits dans le bilan de phase 3.

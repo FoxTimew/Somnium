@@ -1,0 +1,114 @@
+App name: sandbox.exe
+App version: <unspecified>
+App ID: <unspecified>
+SDL revision: SDL-3.4.18-HEAD-HASH-NOTFOUND
+SDL chose video backend 'windows'
+SDL chose gpu backend 'direct3d12'
+WARNING: WinPixEventRuntime.dll is not available. It is required for SDL_Push/PopGPUDebugGroup and SDL_InsertGPUDebugLabel to function correctly. See here for instructions on how to obtain it: https://devblogs.microsoft.com/pix/winpixeventruntime/
+SDL_GPU Driver: D3D12
+D3D12 Adapter: AMD Radeon RX 6600M
+D3D12 Driver: 32.0.21037.1004
+Validation layers enabled, expect debug level performance!
+[2026-11-26 10:50:48.481] [gpu] [info] direct3d12: AMD Radeon RX 6600M
+[2026-11-26 10:50:48.502] [game] [info] Third-person scene started: 7 colliders, 2 doors
+[2026-11-26 10:50:48.564] [runtime] [info] Swapchain extent 1280x720
+[2026-11-26 10:50:48.600] [runtime] [info] First model frame presented
+[2026-11-26 10:50:48.609] [runtime] [info] CAPTURE_READY steps=1
+[2026-11-26 10:50:48.629] [runtime] [info] Close during frame: acquired command buffer submitted
+[2026-11-26 10:50:48.629] [game] [info] GAMEPLAY_PLAYER position=(0.04845,0.00000,3.98763) steps=1
+[2026-11-26 10:50:48.629] [game] [info] GAMEPLAY_DOOR id=door-east degrees=0.00000 open=false
+[2026-11-26 10:50:48.629] [game] [info] GAMEPLAY_DOOR id=door-west degrees=0.00000 open=false
+[2026-11-26 10:50:48.629] [game] [info] GAMEPLAY_CAMERA yaw=0.25000 pitch=0.45000 distance=10.00000
+frames=3 fixed_steps=1 alpha=0.896620 dropped_seconds=0.000000
+
+App name: sandbox.exe
+App version: <unspecified>
+App ID: <unspecified>
+SDL revision: SDL-3.4.18-HEAD-HASH-NOTFOUND
+SDL chose video backend 'windows'
+SDL chose gpu backend 'direct3d12'
+WARNING: WinPixEventRuntime.dll is not available. It is required for SDL_Push/PopGPUDebugGroup and SDL_InsertGPUDebugLabel to function correctly. See here for instructions on how to obtain it: https://devblogs.microsoft.com/pix/winpixeventruntime/
+SDL_GPU Driver: D3D12
+D3D12 Adapter: AMD Radeon RX 6600M
+D3D12 Driver: 32.0.21037.1004
+Validation layers enabled, expect debug level performance!
+[2026-11-26 10:50:52.424] [gpu] [info] direct3d12: AMD Radeon RX 6600M
+[2026-11-26 10:50:52.447] [game] [info] Third-person scene started: 7 colliders, 2 doors
+[2026-11-26 10:50:52.505] [runtime] [info] Swapchain extent 1280x720
+[2026-11-26 10:50:52.538] [runtime] [info] First model frame presented
+[2026-11-26 10:50:53.260] [runtime] [info] CAPTURE_READY steps=45
+[2026-11-26 10:50:53.280] [runtime] [info] Close during frame: acquired command buffer submitted
+[2026-11-26 10:50:53.280] [game] [info] GAMEPLAY_PLAYER position=(2.18005,0.00000,3.44335) steps=45
+[2026-11-26 10:50:53.280] [game] [info] GAMEPLAY_DOOR id=door-east degrees=0.00000 open=false
+[2026-11-26 10:50:53.280] [game] [info] GAMEPLAY_DOOR id=door-west degrees=0.00000 open=false
+[2026-11-26 10:50:53.280] [game] [info] GAMEPLAY_CAMERA yaw=0.25000 pitch=0.45000 distance=10.00000
+frames=118 fixed_steps=45 alpha=0.562440 dropped_seconds=0.000000
+
+App name: sandbox.exe
+App version: <unspecified>
+App ID: <unspecified>
+SDL revision: SDL-3.4.18-HEAD-HASH-NOTFOUND
+SDL chose video backend 'windows'
+SDL chose gpu backend 'direct3d12'
+WARNING: WinPixEventRuntime.dll is not available. It is required for SDL_Push/PopGPUDebugGroup and SDL_InsertGPUDebugLabel to function correctly. See here for instructions on how to obtain it: https://devblogs.microsoft.com/pix/winpixeventruntime/
+SDL_GPU Driver: D3D12
+D3D12 Adapter: AMD Radeon RX 6600M
+D3D12 Driver: 32.0.21037.1004
+Validation layers enabled, expect debug level performance!
+[2026-11-26 10:50:57.586] [gpu] [info] direct3d12: AMD Radeon RX 6600M
+[2026-11-26 10:50:57.613] [game] [info] Third-person scene started: 7 colliders, 2 doors
+[2026-11-26 10:50:57.671] [runtime] [info] Swapchain extent 1280x720
+[2026-11-26 10:50:57.697] [runtime] [info] First model frame presented
+[2026-11-26 10:51:01.096] [runtime] [info] CAPTURE_READY steps=205
+[2026-11-26 10:51:01.115] [runtime] [info] Close during frame: acquired command buffer submitted
+[2026-11-26 10:51:01.115] [game] [info] GAMEPLAY_PLAYER position=(1.17491,0.00000,-1.45000) steps=205
+[2026-11-26 10:51:01.115] [game] [info] GAMEPLAY_DOOR id=door-east degrees=0.00000 open=false
+[2026-11-26 10:51:01.115] [game] [info] GAMEPLAY_DOOR id=door-west degrees=0.00000 open=false
+[2026-11-26 10:51:01.115] [game] [info] GAMEPLAY_CAMERA yaw=0.25000 pitch=0.45000 distance=10.00000
+frames=560 fixed_steps=205 alpha=0.684596 dropped_seconds=0.000000
+
+App name: sandbox.exe
+App version: <unspecified>
+App ID: <unspecified>
+SDL revision: SDL-3.4.18-HEAD-HASH-NOTFOUND
+SDL chose video backend 'windows'
+SDL chose gpu backend 'direct3d12'
+WARNING: WinPixEventRuntime.dll is not available. It is required for SDL_Push/PopGPUDebugGroup and SDL_InsertGPUDebugLabel to function correctly. See here for instructions on how to obtain it: https://devblogs.microsoft.com/pix/winpixeventruntime/
+SDL_GPU Driver: D3D12
+D3D12 Adapter: AMD Radeon RX 6600M
+D3D12 Driver: 32.0.21037.1004
+Validation layers enabled, expect debug level performance!
+[2026-11-26 10:51:04.818] [gpu] [info] direct3d12: AMD Radeon RX 6600M
+[2026-11-26 10:51:04.841] [game] [info] Third-person scene started: 7 colliders, 2 doors
+[2026-11-26 10:51:04.904] [runtime] [info] Swapchain extent 1280x720
+[2026-11-26 10:51:04.941] [runtime] [info] First model frame presented
+[2026-11-26 10:51:10.660] [runtime] [info] CAPTURE_READY steps=345
+[2026-11-26 10:51:10.680] [runtime] [info] Close during frame: acquired command buffer submitted
+[2026-11-26 10:51:10.680] [game] [info] GAMEPLAY_PLAYER position=(-0.04963,0.00000,-1.39534) steps=345
+[2026-11-26 10:51:10.680] [game] [info] GAMEPLAY_DOOR id=door-east degrees=0.00000 open=false
+[2026-11-26 10:51:10.680] [game] [info] GAMEPLAY_DOOR id=door-west degrees=90.00000 open=true
+[2026-11-26 10:51:10.680] [game] [info] GAMEPLAY_CAMERA yaw=0.25000 pitch=0.45000 distance=10.00000
+frames=942 fixed_steps=345 alpha=0.534630 dropped_seconds=0.000000
+
+App name: sandbox.exe
+App version: <unspecified>
+App ID: <unspecified>
+SDL revision: SDL-3.4.18-HEAD-HASH-NOTFOUND
+SDL chose video backend 'windows'
+SDL chose gpu backend 'direct3d12'
+WARNING: WinPixEventRuntime.dll is not available. It is required for SDL_Push/PopGPUDebugGroup and SDL_InsertGPUDebugLabel to function correctly. See here for instructions on how to obtain it: https://devblogs.microsoft.com/pix/winpixeventruntime/
+SDL_GPU Driver: D3D12
+D3D12 Adapter: AMD Radeon RX 6600M
+D3D12 Driver: 32.0.21037.1004
+Validation layers enabled, expect debug level performance!
+[2026-11-26 10:51:14.461] [gpu] [info] direct3d12: AMD Radeon RX 6600M
+[2026-11-26 10:51:14.483] [game] [info] Third-person scene started: 7 colliders, 2 doors
+[2026-11-26 10:51:14.544] [runtime] [info] Swapchain extent 1280x720
+[2026-11-26 10:51:14.575] [runtime] [info] First model frame presented
+[2026-11-26 10:51:21.466] [runtime] [info] CAPTURE_READY steps=415
+[2026-11-26 10:51:21.485] [runtime] [info] Close during frame: acquired command buffer submitted
+[2026-11-26 10:51:21.485] [game] [info] GAMEPLAY_PLAYER position=(-0.72999,0.00000,-4.05985) steps=415
+[2026-11-26 10:51:21.485] [game] [info] GAMEPLAY_DOOR id=door-east degrees=0.00000 open=false
+[2026-11-26 10:51:21.485] [game] [info] GAMEPLAY_DOOR id=door-west degrees=90.00000 open=true
+[2026-11-26 10:51:21.485] [game] [info] GAMEPLAY_CAMERA yaw=0.05000 pitch=0.55000 distance=10.00000
+frames=1136 fixed_steps=415 alpha=0.485882 dropped_seconds=0.000000

@@ -1,2 +1,3 @@
-[shipping-graph] /Users/runner/somnium-ci/tools/python/bin/python3 /Users/runner/work/Somnium/Somnium/tools/check_shipping.py /Users/runner/somnium-ci/runs/45704526805-1/build/shipping
+[shipping-graph] /Users/runner/somnium-ci/tools/python/bin/python3 /Users/runner/work/Somnium/Somnium/tools/check_shipping.py /Users/runner/somnium-ci/runs/45794898319-1/build/shipping
 Shipping graph: no ImGui, platform/gpu integration, inspector or debug_ui target/source
+shipping-graph: OK — 0.072 s — `/Users/runner/somnium-ci/runs/45794898319-1/logs/shipping-graph.log`

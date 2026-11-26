@@ -1,8 +1,8 @@
-[test-shipping] /Users/runner/somnium-ci/tools/python/lib/python3.12/site-packages/cmake/data/bin/ctest --test-dir /Users/runner/somnium-ci/runs/45704526805-1/build/shipping --output-on-failure --no-tests=error
-Internal ctest changing into directory: /Users/runner/somnium-ci/runs/45704526805-1/build/shipping
-Test project /Users/runner/somnium-ci/runs/45704526805-1/build/shipping
+[test-shipping] /Users/runner/somnium-ci/tools/python/lib/python3.12/site-packages/cmake/data/bin/ctest --test-dir /Users/runner/somnium-ci/runs/45794898319-1/build/shipping --output-on-failure --no-tests=error
+Internal ctest changing into directory: /Users/runner/somnium-ci/runs/45794898319-1/build/shipping
+Test project /Users/runner/somnium-ci/runs/45794898319-1/build/shipping
       Start  1: somnium_core_tests
- 1/24 Test  #1: somnium_core_tests ...............   Passed    0.01 sec
+ 1/24 Test  #1: somnium_core_tests ...............   Passed    0.00 sec
       Start  2: somnium_log_output
  2/24 Test  #2: somnium_log_output ...............   Passed    0.02 sec
       Start  3: somnium_platform_tests
@@ -10,7 +10,7 @@ Test project /Users/runner/somnium-ci/runs/45704526805-1/build/shipping
       Start  4: somnium_gpu_tests
  4/24 Test  #4: somnium_gpu_tests ................   Passed    0.01 sec
       Start  5: somnium_gpu_comparison_tests
- 5/24 Test  #5: somnium_gpu_comparison_tests .....   Passed    0.08 sec
+ 5/24 Test  #5: somnium_gpu_comparison_tests .....   Passed    0.06 sec
       Start  6: somnium_renderer_tests
  6/24 Test  #6: somnium_renderer_tests ...........   Passed    0.00 sec
       Start  7: somnium_assets_tests
@@ -28,32 +28,33 @@ Test project /Users/runner/somnium-ci/runs/45704526805-1/build/shipping
       Start 13: somnium_scene_extraction_tests
 13/24 Test #13: somnium_scene_extraction_tests ...   Passed    0.01 sec
       Start 14: somnium_cube_reference_tests
-14/24 Test #14: somnium_cube_reference_tests .....   Passed    0.84 sec
+14/24 Test #14: somnium_cube_reference_tests .....   Passed    0.65 sec
       Start 15: somnium_scene_reference_tests
-15/24 Test #15: somnium_scene_reference_tests ....   Passed    1.09 sec
+15/24 Test #15: somnium_scene_reference_tests ....   Passed    0.91 sec
       Start 16: somnium_game_tests
 16/24 Test #16: somnium_game_tests ...............   Passed    0.01 sec
       Start 17: somnium_game_scene_tests
 17/24 Test #17: somnium_game_scene_tests .........   Passed    0.00 sec
       Start 18: somnium_gameplay_tests
-18/24 Test #18: somnium_gameplay_tests ...........   Passed    0.01 sec
+18/24 Test #18: somnium_gameplay_tests ...........   Passed    0.02 sec
       Start 19: somnium_sandbox_asset_sources
 19/24 Test #19: somnium_sandbox_asset_sources ....   Passed    0.03 sec
       Start 20: somnium_window_smoke
-20/24 Test #20: somnium_window_smoke .............   Passed    1.38 sec
+20/24 Test #20: somnium_window_smoke .............   Passed    0.92 sec
       Start 21: somnium_shader_build_tests
-21/24 Test #21: somnium_shader_build_tests .......   Passed    4.03 sec
+21/24 Test #21: somnium_shader_build_tests .......   Passed    3.97 sec
       Start 22: somnium_dependency_tests
 22/24 Test #22: somnium_dependency_tests .........   Passed    0.00 sec
       Start 23: somnium_architecture
-23/24 Test #23: somnium_architecture .............   Passed    0.05 sec
+23/24 Test #23: somnium_architecture .............   Passed    0.04 sec
       Start 24: somnium_architecture_rules
-24/24 Test #24: somnium_architecture_rules .......   Passed    0.71 sec
+24/24 Test #24: somnium_architecture_rules .......   Passed    0.66 sec
 
 100% tests passed, 0 tests failed out of 24
 
 Label Time Summary:
-shaders    =   4.03 sec*proc (1 test)
-window     =   1.38 sec*proc (1 test)
+shaders    =   3.97 sec*proc (1 test)
+window     =   0.92 sec*proc (1 test)
 
-Total Test time (real) =   8.38 sec
+Total Test time (real) =   7.40 sec
+test-shipping: OK — 7.405 s — `/Users/runner/somnium-ci/runs/45794898319-1/logs/test-shipping.log`

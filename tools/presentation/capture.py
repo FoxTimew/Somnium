@@ -118,7 +118,7 @@ def main():
             bw, bh, b = read_png(output / (comparison["b"] + ".png"))
             if (width, height) != (bw, bh):
                 raise RuntimeError("Capture dimensions differ")
-            # The versioned region excludes diagnostic/inspector panels.
+            # The versioned central region compares poses; UI has separate witnesses.
             left, top, right, bottom = scenario.get("region", [.25, .3, .68, .9])
             count = sum(a[i:i+3] != b[i:i+3] for y in range(int(height * top), int(height * bottom))
                         for x in range(int(width * left), int(width * right)) for i in [4 * (y * width + x)])

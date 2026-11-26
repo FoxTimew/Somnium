@@ -2,9 +2,9 @@
   "backend": "vulkan",
   "test": "scene",
   "status": "valid\u00e9",
-  "binary_sha256": "731aa5223d4893675c57eba4ca2caedc7b480337e10c2d464d4903740436ddcf",
-  "source_commit": "5a4745e084a72b5b33754bacfa7cb8821994f6f8",
-  "ci_run": "45709436402",
+  "binary_sha256": "df7de865dcf6632b9c2c871ec4011207f0cff0ade339c194fa539cc31087d74c",
+  "source_commit": "740467076a4b3865ec1ac5a2eb42692a5f608628",
+  "ci_run": "45795328234",
   "shader_manifests": {
     "modelVertex.vsMain.vert.json": "992d33f6380e5277ff837bfe748ed5b7ec9a28e95bd5fc3f2b3b6c0c6634bc58",
     "modelFragment.psMain.frag.json": "8fe88fd09b01c1a5aa892d22a50381354ca9edc83b2bd5d1412e2ae96f595612"

@@ -372,17 +372,17 @@ LAYER:                        Library:  /home/foxti/somnium-ci/tools/vulkan/1.4.
 LAYER:                  ||
 DRIVER | LAYER:       <Device>
 DRIVER | LAYER:           Using "llvmpipe (LLVM 20.1.2, 256 bits)" with driver: "libvulkan_lvp.so"
-[2026-11-25 23:02:33.870] [gpu] [info] vulkan: llvmpipe (LLVM 20.1.2, 256 bits)
-[2026-11-25 23:02:33.879] [game] [info] Third-person scene started: 7 colliders, 2 doors
+[2026-11-26 10:50:38.523] [gpu] [info] vulkan: llvmpipe (LLVM 20.1.2, 256 bits)
+[2026-11-26 10:50:38.532] [game] [info] Third-person scene started: 7 colliders, 2 doors
 Integrated memory detected, allocating TransferBuffers on device-local memory!
-[2026-11-25 23:02:33.888] [runtime] [info] Swapchain extent 1280x720
-[2026-11-25 23:02:33.924] [runtime] [info] First model frame presented
-[2026-11-25 23:02:40.814] [runtime] [info] CAPTURE_READY steps=415
-[2026-11-25 23:02:43.809] [runtime] [info] Close during frame: acquired command buffer submitted
-[2026-11-25 23:02:43.810] [game] [info] GAMEPLAY_PLAYER position=(0.00000,0.00000,-4.45000) steps=415
-[2026-11-25 23:02:43.810] [game] [info] GAMEPLAY_DOOR id=door-east degrees=0.00000 open=false
-[2026-11-25 23:02:43.810] [game] [info] GAMEPLAY_DOOR id=door-west degrees=90.00000 open=true
-[2026-11-25 23:02:43.810] [game] [info] GAMEPLAY_CAMERA yaw=0.05000 pitch=0.55000 distance=10.00000
-frames=1167 fixed_steps=415 alpha=0.846123 dropped_seconds=0.000000
+[2026-11-26 10:50:38.542] [runtime] [info] Swapchain extent 1280x720
+[2026-11-26 10:50:38.573] [runtime] [info] First model frame presented
+[2026-11-26 10:50:45.394] [runtime] [info] CAPTURE_READY steps=415
+[2026-11-26 10:50:45.423] [runtime] [info] Close during frame: acquired command buffer submitted
+[2026-11-26 10:50:45.423] [game] [info] GAMEPLAY_PLAYER position=(-0.72999,0.00000,-4.05985) steps=415
+[2026-11-26 10:50:45.423] [game] [info] GAMEPLAY_DOOR id=door-east degrees=0.00000 open=false
+[2026-11-26 10:50:45.423] [game] [info] GAMEPLAY_DOOR id=door-west degrees=90.00000 open=true
+[2026-11-26 10:50:45.423] [game] [info] GAMEPLAY_CAMERA yaw=0.05000 pitch=0.55000 distance=10.00000
+frames=864 fixed_steps=415 alpha=0.510363 dropped_seconds=0.066667
 DEBUG | LAYER:     Unloading layer library libVkLayer_MESA_device_select.so
 DEBUG | LAYER:     Unloading layer library /home/foxti/somnium-ci/tools/vulkan/1.4.363.0/x86_64/share/vulkan/explicit_layer.d/../../../lib/libVkLayer_khronos_validation.so

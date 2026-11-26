@@ -1,0 +1,519 @@
+[cube-metal] /Users/runner/somnium-ci/tools/python/bin/python3 /Users/runner/work/Somnium/Somnium/tools/gpu/run.py --test cube --executable /Users/runner/somnium-ci/runs/45794898319-1/build/debug/bin/somnium_renderer_offscreen --backend metal --output /Users/runner/somnium-ci/runs/45794898319-1/cube-metal --allow-unavailable
+Cube analytic fixture, reference, exact probes and provenance verified
+2026-11-26 10:03:42.932 somnium_renderer_offscreen[61226:101013] App name: somnium_renderer_offscreen
+2026-11-26 10:03:42.933 somnium_renderer_offscreen[61226:101013] App version: <unspecified>
+2026-11-26 10:03:42.933 somnium_renderer_offscreen[61226:101013] App ID: <unspecified>
+2026-11-26 10:03:42.933 somnium_renderer_offscreen[61226:101013] SDL revision: SDL-3.4.18-HEAD-HASH-NOTFOUND
+2026-11-26 10:03:43.026 somnium_renderer_offscreen[61226:101013] SDL chose video backend 'cocoa'
+2026-11-26 10:03:43.040 somnium_renderer_offscreen[61226:101013] SDL chose gpu backend 'metal'
+2026-11-26 10:03:43.043 somnium_renderer_offscreen[61226:101013] Metal API Validation Enabled
+2026-11-26 10:03:43.043 somnium_renderer_offscreen[61226:101013] Metal GPU Validation Enabled
+2026-11-26 10:03:43.156 somnium_renderer_offscreen[61226:101013] SDL_GPU Driver: Metal
+2026-11-26 10:03:43.156 somnium_renderer_offscreen[61226:101013] Metal Device: Apple Paravirtual device
+D5_CAPTURE_COMPLETE
+
+{
+  "backend": "metal",
+  "test": "cube",
+  "status": "valid\u00e9",
+  "binary_sha256": "1491da60bd6c4cf81cf4340a3841ff8d7c18e334aadd0e52696c954823e740db",
+  "source_commit": "dd376fabe0bc048aa27a9c23e07df5db2828109c",
+  "ci_run": "45794898319",
+  "shader_manifests": {
+    "modelVertex.vsMain.vert.json": "baa246f48ae4bf1be12191247b1e62414e25a2cc3ae8c4dd2e68a1bc9c66f44e",
+    "modelFragment.psMain.frag.json": "a1754faad37c89af5c53aeb500832f7e916b12862b3a5bbf0a788907ac395a17"
+  },
+  "scene_sha256": "ea4c2cbe36bf1484008ca25a14eb118369a5f383cf4880518618de628c172260",
+  "fixture_sha256": "6cd95ff987472a80dc3fe0a49ed7920aeea04b1cbc48cc1facd3cef7d1efb305",
+  "exit_code": 0,
+  "image_sha256": "dedd7662f51f2b6baeee2fa3f41c1d1e3a2cedfd6eb7d0c1a3b657a40be22af5",
+  "probes": [
+    {
+      "name": "background",
+      "x": 10,
+      "y": 10,
+      "face": "background",
+      "rgba": [
+        32,
+        48,
+        64,
+        255
+      ],
+      "actual": [
+        32,
+        48,
+        64,
+        255
+      ]
+    },
+    {
+      "name": "front_srgb",
+      "x": 54,
+      "y": 123,
+      "face": "front",
+      "rgba": [
+        83,
+        176,
+        64,
+        255
+      ],
+      "actual": [
+        83,
+        176,
+        64,
+        255
+      ]
+    },
+    {
+      "name": "right_lambert_zero",
+      "x": 146,
+      "y": 118,
+      "face": "right",
+      "rgba": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "actual": [
+        0,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "top_lambert_zero",
+      "x": 96,
+      "y": 56,
+      "face": "top",
+      "rgba": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "actual": [
+        0,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "occluded_late_draw",
+      "x": 124,
+      "y": 78,
+      "face": "right",
+      "rgba": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "actual": [
+        0,
+        0,
+        0,
+        255
+      ]
+    }
+  ],
+  "comparison": {
+    "passed": true,
+    "exact_probes": true,
+    "different_pixels": 0,
+    "different_fraction": 0.0,
+    "max_channel_error": 0,
+    "probes": [
+      {
+        "name": "background",
+        "x": 10,
+        "y": 10,
+        "face": "background",
+        "rgba": [
+          32,
+          48,
+          64,
+          255
+        ],
+        "actual": [
+          32,
+          48,
+          64,
+          255
+        ]
+      },
+      {
+        "name": "front_srgb",
+        "x": 54,
+        "y": 123,
+        "face": "front",
+        "rgba": [
+          83,
+          176,
+          64,
+          255
+        ],
+        "actual": [
+          83,
+          176,
+          64,
+          255
+        ]
+      },
+      {
+        "name": "right_lambert_zero",
+        "x": 146,
+        "y": 118,
+        "face": "right",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "top_lambert_zero",
+        "x": 96,
+        "y": 56,
+        "face": "top",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "occluded_late_draw",
+        "x": 124,
+        "y": 78,
+        "face": "right",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      }
+    ],
+    "reference_probes": [
+      {
+        "name": "background",
+        "x": 10,
+        "y": 10,
+        "face": "background",
+        "rgba": [
+          32,
+          48,
+          64,
+          255
+        ],
+        "actual": [
+          32,
+          48,
+          64,
+          255
+        ]
+      },
+      {
+        "name": "front_srgb",
+        "x": 54,
+        "y": 123,
+        "face": "front",
+        "rgba": [
+          83,
+          176,
+          64,
+          255
+        ],
+        "actual": [
+          83,
+          176,
+          64,
+          255
+        ]
+      },
+      {
+        "name": "right_lambert_zero",
+        "x": 146,
+        "y": 118,
+        "face": "right",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "top_lambert_zero",
+        "x": 96,
+        "y": 56,
+        "face": "top",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "occluded_late_draw",
+        "x": 124,
+        "y": 78,
+        "face": "right",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      }
+    ]
+  },
+  "mirrored_comparison": {
+    "passed": true,
+    "exact_probes": true,
+    "different_pixels": 0,
+    "different_fraction": 0.0,
+    "max_channel_error": 0,
+    "probes": [
+      {
+        "name": "background",
+        "x": 10,
+        "y": 10,
+        "face": "background",
+        "rgba": [
+          32,
+          48,
+          64,
+          255
+        ],
+        "actual": [
+          32,
+          48,
+          64,
+          255
+        ]
+      },
+      {
+        "name": "front_srgb",
+        "x": 54,
+        "y": 123,
+        "face": "front",
+        "rgba": [
+          83,
+          176,
+          64,
+          255
+        ],
+        "actual": [
+          83,
+          176,
+          64,
+          255
+        ]
+      },
+      {
+        "name": "right_lambert_zero",
+        "x": 146,
+        "y": 118,
+        "face": "right",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "top_lambert_zero",
+        "x": 96,
+        "y": 56,
+        "face": "top",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "occluded_late_draw",
+        "x": 124,
+        "y": 78,
+        "face": "right",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      }
+    ],
+    "reference_probes": [
+      {
+        "name": "background",
+        "x": 10,
+        "y": 10,
+        "face": "background",
+        "rgba": [
+          32,
+          48,
+          64,
+          255
+        ],
+        "actual": [
+          32,
+          48,
+          64,
+          255
+        ]
+      },
+      {
+        "name": "front_srgb",
+        "x": 54,
+        "y": 123,
+        "face": "front",
+        "rgba": [
+          83,
+          176,
+          64,
+          255
+        ],
+        "actual": [
+          83,
+          176,
+          64,
+          255
+        ]
+      },
+      {
+        "name": "right_lambert_zero",
+        "x": 146,
+        "y": 118,
+        "face": "right",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "top_lambert_zero",
+        "x": 96,
+        "y": 56,
+        "face": "top",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "occluded_late_draw",
+        "x": 124,
+        "y": 78,
+        "face": "right",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      }
+    ]
+  },
+  "mirrored_image_sha256": "dedd7662f51f2b6baeee2fa3f41c1d1e3a2cedfd6eb7d0c1a3b657a40be22af5",
+  "capture_complete": true,
+  "device": {
+    "backend": "metal",
+    "debug": true,
+    "device": "Apple Paravirtual device",
+    "draw_calls": 14,
+    "driver_version": "unknown",
+    "output_encoding": "shader sRGB into RGBA8 UNORM",
+    "resource_checks": "passed"
+  },
+  "validation_enabled": true,
+  "reason": "Image, exact witnesses, resource lifetime and validation passed"
+}
+cube-metal: OK — 2.727 s — `/Users/runner/somnium-ci/runs/45794898319-1/logs/cube-metal.log`
+cube metal: **validé** — `/Users/runner/somnium-ci/runs/45794898319-1/cube-metal`

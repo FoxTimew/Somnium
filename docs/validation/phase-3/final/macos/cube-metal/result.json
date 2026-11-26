@@ -2,9 +2,9 @@
   "backend": "metal",
   "test": "cube",
   "status": "validé",
-  "binary_sha256": "e313135852f48121073fdbaa98cd4a9ad2a840c6c7f3f18ba3bae363e0bd7f4a",
-  "source_commit": "f54d0e52d7f7109063f1adf146f64750b788c17f",
-  "ci_run": "45704526805",
+  "binary_sha256": "1491da60bd6c4cf81cf4340a3841ff8d7c18e334aadd0e52696c954823e740db",
+  "source_commit": "dd376fabe0bc048aa27a9c23e07df5db2828109c",
+  "ci_run": "45794898319",
   "shader_manifests": {
     "modelVertex.vsMain.vert.json": "baa246f48ae4bf1be12191247b1e62414e25a2cc3ae8c4dd2e68a1bc9c66f44e",
     "modelFragment.psMain.frag.json": "a1754faad37c89af5c53aeb500832f7e916b12862b3a5bbf0a788907ac395a17"

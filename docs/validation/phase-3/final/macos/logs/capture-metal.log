@@ -1,0 +1,177 @@
+[capture-metal] /Users/runner/somnium-ci/tools/python/bin/python3 /Users/runner/work/Somnium/Somnium/tools/presentation/capture.py --executable /Users/runner/somnium-ci/runs/45794898319-1/build/debug/bin/sandbox --output /Users/runner/somnium-ci/runs/45794898319-1/presentation-metal --backend metal
+{
+  "origin": "CI Darwin",
+  "backend": "metal",
+  "source_commit": "dd376fabe0bc048aa27a9c23e07df5db2828109c",
+  "source_dirty": false,
+  "binary_sha256": "6df628a7eb501bdeedbd27e8f14f2dcb3f8dd4b0a3c2bf6924669292c21d3b5d",
+  "replay_sha256": "b8f111dc75b965cb5dede93b52526d9d1eaac634916f25a01c507186f563c732",
+  "scenario_sha256": "b1831132351bbfae35de6d192f1d90f1bd81d9f88d2e3d1cf52b4076f31fdc35",
+  "input_source": "platform fixed-step replay (no OS input)",
+  "capture_source": "engine-composed-frame (scene + UI, swapchain extent)",
+  "status": "validé",
+  "captures": [
+    {
+      "name": "initial.png",
+      "steps": 1,
+      "width": 1024,
+      "height": 653,
+      "metadata": {
+        "debug_ui": true,
+        "encoding": "sRGB",
+        "format": "RGBA8",
+        "height": 653,
+        "source": "engine-composed-frame",
+        "steps": 1,
+        "version": 1,
+        "width": 1024
+      },
+      "ui_probes": [
+        {
+          "name": "inspector",
+          "pixels": 1142
+        },
+        {
+          "name": "diagnostics",
+          "pixels": 1476
+        }
+      ],
+      "sha256": "dcfe216207ad39e7821651222d6c0225ef9ea592622127024c7656de0b14fefe"
+    },
+    {
+      "name": "movement.png",
+      "steps": 45,
+      "width": 1024,
+      "height": 653,
+      "metadata": {
+        "debug_ui": true,
+        "encoding": "sRGB",
+        "format": "RGBA8",
+        "height": 653,
+        "source": "engine-composed-frame",
+        "steps": 45,
+        "version": 1,
+        "width": 1024
+      },
+      "ui_probes": [
+        {
+          "name": "inspector",
+          "pixels": 1147
+        },
+        {
+          "name": "diagnostics",
+          "pixels": 1468
+        }
+      ],
+      "sha256": "b5fe55c3477caf6bd90a9503a485c5b831723de4e5682a6d522d3c93273f457c"
+    },
+    {
+      "name": "wall.png",
+      "steps": 205,
+      "width": 1024,
+      "height": 653,
+      "metadata": {
+        "debug_ui": true,
+        "encoding": "sRGB",
+        "format": "RGBA8",
+        "height": 653,
+        "source": "engine-composed-frame",
+        "steps": 205,
+        "version": 1,
+        "width": 1024
+      },
+      "ui_probes": [
+        {
+          "name": "inspector",
+          "pixels": 1176
+        },
+        {
+          "name": "diagnostics",
+          "pixels": 1487
+        }
+      ],
+      "sha256": "f6ffaeaa3eb1ad99dac7b1e429e4f3c19e258e09cbb25ddd06823531359d894e"
+    },
+    {
+      "name": "door-open.png",
+      "steps": 345,
+      "width": 1024,
+      "height": 653,
+      "metadata": {
+        "debug_ui": true,
+        "encoding": "sRGB",
+        "format": "RGBA8",
+        "height": 653,
+        "source": "engine-composed-frame",
+        "steps": 345,
+        "version": 1,
+        "width": 1024
+      },
+      "ui_probes": [
+        {
+          "name": "inspector",
+          "pixels": 1165
+        },
+        {
+          "name": "diagnostics",
+          "pixels": 1496
+        }
+      ],
+      "sha256": "0dfdcd4b57f66fba33771337a03ad4e7e286c61273f973b418ce8d8f6af73849"
+    },
+    {
+      "name": "inspector.png",
+      "steps": 415,
+      "width": 1024,
+      "height": 653,
+      "metadata": {
+        "debug_ui": true,
+        "encoding": "sRGB",
+        "format": "RGBA8",
+        "height": 653,
+        "source": "engine-composed-frame",
+        "steps": 415,
+        "version": 1,
+        "width": 1024
+      },
+      "ui_probes": [
+        {
+          "name": "inspector",
+          "pixels": 1164
+        },
+        {
+          "name": "diagnostics",
+          "pixels": 1485
+        }
+      ],
+      "sha256": "1c8548361010013f939ed9895937842386c3ececcb479cd7a2077d57e52dcc39"
+    }
+  ],
+  "comparisons": [
+    {
+      "a": "initial",
+      "b": "movement",
+      "minimum": 1000,
+      "different_pixels": 95771
+    },
+    {
+      "a": "movement",
+      "b": "wall",
+      "minimum": 1000,
+      "different_pixels": 124795
+    },
+    {
+      "a": "wall",
+      "b": "door-open",
+      "minimum": 1000,
+      "different_pixels": 87397
+    },
+    {
+      "a": "door-open",
+      "b": "inspector",
+      "minimum": 1000,
+      "different_pixels": 74502
+    }
+  ]
+}
+capture-metal: OK — 45.86 s — `/Users/runner/somnium-ci/runs/45794898319-1/logs/capture-metal.log`

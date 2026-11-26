@@ -1,24 +1,24 @@
-[scene-metal] /Users/runner/somnium-ci/tools/python/bin/python3 /Users/runner/work/Somnium/Somnium/tools/gpu/run.py --test scene --executable /Users/runner/somnium-ci/runs/45704526805-1/build/debug/bin/somnium_scene_offscreen --backend metal --output /Users/runner/somnium-ci/runs/45704526805-1/scene-metal --allow-unavailable
+[scene-metal] /Users/runner/somnium-ci/tools/python/bin/python3 /Users/runner/work/Somnium/Somnium/tools/gpu/run.py --test scene --executable /Users/runner/somnium-ci/runs/45794898319-1/build/debug/bin/somnium_scene_offscreen --backend metal --output /Users/runner/somnium-ci/runs/45794898319-1/scene-metal --allow-unavailable
 Scene hierarchy, three analytic poses, exact probes and provenance verified
-2026-11-25 21:43:53.044 somnium_scene_offscreen[58080:95238] App name: somnium_scene_offscreen
-2026-11-25 21:43:53.044 somnium_scene_offscreen[58080:95238] App version: <unspecified>
-2026-11-25 21:43:53.044 somnium_scene_offscreen[58080:95238] App ID: <unspecified>
-2026-11-25 21:43:53.044 somnium_scene_offscreen[58080:95238] SDL revision: SDL-3.4.18-HEAD-HASH-NOTFOUND
-2026-11-25 21:43:53.106 somnium_scene_offscreen[58080:95238] SDL chose video backend 'cocoa'
-2026-11-25 21:43:53.115 somnium_scene_offscreen[58080:95238] SDL chose gpu backend 'metal'
-2026-11-25 21:43:53.117 somnium_scene_offscreen[58080:95238] Metal API Validation Enabled
-2026-11-25 21:43:53.117 somnium_scene_offscreen[58080:95238] Metal GPU Validation Enabled
-2026-11-25 21:43:53.173 somnium_scene_offscreen[58080:95238] SDL_GPU Driver: Metal
-2026-11-25 21:43:53.173 somnium_scene_offscreen[58080:95238] Metal Device: Apple Paravirtual device
+2026-11-26 10:03:46.203 somnium_scene_offscreen[61413:101494] App name: somnium_scene_offscreen
+2026-11-26 10:03:46.203 somnium_scene_offscreen[61413:101494] App version: <unspecified>
+2026-11-26 10:03:46.203 somnium_scene_offscreen[61413:101494] App ID: <unspecified>
+2026-11-26 10:03:46.203 somnium_scene_offscreen[61413:101494] SDL revision: SDL-3.4.18-HEAD-HASH-NOTFOUND
+2026-11-26 10:03:46.323 somnium_scene_offscreen[61413:101494] SDL chose video backend 'cocoa'
+2026-11-26 10:03:46.346 somnium_scene_offscreen[61413:101494] SDL chose gpu backend 'metal'
+2026-11-26 10:03:46.349 somnium_scene_offscreen[61413:101494] Metal API Validation Enabled
+2026-11-26 10:03:46.349 somnium_scene_offscreen[61413:101494] Metal GPU Validation Enabled
+2026-11-26 10:03:46.450 somnium_scene_offscreen[61413:101494] SDL_GPU Driver: Metal
+2026-11-26 10:03:46.450 somnium_scene_offscreen[61413:101494] Metal Device: Apple Paravirtual device
 D5_CAPTURE_COMPLETE
 
 {
   "backend": "metal",
   "test": "scene",
   "status": "valid\u00e9",
-  "binary_sha256": "0419aee738eb4c9188edf19526da2de1fd20438bc2dfdded5771ddc6e647ffe5",
-  "source_commit": "f54d0e52d7f7109063f1adf146f64750b788c17f",
-  "ci_run": "45704526805",
+  "binary_sha256": "241af6027a283eab84d6d1c8948bd64ff6c1f3e8fc9cd7347c9c1500cd026f90",
+  "source_commit": "dd376fabe0bc048aa27a9c23e07df5db2828109c",
+  "ci_run": "45794898319",
   "shader_manifests": {
     "modelVertex.vsMain.vert.json": "baa246f48ae4bf1be12191247b1e62414e25a2cc3ae8c4dd2e68a1bc9c66f44e",
     "modelFragment.psMain.frag.json": "a1754faad37c89af5c53aeb500832f7e916b12862b3a5bbf0a788907ac395a17"
@@ -514,3 +514,5 @@ D5_CAPTURE_COMPLETE
   "validation_enabled": true,
   "reason": "Image, exact witnesses, resource lifetime and validation passed"
 }
+scene-metal: OK — 2.986 s — `/Users/runner/somnium-ci/runs/45794898319-1/logs/scene-metal.log`
+scene metal: **validé** — `/Users/runner/somnium-ci/runs/45794898319-1/scene-metal`

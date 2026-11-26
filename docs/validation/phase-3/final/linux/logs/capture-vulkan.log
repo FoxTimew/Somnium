@@ -1,38 +1,149 @@
 {
   "origin": "CI Linux",
   "backend": "vulkan",
-  "source_commit": "5a4745e084a72b5b33754bacfa7cb8821994f6f8",
+  "source_commit": "740467076a4b3865ec1ac5a2eb42692a5f608628",
   "source_dirty": false,
-  "binary_sha256": "47cc7947d18c8ef7a3017eccb5b7b76b692e627b645a781ab491b62cbf08acaf",
-  "replay_sha256": "70086d39e288d12dd8512bbbdc17f58371897c71962a156561ede1144fa01971",
-  "scenario_sha256": "20f0555f7cfecfd89cae87374c58083a183615db58fa5ddf11bb7d7ed2e64db4",
+  "binary_sha256": "11a836500629156fa79b6cbe9750481e5d27ecabc433f38dde3e171f4cb8dd53",
+  "replay_sha256": "b8f111dc75b965cb5dede93b52526d9d1eaac634916f25a01c507186f563c732",
+  "scenario_sha256": "b1831132351bbfae35de6d192f1d90f1bd81d9f88d2e3d1cf52b4076f31fdc35",
   "input_source": "platform fixed-step replay (no OS input)",
+  "capture_source": "engine-composed-frame (scene + UI, swapchain extent)",
   "status": "validé",
   "captures": [
     {
       "name": "initial.png",
       "steps": 1,
-      "sha256": "175cba53f4560dbf23c54fe956983f5c80eae8f580f2aac02dd05b9ff1024fa9"
+      "width": 1280,
+      "height": 720,
+      "metadata": {
+        "debug_ui": true,
+        "encoding": "sRGB",
+        "format": "RGBA8",
+        "height": 720,
+        "source": "engine-composed-frame",
+        "steps": 1,
+        "version": 1,
+        "width": 1280
+      },
+      "ui_probes": [
+        {
+          "name": "inspector",
+          "pixels": 2537
+        },
+        {
+          "name": "diagnostics",
+          "pixels": 1671
+        }
+      ],
+      "sha256": "46b53f7c31b6f14b36b4f044edb844aa6d6c7218c117b68927828b1ef9a6e1d0"
     },
     {
       "name": "movement.png",
       "steps": 45,
-      "sha256": "2844e5b81e7ec261b4f7e68acae881442aaec2dbc5c5d97cf0cf86d2c1e71687"
+      "width": 1280,
+      "height": 720,
+      "metadata": {
+        "debug_ui": true,
+        "encoding": "sRGB",
+        "format": "RGBA8",
+        "height": 720,
+        "source": "engine-composed-frame",
+        "steps": 45,
+        "version": 1,
+        "width": 1280
+      },
+      "ui_probes": [
+        {
+          "name": "inspector",
+          "pixels": 2542
+        },
+        {
+          "name": "diagnostics",
+          "pixels": 1696
+        }
+      ],
+      "sha256": "fe9c73ad441a40e3df48417dbfe9b685a7031a9da490970cd7c0400c47b81892"
     },
     {
       "name": "wall.png",
       "steps": 205,
-      "sha256": "0b0129c5b26926e85e185d3bd0c96f7e5e14476ce16e21cc0a610f2f98133940"
+      "width": 1280,
+      "height": 720,
+      "metadata": {
+        "debug_ui": true,
+        "encoding": "sRGB",
+        "format": "RGBA8",
+        "height": 720,
+        "source": "engine-composed-frame",
+        "steps": 205,
+        "version": 1,
+        "width": 1280
+      },
+      "ui_probes": [
+        {
+          "name": "inspector",
+          "pixels": 2581
+        },
+        {
+          "name": "diagnostics",
+          "pixels": 1674
+        }
+      ],
+      "sha256": "62a6017f33c5d06803139bb5c753a5e795bfb771e763cc6a046199446d835c1c"
     },
     {
       "name": "door-open.png",
       "steps": 345,
-      "sha256": "c8a62454113bf6b6fb589175082acfac85ebc5e1e1a9bfef8b01aad9dc64844b"
+      "width": 1280,
+      "height": 720,
+      "metadata": {
+        "debug_ui": true,
+        "encoding": "sRGB",
+        "format": "RGBA8",
+        "height": 720,
+        "source": "engine-composed-frame",
+        "steps": 345,
+        "version": 1,
+        "width": 1280
+      },
+      "ui_probes": [
+        {
+          "name": "inspector",
+          "pixels": 2560
+        },
+        {
+          "name": "diagnostics",
+          "pixels": 1680
+        }
+      ],
+      "sha256": "9e225a1b4e46bdd9900c852de57c7dcc272628c4ab999e18301942f72489aa4a"
     },
     {
       "name": "inspector.png",
       "steps": 415,
-      "sha256": "28c1a146b5cb9fac0e1b3e60c5737492f13861aa7326cc63efd386df4a8bb77c"
+      "width": 1280,
+      "height": 720,
+      "metadata": {
+        "debug_ui": true,
+        "encoding": "sRGB",
+        "format": "RGBA8",
+        "height": 720,
+        "source": "engine-composed-frame",
+        "steps": 415,
+        "version": 1,
+        "width": 1280
+      },
+      "ui_probes": [
+        {
+          "name": "inspector",
+          "pixels": 2569
+        },
+        {
+          "name": "diagnostics",
+          "pixels": 1682
+        }
+      ],
+      "sha256": "793e470fe711c6d7b9f05f175465c2d363298e879cb63df9517e3e0a94dd1484"
     }
   ],
   "comparisons": [
@@ -40,25 +151,25 @@
       "a": "initial",
       "b": "movement",
       "minimum": 1000,
-      "different_pixels": 57318
+      "different_pixels": 145416
     },
     {
       "a": "movement",
       "b": "wall",
       "minimum": 1000,
-      "different_pixels": 158492
+      "different_pixels": 188736
     },
     {
       "a": "wall",
       "b": "door-open",
       "minimum": 1000,
-      "different_pixels": 149068
+      "different_pixels": 131345
     },
     {
       "a": "door-open",
       "b": "inspector",
       "minimum": 1000,
-      "different_pixels": 127161
+      "different_pixels": 108357
     }
   ]
 }

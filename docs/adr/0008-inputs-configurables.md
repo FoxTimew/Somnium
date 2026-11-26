@@ -45,9 +45,10 @@ présentation ne doivent pas injecter d’entrées dans la session de travail.
 - **Rejeu** : JSON v1 d’InputEvent horodatés par pas, chargé par option du sandbox
   et injecté à la frontière de platform avant chaque pas. Gameplay natif écarté,
   cycle de fenêtre conservé, inspecteur non interactif. Capture après N pas, alpha=1,
-  présentation stable puis fermeture. Scripts communs Windows/Linux/macOS sans
-  injection système ni changement de focus. Windows reste manuel : fenêtres visibles
-  gênantes/masquables dans le compte personnel ; Linux Xvfb isolé, Metal best effort.
+  frame scène + UI dans une cible au format/extent acquis, copie vers swapchain,
+  soumission puis relecture GPU et fermeture. Scripts communs sans lecture du bureau,
+  injection système ni changement de focus. Captures Windows interactif/Linux Xvfb
+  requises car indépendantes des recouvrements ; Metal reste manuel best effort.
 
 ## Alternatives
 
@@ -61,4 +62,4 @@ exceptionnelle journalisée sans perte. Tests CPU de compilation, conflits, norm
 transitions, capture et rejeu ; clavier exhaustif. Pas de hot reload ni éditeur de mapping.
 UI absente de shipping. Formats et scénario dans [INPUT.md](../INPUT.md).
 
-Preuves : input/rejeu/gameplay/inspecteur verts en CI Windows/Linux ; captures finales Windows en cours ; rejeu Metal consommé, comparaison des dimensions de captures en échec non bloquant.
+Preuves : input/rejeu/gameplay/inspecteur verts en CI Windows/Linux ; cinq poses composées validées sur D3D12/Vulkan Radeon, lavapipe et Metal CI, avec pas exacts et sans injection système (bilan de phase 3).

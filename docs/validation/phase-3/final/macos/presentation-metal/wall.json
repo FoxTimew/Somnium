@@ -1,0 +1,10 @@
+{
+  "debug_ui": true,
+  "encoding": "sRGB",
+  "format": "RGBA8",
+  "height": 653,
+  "source": "engine-composed-frame",
+  "steps": 205,
+  "version": 1,
+  "width": 1024
+}

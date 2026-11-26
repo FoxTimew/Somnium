@@ -1,0 +1,280 @@
+App name: sandbox.exe
+App version: <unspecified>
+App ID: <unspecified>
+SDL revision: SDL-3.4.18-HEAD-HASH-NOTFOUND
+SDL chose video backend 'windows'
+[Vulkan Loader] LAYER:          Searching for implicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:             Found no files
+[Vulkan Loader] LAYER:          Checking for Layer Manifest files in Registry at HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Found no registry files in HKEY_CURRENT_USER\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Searching for implicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:             Found no files
+[Vulkan Loader] LAYER:          Checking for Layer Manifest files in Registry at HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Found no registry files in HKEY_CURRENT_USER\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Searching for implicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:             Found no files
+[Vulkan Loader] LAYER:          Checking for Layer Manifest files in Registry at HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Found no registry files in HKEY_CURRENT_USER\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Searching for implicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:             Found no files
+[Vulkan Loader] LAYER:          Checking for Layer Manifest files in Registry at HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Found no registry files in HKEY_CURRENT_USER\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Searching for implicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:             Found no files
+[Vulkan Loader] LAYER:          Checking for Layer Manifest files in Registry at HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Found no registry files in HKEY_CURRENT_USER\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Searching for implicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:             Found no files
+[Vulkan Loader] LAYER:          Checking for Layer Manifest files in Registry at HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Found no registry files in HKEY_CURRENT_USER\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Searching for implicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:             Found no files
+[Vulkan Loader] LAYER:          Checking for Layer Manifest files in Registry at HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Found no registry files in HKEY_CURRENT_USER\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Searching for implicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:             Found no files
+[Vulkan Loader] LAYER:          Checking for Layer Manifest files in Registry at HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Found no registry files in HKEY_CURRENT_USER\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Searching for implicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:             Found no files
+[Vulkan Loader] LAYER:          Checking for Layer Manifest files in Registry at HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Found no registry files in HKEY_CURRENT_USER\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Searching for implicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:             Found no files
+[Vulkan Loader] LAYER:          Checking for Layer Manifest files in Registry at HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Found no registry files in HKEY_CURRENT_USER\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Searching for explicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin
+[Vulkan Loader] LAYER:             Found the following files:
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_api_dump.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_crash_diagnostic.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_gfxreconstruct.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_profiles.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_shader_object.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_synchronization2.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_validation.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_monitor.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_screenshot.json
+[Vulkan Loader] LAYER:          Searching for implicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:             Found no files
+[Vulkan Loader] LAYER:          Checking for Layer Manifest files in Registry at HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Found no registry files in HKEY_CURRENT_USER\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Searching for implicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:             Found no files
+[Vulkan Loader] LAYER:          Checking for Layer Manifest files in Registry at HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Found no registry files in HKEY_CURRENT_USER\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Searching for explicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin
+[Vulkan Loader] LAYER:             Found the following files:
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_api_dump.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_crash_diagnostic.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_gfxreconstruct.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_profiles.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_shader_object.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_synchronization2.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_validation.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_monitor.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_screenshot.json
+Validation layers enabled, expect debug level performance!
+[Vulkan Loader] LAYER:          Searching for implicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:             Found no files
+[Vulkan Loader] LAYER:          Checking for Layer Manifest files in Registry at HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Found no registry files in HKEY_CURRENT_USER\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Searching for explicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin
+[Vulkan Loader] LAYER:             Found the following files:
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_api_dump.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_crash_diagnostic.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_gfxreconstruct.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_profiles.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_shader_object.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_synchronization2.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_validation.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_monitor.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_screenshot.json
+[Vulkan Loader] WARNING | LAYER: env var 'VK_INSTANCE_LAYERS' defined and adding layers "VK_LAYER_KHRONOS_validation"
+[Vulkan Loader] WARNING | LAYER: env var 'VK_INSTANCE_LAYERS' defined and adding layers "VK_LAYER_KHRONOS_validation"
+[Vulkan Loader] DEBUG | LAYER:  Loading layer library C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\.\VkLayer_khronos_validation.dll
+[Vulkan Loader] INFO | LAYER:   Insert instance layer "VK_LAYER_KHRONOS_validation" (C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_validation.dll)
+[Vulkan Loader] DEBUG | LAYER:  Loading layer library C:\WINDOWS\System32\DriverStore\FileRepository\u0417877.inf_amd64_8b2c2b61b3f8a9e5\B417004\.\amdvlk64.dll
+[Vulkan Loader] INFO | LAYER:   Insert instance layer "VK_LAYER_AMD_switchable_graphics" (C:\WINDOWS\System32\DriverStore\FileRepository\u0417877.inf_amd64_8b2c2b61b3f8a9e5\B417004\amdvlk64.dll)
+[Vulkan Loader] LAYER:          vkCreateInstance layer callstack setup to:
+[Vulkan Loader] LAYER:             <Application>
+[Vulkan Loader] LAYER:               ||
+[Vulkan Loader] LAYER:             <Loader>
+[Vulkan Loader] LAYER:               ||
+[Vulkan Loader] LAYER:             VK_LAYER_AMD_switchable_graphics
+[Vulkan Loader] LAYER:                     Type: Implicit
+[Vulkan Loader] LAYER:                     Enabled By: Implicit Layer
+[Vulkan Loader] LAYER:                         Disable Env Var:  DISABLE_LAYER_AMD_SWITCHABLE_GRAPHICS_1
+[Vulkan Loader] LAYER:                     Manifest: C:\WINDOWS\System32\DriverStore\FileRepository\u0417877.inf_amd64_8b2c2b61b3f8a9e5\B417004\amd-vulkan64.json
+[Vulkan Loader] LAYER:                     Library:  C:\WINDOWS\System32\DriverStore\FileRepository\u0417877.inf_amd64_8b2c2b61b3f8a9e5\B417004\amdvlk64.dll
+[Vulkan Loader] LAYER:               ||
+[Vulkan Loader] LAYER:             VK_LAYER_KHRONOS_validation
+[Vulkan Loader] LAYER:                     Type: Explicit
+[Vulkan Loader] LAYER:                     Enabled By: Environment Variable VK_INSTANCE_LAYERS
+[Vulkan Loader] LAYER:                     Manifest: C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_validation.json
+[Vulkan Loader] LAYER:                     Library:  C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_validation.dll
+[Vulkan Loader] LAYER:               ||
+[Vulkan Loader] LAYER:             <Drivers>
+[Vulkan Loader] DEBUG | LAYER:  Unloading layer library C:\WINDOWS\System32\DriverStore\FileRepository\u0417877.inf_amd64_8b2c2b61b3f8a9e5\B417004\amdvlk64.dll
+[Vulkan Loader] DEBUG | LAYER:  Unloading layer library C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_validation.dll
+SDL chose gpu backend 'vulkan'
+[Vulkan Loader] LAYER:          Searching for implicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:             Found no files
+[Vulkan Loader] LAYER:          Checking for Layer Manifest files in Registry at HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Found no registry files in HKEY_CURRENT_USER\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Searching for implicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:             Found no files
+[Vulkan Loader] LAYER:          Checking for Layer Manifest files in Registry at HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Found no registry files in HKEY_CURRENT_USER\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Searching for implicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:             Found no files
+[Vulkan Loader] LAYER:          Checking for Layer Manifest files in Registry at HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Found no registry files in HKEY_CURRENT_USER\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Searching for implicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:             Found no files
+[Vulkan Loader] LAYER:          Checking for Layer Manifest files in Registry at HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Found no registry files in HKEY_CURRENT_USER\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Searching for implicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:             Found no files
+[Vulkan Loader] LAYER:          Checking for Layer Manifest files in Registry at HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Found no registry files in HKEY_CURRENT_USER\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Searching for implicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:             Found no files
+[Vulkan Loader] LAYER:          Checking for Layer Manifest files in Registry at HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Found no registry files in HKEY_CURRENT_USER\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Searching for explicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin
+[Vulkan Loader] LAYER:             Found the following files:
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_api_dump.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_crash_diagnostic.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_gfxreconstruct.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_profiles.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_shader_object.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_synchronization2.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_validation.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_monitor.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_screenshot.json
+[Vulkan Loader] LAYER:          Searching for implicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:             Found no files
+[Vulkan Loader] LAYER:          Checking for Layer Manifest files in Registry at HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Found no registry files in HKEY_CURRENT_USER\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Searching for implicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:             Found no files
+[Vulkan Loader] LAYER:          Checking for Layer Manifest files in Registry at HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Found no registry files in HKEY_CURRENT_USER\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Searching for explicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin
+[Vulkan Loader] LAYER:             Found the following files:
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_api_dump.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_crash_diagnostic.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_gfxreconstruct.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_profiles.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_shader_object.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_synchronization2.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_validation.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_monitor.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_screenshot.json
+Validation layers enabled, expect debug level performance!
+[Vulkan Loader] LAYER:          Searching for implicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:             Found no files
+[Vulkan Loader] LAYER:          Checking for Layer Manifest files in Registry at HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Found no registry files in HKEY_CURRENT_USER\SOFTWARE\Khronos\Vulkan\ImplicitLayers
+[Vulkan Loader] LAYER:          Searching for explicit layer manifest files
+[Vulkan Loader] LAYER:             In following locations:
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin
+[Vulkan Loader] LAYER:             Found the following files:
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_api_dump.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_crash_diagnostic.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_gfxreconstruct.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_profiles.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_shader_object.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_synchronization2.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_validation.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_monitor.json
+[Vulkan Loader] LAYER:                C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_screenshot.json
+[Vulkan Loader] WARNING | LAYER: env var 'VK_INSTANCE_LAYERS' defined and adding layers "VK_LAYER_KHRONOS_validation"
+[Vulkan Loader] WARNING | LAYER: env var 'VK_INSTANCE_LAYERS' defined and adding layers "VK_LAYER_KHRONOS_validation"
+[Vulkan Loader] DEBUG | LAYER:  Loading layer library C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\.\VkLayer_khronos_validation.dll
+[Vulkan Loader] INFO | LAYER:   Insert instance layer "VK_LAYER_KHRONOS_validation" (C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_validation.dll)
+[Vulkan Loader] DEBUG | LAYER:  Loading layer library C:\WINDOWS\System32\DriverStore\FileRepository\u0417877.inf_amd64_8b2c2b61b3f8a9e5\B417004\.\amdvlk64.dll
+[Vulkan Loader] INFO | LAYER:   Insert instance layer "VK_LAYER_AMD_switchable_graphics" (C:\WINDOWS\System32\DriverStore\FileRepository\u0417877.inf_amd64_8b2c2b61b3f8a9e5\B417004\amdvlk64.dll)
+[Vulkan Loader] LAYER:          vkCreateInstance layer callstack setup to:
+[Vulkan Loader] LAYER:             <Application>
+[Vulkan Loader] LAYER:               ||
+[Vulkan Loader] LAYER:             <Loader>
+[Vulkan Loader] LAYER:               ||
+[Vulkan Loader] LAYER:             VK_LAYER_AMD_switchable_graphics
+[Vulkan Loader] LAYER:                     Type: Implicit
+[Vulkan Loader] LAYER:                     Enabled By: Implicit Layer
+[Vulkan Loader] LAYER:                         Disable Env Var:  DISABLE_LAYER_AMD_SWITCHABLE_GRAPHICS_1
+[Vulkan Loader] LAYER:                     Manifest: C:\WINDOWS\System32\DriverStore\FileRepository\u0417877.inf_amd64_8b2c2b61b3f8a9e5\B417004\amd-vulkan64.json
+[Vulkan Loader] LAYER:                     Library:  C:\WINDOWS\System32\DriverStore\FileRepository\u0417877.inf_amd64_8b2c2b61b3f8a9e5\B417004\amdvlk64.dll
+[Vulkan Loader] LAYER:               ||
+[Vulkan Loader] LAYER:             VK_LAYER_KHRONOS_validation
+[Vulkan Loader] LAYER:                     Type: Explicit
+[Vulkan Loader] LAYER:                     Enabled By: Environment Variable VK_INSTANCE_LAYERS
+[Vulkan Loader] LAYER:                     Manifest: C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_validation.json
+[Vulkan Loader] LAYER:                     Library:  C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_validation.dll
+[Vulkan Loader] LAYER:               ||
+[Vulkan Loader] LAYER:             <Drivers>
+SDL_GPU Driver: Vulkan
+Vulkan Device: AMD Radeon RX 6600M
+Vulkan Driver: AMD proprietary driver 25.12.1 (AMD proprietary shader compiler)
+Vulkan Conformance: 1.4.0.0
+[Vulkan Loader] INFO | LAYER:   Inserted device layer "VK_LAYER_KHRONOS_validation" (C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_validation.dll)
+[Vulkan Loader] INFO | LAYER:   Failed to find vkGetDeviceProcAddr in layer "C:\WINDOWS\System32\DriverStore\FileRepository\u0417877.inf_amd64_8b2c2b61b3f8a9e5\B417004\amdvlk64.dll"
+[Vulkan Loader] DRIVER:         vkCreateDevice layer callstack setup to:
+[Vulkan Loader] DRIVER:            <Application>
+[Vulkan Loader] DRIVER:              ||
+[Vulkan Loader] DRIVER:            <Loader>
+[Vulkan Loader] DRIVER:              ||
+[Vulkan Loader] LAYER:             VK_LAYER_KHRONOS_validation
+[Vulkan Loader] LAYER:                     Type: Explicit
+[Vulkan Loader] LAYER:                     Enabled By: Environment Variable VK_INSTANCE_LAYERS
+[Vulkan Loader] LAYER:                     Manifest: C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_validation.json
+[Vulkan Loader] LAYER:                     Library:  C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_validation.dll
+[Vulkan Loader] LAYER:               ||
+[Vulkan Loader] DRIVER:            <Device>
+[Vulkan Loader] DRIVER:                Using "AMD Radeon RX 6600M" with driver: "C:\WINDOWS\System32\DriverStore\FileRepository\u0196283.inf_amd64_3979d16563294d92\B025522\amdvlk64.dll"
+[2026-11-26 10:52:00.492] [gpu] [info] vulkan: AMD Radeon RX 6600M
+[2026-11-26 10:52:00.517] [game] [info] Third-person scene started: 7 colliders, 2 doors
+[2026-11-26 10:52:00.550] [runtime] [info] Swapchain extent 1280x720
+[2026-11-26 10:52:00.600] [runtime] [info] First model frame presented
+[2026-11-26 10:52:01.302] [runtime] [info] CAPTURE_READY steps=45
+[2026-11-26 10:52:01.323] [runtime] [info] Close during frame: acquired command buffer submitted
+[2026-11-26 10:52:01.323] [game] [info] GAMEPLAY_PLAYER position=(2.18005,0.00000,3.44335) steps=45
+[2026-11-26 10:52:01.323] [game] [info] GAMEPLAY_DOOR id=door-east degrees=0.00000 open=false
+[2026-11-26 10:52:01.323] [game] [info] GAMEPLAY_DOOR id=door-west degrees=0.00000 open=false
+[2026-11-26 10:52:01.323] [game] [info] GAMEPLAY_CAMERA yaw=0.25000 pitch=0.45000 distance=10.00000
+[Vulkan Loader] DEBUG | LAYER:  Unloading layer library C:\WINDOWS\System32\DriverStore\FileRepository\u0417877.inf_amd64_8b2c2b61b3f8a9e5\B417004\amdvlk64.dll
+[Vulkan Loader] DEBUG | LAYER:  Unloading layer library C:\SomniumCI\tools\vulkan\1.4.363.0\Bin\VkLayer_khronos_validation.dll
+frames=114 fixed_steps=45 alpha=0.513720 dropped_seconds=0.000000

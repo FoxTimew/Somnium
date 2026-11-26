@@ -55,4 +55,4 @@ Le risque d'accès aux données personnelles est accepté dans le périmètre ci
 Installation : [CI_RUNNER.md](../CI_RUNNER.md) ; démarrage : [guide](../DEMARRER_RUNNERS.md).
 Les contrats scène/input sont dans ADR-0007/0008.
 
-Preuves : CI des deux runners et capture D3D12 par job manuel vertes le 25 novembre sur 36f1824 (run 45622048422) ; D5/cube Radeon et lavapipe, fenêtre, tidy et ASan/UBSan validés ; aucun blocage du contrôle d'application Windows ; pièces dans le bilan de phase 2.
+Preuves : CI Windows/Linux, D5/cube/scène, captures moteur D3D12/Vulkan, fenêtre, tidy et ASan/UBSan verts sur a7c8ed2 (45795328234) ; Metal manuel vert sur dd376fa (45794898319), aucun blocage du contrôle d'application Windows ; pièces dans le bilan de phase 3.

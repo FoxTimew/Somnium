@@ -94,6 +94,6 @@ en file gardent leur ordre. Les éditions TRS passent par une autre file, consom
 après `World::beginStep`, sans modifier World pendant son affichage.
 
 Le scénario `tools/presentation/courtyard.json` choisit les pas de capture et la
-région de comparaison hors panneaux : déplacement, mur, porte ouverte, inspecteur.
+région centrale de comparaison : déplacement, mur, porte ouverte, inspecteur.
 Il contrôle aussi les marqueurs du gameplay (personnage bloqué et état des deux
 portes). Ces comparaisons de présentation ne remplacent pas les oracles D5/cube/scène.

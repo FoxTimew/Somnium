@@ -56,8 +56,8 @@ Wait-idle par frame : parallélisme perdu. WARP natif : frontière SDL contourn�
 
 ## Conséquences
 
-Les tests de handles vérifient l'invalidation et la libération différée. D5 passe
-sur lavapipe, WARP et Metal/macOS 15 avec validation. Présentation et captures
+Les tests de handles vérifient l'invalidation et la libération différée. D5 a passé
+sur lavapipe, WARP et Metal/macOS 15 en phase 1 ; CI actuelle dans ADR-0006. Présentation et captures
 restent une preuve séparée ; absence de device/couche : « non validé » explicite.
 
-Preuves : aucune restante pour cette décision ; capture Metal CI acceptée comme substitut local le 21 octobre 2026.
+Preuves : invalidation, libération différée, copie et relecture de la frame composée validées sur les trois backends ; capture Metal CI acceptée comme substitut local, pièces dans le bilan de phase 3.
