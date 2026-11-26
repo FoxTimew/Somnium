@@ -66,8 +66,9 @@ int main(int argc, char** argv) {
                 static_cast<unsigned long long>(result->frames),
                 static_cast<unsigned long long>(result->fixedSteps), result->interpolationAlpha,
                 result->droppedSeconds);
-    if (result->capture) {
-        const auto& capture = *result->capture;
+    const auto& capturedFrame = result->capture;
+    if (capturedFrame) {
+        const auto& capture = *capturedFrame;
         std::ofstream pixels(captureOutput + ".rgba", std::ios::binary);
         pixels.write(reinterpret_cast<const char*>(capture.rgba.data()),
                      static_cast<std::streamsize>(capture.rgba.size()));
