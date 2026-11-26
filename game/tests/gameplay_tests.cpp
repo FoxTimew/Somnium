@@ -79,21 +79,56 @@ struct Fixture {
 } // namespace
 
 TEST_CASE("Character travels at authored speed with normalized diagonal input") {
+    for (float yaw : {0.F, .25F, glm::radians(90.F), glm::radians(-90.F), glm::radians(180.F)}) {
+        Fixture f;
+        auto& camera = f.get<FollowCamera>("camera");
+        camera.orbit.yaw = yaw;
+        f.axis("MoveX", 1);
+        f.step(60);
+        const auto right = f.get<Transform>("camera").current.rotation * glm::vec3(1, 0, 0);
+        CHECK(glm::length(f.position() - glm::vec3(0, 0, 4) - 3.F * right) < .00002F);
+        CHECK(f.position().y == 0);
+        f.place({0, 0, 4});
+        f.axis("MoveX", 0);
+        f.axis("MoveZ", -1);
+        camera.orbit.pitch = glm::radians(75.F);
+        camera.orbit.distance = 30;
+        f.step(60);
+        auto forward = f.get<Transform>("camera").current.rotation * glm::vec3(0, 0, -1);
+        forward.y = 0;
+        forward = glm::normalize(forward);
+        CHECK(glm::length(f.position() - glm::vec3(0, 0, 4) - 3.F * forward) < .00002F);
+        CHECK(f.position().y == 0);
+        const auto visual = f.get<Transform>("character-visual").current.rotation;
+        CHECK(glm::length(visual * glm::vec3(0, 0, -1) - forward) < .00001F);
+        f.place({0, 0, 4});
+        f.axis("MoveX", 1);
+        f.axis("MoveZ", 1);
+        f.step(60);
+        CHECK(glm::length(f.position() - glm::vec3(0, 0, 4)) == doctest::Approx(3).epsilon(.00001));
+    }
+}
+TEST_CASE("Orbit and reset affect camera-relative movement in the same fixed step") {
     Fixture f;
-    f.axis("MoveX", 1);
-    f.step(60);
-    CHECK(f.position().x == doctest::Approx(3).epsilon(.00001));
-    CHECK(f.position().z == 4);
-    f.place({0, 0, 4});
-    f.axis("MoveZ", 1);
-    f.step(60);
-    CHECK(glm::length(f.position() - glm::vec3(0, 0, 4)) == doctest::Approx(3).epsilon(.00001));
+    const auto initial = f.get<FollowCamera>("camera").orbit;
+    f.get<FollowCamera>("camera").orbit.yaw = 0;
+    f.axis("MouseYaw", glm::radians(180.F));
+    f.axis("MoveZ", -1);
+    f.step();
+    CHECK(f.position().x == doctest::Approx(-.05F));
+    CHECK(f.position().z == doctest::Approx(4.F));
+    const auto previous = f.position();
+    f.press("Reset");
+    f.step();
+    CHECK(f.position().x - previous.x == doctest::Approx(-.05F * std::sin(initial.yaw)));
+    CHECK(f.position().z - previous.z == doctest::Approx(-.05F * std::cos(initial.yaw)));
 }
 TEST_CASE("Swept separated axes stop at walls while retaining tangential motion") {
     Fixture f;
+    f.get<FollowCamera>("camera").orbit.yaw = glm::radians(90.F);
     f.place({2, 0, 0});
     f.axis("MoveX", 1);
-    f.axis("MoveZ", -1);
+    f.axis("MoveZ", 1);
     f.step(60);
     CHECK(f.position().x == doctest::Approx(2 + 3 / std::sqrt(2.F)).epsilon(.00001));
     CHECK(f.position().z == doctest::Approx(-1.45F));
@@ -101,8 +136,9 @@ TEST_CASE("Swept separated axes stop at walls while retaining tangential motion"
 }
 TEST_CASE("A single high-speed step cannot cross a closed door or a thin wall") {
     Fixture f;
+    f.get<FollowCamera>("camera").orbit.yaw = glm::radians(90.F);
     f.get<Character>("character").speed = 6000;
-    f.axis("MoveZ", -1);
+    f.axis("MoveX", 1);
     f.step();
     CHECK(f.position().z == doctest::Approx(-1.5F));
     f.place({2, 0, 4});
@@ -118,12 +154,13 @@ TEST_CASE("A teleported overlapping character leaves by the shortest horizontal 
 }
 TEST_CASE("Interact is proximity-limited and opens only the nearest door in sixty steps") {
     Fixture f;
+    f.get<FollowCamera>("camera").orbit.yaw = glm::radians(90.F);
     f.press("Interact");
     f.step();
     CHECK(f.get<Door>("door-west").state == DoorState::Closed);
     f.place({0, 0, -.6F});
     f.press("Interact");
-    f.axis("MoveZ", -1);
+    f.axis("MoveX", 1);
     f.step(59);
     auto& door = f.get<Door>("door-west");
     CHECK(door.state == DoorState::Opening);

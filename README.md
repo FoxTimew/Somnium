@@ -87,7 +87,8 @@ Le sandbox charge `assets/scenes/courtyard.json`, ses modèles originaux CC0
 | Interact | E, près d’une porte | Bouton sud |
 | Réinitialiser l’orbite | R | Bouton nord |
 
-Vitesse 3 m/s, diagonale normalisée ; caméra à 4–30 m, pitch 5–75°. Une porte
+Vitesse 3 m/s, diagonale normalisée, déplacement horizontal relatif au yaw de la
+caméra (orbite/reset pris en compte dans le même pas). Caméra à 4–30 m, pitch 5–75°. Une porte
 s’ouvre à 90° en 60 pas et reste bloquante jusqu’à ouverture complète. L’inspecteur
 à droite permet la sélection et l’édition des TRS locaux au prochain pas fixe ;
 les inputs affichés sont en lecture seule. Les champs pilotés par le jeu peuvent

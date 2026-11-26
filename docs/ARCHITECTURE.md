@@ -99,8 +99,12 @@ scanner d’architecture (en-têtes publics runtime et sources du jeu).
 `game.AabbCollider`, `game.Door` et `game.FollowCamera` de `scenes/courtyard.json`.
 Leurs codecs utilisent les lecteurs vérifiés et la seconde passe de références
 de scene. Les identifiants d’actions/axes sont résolus dans `start`, jamais dans
-le pas fixe. Le personnage se déplace à 3 unités/s, diagonale normalisée ; son
-mesh enfant pivote sans faire tourner son volume de collision.
+le pas fixe. Le personnage se déplace à 3 unités/s, diagonale normalisée :
+`MoveX/MoveZ` sont tournés par le yaw de FollowCamera, dans le plan horizontal.
+L’orbite et le reset actualisent ce yaw avant le déplacement du même pas ; pitch
+et zoom ne changent ni vitesse ni hauteur. Après résolution des collisions, la
+caméra suit la nouvelle position. Le mesh enfant s’oriente dans la direction
+demandée sans faire tourner son volume de collision.
 
 Les AABB appartiennent uniquement à `game/`, sur des entités racines. La résolution
 balaie X puis Z jusqu’au premier plan d’entrée, même pour un grand déplacement ;

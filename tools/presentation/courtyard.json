@@ -19,7 +19,7 @@
     {
       "name": "wall",
       "steps": 205,
-      "markers": ["GAMEPLAY_PLAYER position=(3.00000,0.00000,-1.45000)", "GAMEPLAY_DOOR id=door-west degrees=0.00000 open=false"]
+      "markers": ["GAMEPLAY_PLAYER position=(1.17491,0.00000,-1.45000)", "GAMEPLAY_DOOR id=door-west degrees=0.00000 open=false"]
     },
     {
       "name": "door-open",
@@ -28,7 +28,8 @@
     },
     {
       "name": "inspector",
-      "steps": 415
+      "steps": 415,
+      "markers": ["GAMEPLAY_PLAYER position=(-0.72999,0.00000,-4.05985)", "GAMEPLAY_DOOR id=door-west degrees=90.00000 open=true"]
     }
   ],
   "comparisons": [

@@ -13,6 +13,7 @@ class SandboxGame final : public runtime::Gameplay {
     void stop(scene::World& world) override;
 
   private:
+    void updateOrbit(scene::World& world, const runtime::FixedUpdate& update);
     [[nodiscard]] Result<void> updateDoors(scene::World& world, const runtime::FixedUpdate& update);
     [[nodiscard]] Result<void> moveCharacter(scene::World& world,
                                              const runtime::FixedUpdate& update);

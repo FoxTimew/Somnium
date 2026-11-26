@@ -32,7 +32,7 @@
       "down": true
     },
     {
-      "step": 270,
+      "step": 234,
       "kind": "key",
       "control": "A",
       "down": false

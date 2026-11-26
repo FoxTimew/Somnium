@@ -154,6 +154,10 @@ Result<void> SandboxGame::moveCharacter(scene::World& world, const runtime::Fixe
     const auto length = glm::length(direction);
     if (length > 1)
         direction /= length;
+    // Rotate the horizontal input plane by the current follow-camera yaw.
+    // Pitch and zoom must not change movement speed or add vertical motion.
+    const auto yaw = registry.get<FollowCamera>(m_camera).orbit.yaw;
+    direction = glm::angleAxis(yaw, glm::vec3(0, 1, 0)) * direction;
     const auto& character = registry.get<Character>(m_character);
     auto box = detail::bounds(world, m_character);
     if (!box)
@@ -171,14 +175,14 @@ Result<void> SandboxGame::moveCharacter(scene::World& world, const runtime::Fixe
         if (!registry.valid(character.visual))
             return invalid("Character visual was destroyed during gameplay");
         auto visual = registry.get<Transform>(character.visual).current;
-        const auto yaw = std::atan2(-direction.x, -direction.z);
-        visual.rotation =
-            glm::normalize(glm::conjugate(pose.rotation) * glm::angleAxis(yaw, glm::vec3(0, 1, 0)));
+        const auto facing = std::atan2(-direction.x, -direction.z);
+        visual.rotation = glm::normalize(glm::conjugate(pose.rotation) *
+                                         glm::angleAxis(facing, glm::vec3(0, 1, 0)));
         return world.setLocal(character.visual, visual);
     }
     return {};
 }
-Result<void> SandboxGame::follow(scene::World& world, const runtime::FixedUpdate& update) {
+void SandboxGame::updateOrbit(scene::World& world, const runtime::FixedUpdate& update) {
     auto& camera = world.registry().get<FollowCamera>(m_camera);
     const bool reset = update.inputs.action(m_orbit.reset).pressed;
     OrbitCamera orbit(camera.orbit);
@@ -188,6 +192,10 @@ Result<void> SandboxGame::follow(scene::World& world, const runtime::FixedUpdate
         orbit.update(update.inputs, m_orbit, update.seconds);
     camera.orbit = orbit.state();
     camera.orbit.pitch = std::clamp(camera.orbit.pitch, glm::radians(5.F), glm::radians(75.F));
+}
+Result<void> SandboxGame::follow(scene::World& world, const runtime::FixedUpdate& update) {
+    const auto& camera = world.registry().get<FollowCamera>(m_camera);
+    const bool reset = update.inputs.action(m_orbit.reset).pressed;
     const auto target =
         world.registry().get<Transform>(camera.target).current.position + camera.offset;
     const auto pose = OrbitCamera(camera.orbit).pose(target);
@@ -204,6 +212,8 @@ Result<void> SandboxGame::fixedUpdate(scene::World& world, const runtime::FixedU
     auto doors = updateDoors(world, update);
     if (!doors)
         return doors;
+    // Orbit and movement share this tick's input, then the camera follows the resolved pose.
+    updateOrbit(world, update);
     auto movement = moveCharacter(world, update);
     if (!movement)
         return movement;

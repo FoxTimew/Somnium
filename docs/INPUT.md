@@ -72,6 +72,9 @@ captures de présentation, distinctes des références analytiques hors écran.
 `MouseYaw/MousePitch/WheelZoom`, `StickYaw/StickPitch/TriggerZoom`.
 Les touches sont physiques : W/A/S/D correspondent aux positions Z/Q/S/D sur
 AZERTY. Le stick gauche déplace ; E/bouton sud interagit, R/bouton nord réinitialise.
+`MoveX/MoveZ` décrivent droite et avant/arrière dans le repère horizontal de la
+caméra de suivi. Game actualise son yaw, tourne ces axes, résout les collisions,
+puis replace la caméra autour du personnage ; aucun calcul de caméra dans runtime.
 
 Runtime construit l’UI après le premier poll et applique sa demande de capture
 avant de mettre en file les événements de cette frame. Le second poll, après
