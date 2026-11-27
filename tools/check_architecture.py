@@ -31,6 +31,18 @@ for module, dependencies in allowed.items():
             continue
         text = path.read_text(encoding="utf-8")
         public = "include" in path.relative_to(source_root).parts
+        if public:
+            # Remove comments before checking storage declarations. Function declarations
+            # are permitted; mutable static/inline objects belong in an implementation unit.
+            declarations = re.sub(r"//[^\n]*|/\*.*?\*/", "", text, flags=re.S)
+            for storage in re.finditer(r"\b(?:static|inline)\s+([^;{}]+)([;{}])", declarations):
+                declaration = storage.group(1)
+                head = declaration.split("=", 1)[0]
+                function = "(" in head and not re.search(r"\(\s*[*&]", head)
+                immutable = re.search(r"\bconstexpr\b", head) or (
+                    re.search(r"\bconst\b", head) and "*" not in head and "&" not in head)
+                if not function and not immutable:
+                    errors.append(f"{path}: mutable static/inline state in public header")
         for dependency in re.findall(r"#include\s*[<\"]somnium/([^/]+)/", text):
             if dependency != module and dependency not in dependencies:
                 errors.append(f"{path}: forbidden {module} -> {dependency}")

@@ -6,14 +6,19 @@ on:
     branches: [main, 'phase/**', 'feat/**']
   pull_request:
   workflow_dispatch:
+    inputs:
+      iteration_profiling:
+        description: 'Run iteration + Tracy validation (required at checkpoints)'
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
-  group: ci-${{ github.head_ref || github.ref_name }}
+  group: ci-${{ github.head_ref || github.ref_name }}-${{ inputs.iteration_profiling && 'iteration-profiling' || 'required' }}
   cancel-in-progress: true
 jobs:
   windows:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && !inputs.iteration_profiling
     runs-on: [self-hosted, Windows, X64]
     timeout-minutes: 120
     steps:
@@ -25,7 +30,7 @@ jobs:
         shell: powershell
         run: tools/ci/windows.ps1 pipeline --jobs 2 --window-mode interactive
   linux:
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && !inputs.iteration_profiling
     runs-on: [self-hosted, Linux, X64]
     timeout-minutes: 150
     steps:
@@ -35,3 +40,26 @@ jobs:
           persist-credentials: false
       - name: Required Linux presets, lavapipe, analysis and sanitizers
         run: bash tools/ci/linux.sh pipeline --jobs 2
+  iteration-profiling-windows:
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && github.event_name == 'workflow_dispatch' && inputs.iteration_profiling
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          lfs: true
+          persist-credentials: false
+      - name: Iteration and Tracy checkpoint validation
+        shell: powershell
+        run: tools/ci/windows.ps1 iteration-profiling --jobs 2 --window-mode interactive
+  iteration-profiling-linux:
+    if: (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && github.event_name == 'workflow_dispatch' && inputs.iteration_profiling
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          lfs: true
+          persist-credentials: false
+      - name: Iteration and Tracy checkpoint validation
+        run: bash tools/ci/linux.sh iteration-profiling --jobs 2

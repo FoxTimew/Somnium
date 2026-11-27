@@ -5,6 +5,9 @@
 #include <glm/gtc/quaternion.hpp>
 #include <somnium/game/codecs.hpp>
 #include <somnium/game/sandbox_game.hpp>
+#if defined(SOMNIUM_ENABLE_ITERATION)
+#include "iteration_session.hpp"
+#endif
 
 namespace somnium::game {
 namespace {
@@ -32,7 +35,7 @@ struct Fixture {
         mapping = std::move(*configured);
         actions.resize(mapping.actions().size());
         axes.resize(mapping.axes().size());
-        REQUIRE(game.start(*world, mapping));
+        REQUIRE(game.start(*world, {mapping, 0}));
     }
     ~Fixture() {
         game.stop(*world);
@@ -225,8 +228,8 @@ TEST_CASE("Game codecs round trip active doors and entity references through sha
     CHECK(copy.registry().get<Door>(door).state == DoorState::Opening);
     CHECK(copy.registry().get<FollowCamera>(copy.activeCamera).target == character);
     SandboxGame resumed;
-    REQUIRE(resumed.start(copy, f.mapping));
-    for (std::uint64_t tick = 0; tick < 30; ++tick) {
+    REQUIRE(resumed.start(copy, {f.mapping, f.tick}));
+    for (std::uint64_t tick = f.tick; tick < f.tick + 30; ++tick) {
         const input::State state{tick, f.actions, f.axes, {}};
         copy.beginStep();
         REQUIRE(resumed.fixedUpdate(copy, {1. / 60., tick, state}));
@@ -261,4 +264,46 @@ TEST_CASE("Checked game codecs reject malformed data with component context") {
         CHECK(rejected.error().message.find("game.") != std::string::npos);
     }
 }
+#if defined(SOMNIUM_ENABLE_ITERATION)
+TEST_CASE(
+    "Repeated play and stop restore exact game components and temporal state at current tick") {
+    Fixture f;
+    f.game.stop(*f.world);
+    const auto before = scene::snapshot(*f.world, f.codecs);
+    REQUIRE(before);
+    runtime::IterationSession session(f.world, f.game, f.codecs, f.mapping);
+    CHECK_FALSE(session.stop());
+    for (int cycle = 0; cycle < 100; ++cycle) {
+        REQUIRE(session.play(f.tick));
+        CHECK_FALSE(session.play(f.tick));
+        f.axis("MoveX", 1);
+        f.step(3);
+        CHECK(*scene::serialize(*f.world, f.codecs) != before->canonical);
+        REQUIRE(session.stop());
+        const auto after = scene::snapshot(*f.world, f.codecs);
+        REQUIRE(after);
+        CHECK(after->canonical == before->canonical);
+        CHECK(after->temporal == before->temporal);
+        CHECK_FALSE(session.playing());
+        // Editing advances the service clock without calling gameplay.
+        f.tick += 7;
+    }
+    // A failed start mutates only a candidate, never the displayed editing World.
+    const auto character = f.entity("character");
+    f.world->registry().remove<Character>(character);
+    const auto edited = scene::snapshot(*f.world, f.codecs);
+    REQUIRE(edited);
+    CHECK_FALSE(session.play(f.tick));
+    CHECK_FALSE(session.playing());
+    CHECK(*scene::serialize(*f.world, f.codecs) == edited->canonical);
+    auto restored = scene::restore(*before, f.codecs);
+    REQUIRE(restored);
+    f.world = std::move(*restored);
+    f.world->registry().remove<FollowCamera>(f.world->activeCamera);
+    const auto missingCameraBehavior = scene::snapshot(*f.world, f.codecs);
+    REQUIRE(missingCameraBehavior);
+    CHECK_FALSE(session.play(f.tick));
+    CHECK(*scene::serialize(*f.world, f.codecs) == missingCameraBehavior->canonical);
+}
+#endif
 } // namespace somnium::game

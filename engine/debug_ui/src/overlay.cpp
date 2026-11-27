@@ -2,6 +2,9 @@
 // Only integration facades cross module boundaries; native backends stay private.
 #include "frame_times.hpp"
 #include "inspector.hpp"
+#if defined(SOMNIUM_ENABLE_ITERATION)
+#include "editor_camera.hpp"
+#endif
 #include <imgui.h>
 #include <somnium/core/profile.hpp>
 #include <somnium/debug_ui/overlay.hpp>
@@ -18,6 +21,12 @@ struct Overlay::Impl {
     detail::Inspector inspector;
     gpu_imgui::Counters previous{};
     std::string label;
+#if defined(SOMNIUM_ENABLE_ITERATION)
+    detail::EditorCamera camera;
+    bool playing = true;
+    std::optional<bool> playRequest;
+    std::string iterationError;
+#endif
     ~Impl() {
         if (context) {
             ImGui::SetCurrentContext(context);
@@ -83,14 +92,57 @@ input::Capture Overlay::update(double frameSeconds, const scene::World& world,
     }
     ImGui::End();
     m_impl->previous = counters;
-    m_impl->inspector.draw(world, mapping, inputs, replay);
+#if defined(SOMNIUM_ENABLE_ITERATION)
+    ImGui::SetNextWindowPos(ImVec2(16, 190), ImGuiCond_Always);
+    if (ImGui::Begin("Iteration", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::TextUnformatted(m_impl->playing ? "Play / simulation running"
+                                               : "Edit / simulation stopped");
+        if (ImGui::Button(m_impl->playing ? "Stop" : "Play"))
+            m_impl->playRequest = !m_impl->playing;
+        if (!m_impl->playing)
+            ImGui::TextUnformatted("Tool camera: RMB look, WASD + Q/E, wheel");
+        if (!m_impl->iterationError.empty())
+            ImGui::TextWrapped("Rejected: %s", m_impl->iterationError.c_str());
+    }
+    ImGui::End();
+#endif
+    bool editing = false;
+#if defined(SOMNIUM_ENABLE_ITERATION)
+    editing = !m_impl->playing;
+#endif
+    m_impl->inspector.draw(world, mapping, inputs, replay, editing);
     ImGui::Render();
     const auto& io = ImGui::GetIO();
     return replay ? input::Capture{} : input::Capture{io.WantCaptureKeyboard, io.WantCaptureMouse};
 }
+#if defined(SOMNIUM_ENABLE_ITERATION)
+Result<input::Configuration> Overlay::iterationMapping() {
+    return detail::EditorCamera::configuration();
+}
+Result<void> Overlay::initializeToolCamera(const scene::World& world,
+                                           const input::Configuration& mapping) {
+    return m_impl->camera.initialize(world, mapping);
+}
+void Overlay::updateToolCamera(const input::State& state, double seconds) {
+    m_impl->camera.update(state, seconds);
+}
+const Trs& Overlay::toolPose() const {
+    return m_impl->camera.pose();
+}
+const Camera& Overlay::toolLens() const {
+    return m_impl->camera.lens();
+}
+void Overlay::iterationState(bool playing, std::string_view error) {
+    m_impl->playing = playing;
+    m_impl->iterationError = error;
+}
+std::optional<bool> Overlay::takePlayRequest() {
+    return std::exchange(m_impl->playRequest, std::nullopt);
+}
 void Overlay::applyEdits(scene::World& world) {
     m_impl->inspector.apply(world);
 }
+#endif
 Result<void> Overlay::prepare() {
     SOMNIUM_PROFILE_SCOPE("debug_ui.prepare");
     ImGui::SetCurrentContext(m_impl->context);

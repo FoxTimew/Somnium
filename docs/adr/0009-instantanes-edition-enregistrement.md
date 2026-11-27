@@ -56,4 +56,4 @@ Codecs versionnés et données transitoires, lecteurs vérifiés. Tout état dur
 du jeu appartient à World ; références extérieures par PersistentId. Reconstruction
 aux actions explicites, aucun travail d'édition inactif.
 
-Preuves : exactitude et ordre des frères, migration/quaternions limites, demandes d'assets équilibrées, cycles Jouer/Arrêter, édition/sauvegarde/rechargement, annulation et durées CI au jalon intermédiaire.
+Preuves : CI du lot 1, édition/sauvegarde/rechargement, annulation et durées CI au jalon intermédiaire.

@@ -29,7 +29,7 @@ Ces choix ne sont pas des suggestions. Si l'un d'eux s'avère impossible ou cont
 | Entités | **EnTT**, utilisé directement, sans wrapper générique | Composants = structs plates dans le namespace `somnium` |
 | Modèles 3D | glTF 2.0 (`.gltf`/`.glb`) via **cgltf** | Pas d'OBJ, pas d'Assimp |
 | Textures | **stb_image** | PNG/JPEG au MVP ; KTX2/BC plus tard via le cuiseur d'assets |
-| Scènes et données | JSON via **nlohmann/json**, fichiers versionnés (`"version": 1`) | Format binaire plus tard, derrière la même API |
+| Scènes et données | JSON via **nlohmann/json**, fichiers versionnés (scènes v2, migration explicite v1) | Format binaire plus tard, derrière la même API |
 | Erreurs | **tl::expected** exposé comme `somnium::Result<T>` ; `SOMNIUM_ASSERT` (debug) et `SOMNIUM_VERIFY` (toujours) | Politique détaillée au §3 |
 | Logs | **spdlog** derrière une façade `somnium::Log` (catégories, niveaux) | Le reste du moteur ne voit jamais spdlog |
 | Profilage | **Tracy** (zones CPU, hooks mémoire, compteurs de rendu et marqueurs de debug GPU SDL ; pas de durées GPU, SDL GPU n'ayant pas d'API de timestamps), activé par le preset `profiling` | Macros `SOMNIUM_PROFILE_*` vides hors profiling |

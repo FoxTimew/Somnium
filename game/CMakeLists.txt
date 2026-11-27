@@ -12,6 +12,9 @@ if(BUILD_TESTING)
     target_compile_definitions(somnium_gameplay_tests PRIVATE
         SOMNIUM_GAME_FIXTURE="${CMAKE_CURRENT_SOURCE_DIR}/tests/fixtures/courtyard.json"
         SOMNIUM_GAME_MAPPING="${PROJECT_SOURCE_DIR}/assets/input/courtyard.json")
+    if(SOMNIUM_ENABLE_ITERATION)
+        target_include_directories(somnium_gameplay_tests PRIVATE "${PROJECT_SOURCE_DIR}/engine/runtime/src")
+    endif()
     add_test(NAME somnium_sandbox_asset_sources COMMAND "${Python3_EXECUTABLE}"
         "${PROJECT_SOURCE_DIR}/tools/assets/generate_sandbox.py" --verify)
 endif()

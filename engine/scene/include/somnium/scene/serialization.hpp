@@ -33,6 +33,11 @@ struct ComponentCodec {
     std::function<bool(const World&, entt::entity)> contains;
     std::function<Result<Json>(const World&, entt::entity)> serialize;
     std::function<Result<void>(World&, entt::entity, const Json&, DeserializeContext&)> deserialize;
+    // Explicit version migration; no guessed fields or silent unit conversions.
+    std::function<Result<Json>(std::uint32_t, const Json&)> migrate = {};
+    // Transient interpolation state uses the same registry, but never enters a scene file.
+    std::function<Result<Json>(const World&, entt::entity)> captureTemporal = {};
+    std::function<Result<void>(World&, entt::entity, const Json&)> restoreTemporal = {};
 };
 class CodecRegistry final {
   public:
@@ -47,6 +52,16 @@ class CodecRegistry final {
 };
 [[nodiscard]] Result<void> registerBuiltinCodecs(CodecRegistry& codecs);
 [[nodiscard]] Result<std::string> serialize(const World& world, const CodecRegistry& codecs);
+struct WorldSnapshot {
+    std::string canonical;
+    std::string temporal;
+    [[nodiscard]] std::size_t retainedBytes() const {
+        return sizeof(WorldSnapshot) + canonical.capacity() + temporal.capacity();
+    }
+};
+[[nodiscard]] Result<WorldSnapshot> snapshot(const World& world, const CodecRegistry& codecs);
+[[nodiscard]] Result<std::unique_ptr<World>>
+restore(const WorldSnapshot& snapshot, const CodecRegistry& codecs, AssetContext* assets = nullptr);
 // A successful result owns every model request; failure leaves the caller's active World intact.
 [[nodiscard]] Result<std::unique_ptr<World>>
 deserialize(std::string_view text, const CodecRegistry& codecs, AssetContext* assets = nullptr);
@@ -59,6 +74,7 @@ deserialize(std::string_view text, const CodecRegistry& codecs, AssetContext* as
 [[nodiscard]] Result<std::string> readString(const Json& object, std::string_view field);
 [[nodiscard]] Result<float> readNumber(const Json& object, std::string_view field);
 [[nodiscard]] Result<glm::vec3> readVector3(const Json& object, std::string_view field);
+[[nodiscard]] Result<glm::quat> readQuaternion(const Json& object, std::string_view field);
 [[nodiscard]] Result<void> requireFields(const Json& object,
                                          std::initializer_list<std::string_view> fields);
 } // namespace somnium::scene

@@ -26,6 +26,9 @@ struct EngineConfig {
     std::string_view backend;
 };
 struct RunOptions {
+#if defined(SOMNIUM_ENABLE_ITERATION)
+    bool startEditing = false;
+#endif
     // Freeze the replay at this tick. Without captureFrame, present for three seconds.
     std::uint64_t captureSteps = 0;
     bool captureFrame = false;

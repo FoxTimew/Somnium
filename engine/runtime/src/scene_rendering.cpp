@@ -13,14 +13,15 @@ void SceneFrame::reserve(SceneCapacity capacity) {
     draws.reserve(capacity.draws);
 }
 Result<void> extractScene(const scene::World& world, float alpha, gpu::FrameSize extent,
-                          std::span<const ModelDraws> models, SceneFrame& frame) {
+                          std::span<const ModelDraws> models, SceneFrame& frame,
+                          const SceneView* view) {
     SOMNIUM_PROFILE_SCOPE("runtime.extract_scene");
     if (!std::isfinite(alpha) || alpha < 0 || alpha > 1 || !extent.drawable())
         return tl::unexpected(Error{ErrorCode::InvalidArgument, "Invalid scene alpha or extent"});
     auto valid = world.validate();
     if (!valid)
         return valid;
-    if (world.activeCamera == entt::null)
+    if (world.activeCamera == entt::null && !view)
         return tl::unexpected(Error{ErrorCode::InvalidState, "Scene has no active camera"});
     if (frame.worlds.capacity() < world.size())
         return tl::unexpected(Error{ErrorCode::InvalidState, "Scene entity scratch not reserved"});
@@ -66,6 +67,13 @@ Result<void> extractScene(const scene::World& world, float alpha, gpu::FrameSize
             for (const auto& draw : found->draws)
                 frame.draws.push_back({draw.mesh, draw.material, pose * draw.world});
         }
+    }
+    if (view) {
+        frame.uniforms.view = glm::inverse(scene::localMatrix(view->pose));
+        frame.uniforms.projection = glm::perspectiveRH_ZO(
+            view->lens.verticalFov,
+            static_cast<float>(extent.width) / static_cast<float>(extent.height),
+            view->lens.nearPlane, view->lens.farPlane);
     }
     return {};
 }

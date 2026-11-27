@@ -125,7 +125,7 @@ class Session final {
         checked(m_api.registerCodecs(m_codecs));
         m_game = m_api.create();
         require(m_game != nullptr, "Factory returned null");
-        checked(m_game->start(*m_world, m_input.configuration()));
+        checked(m_game->start(*m_world, {m_input.configuration(), m_tick}));
     }
     bool reload(Images& images, const std::filesystem::path& source) {
         m_game->stop(*m_world);
@@ -155,7 +155,7 @@ class Session final {
             if (restored) {
                 auto* candidate = candidateApi->create();
                 require(candidate != nullptr, "Candidate factory returned null");
-                auto started = candidate->start(**restored, m_input.configuration());
+                auto started = candidate->start(**restored, {m_input.configuration(), m_tick});
                 if (started) {
                     m_world = std::move(*restored);
                     m_game = candidate;
@@ -180,7 +180,7 @@ class Session final {
             m_api = restoredApi;
             m_image = previousImage;
             m_game = m_api.create();
-            checked(m_game->start(*m_world, m_input.configuration()));
+            checked(m_game->start(*m_world, {m_input.configuration(), m_tick}));
             require(m_api.stateId == previousStateId, "Rollback selected the wrong generation");
         }
         require(m_world->size() == previousSize, "World identities were lost");

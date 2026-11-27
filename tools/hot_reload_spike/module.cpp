@@ -51,21 +51,22 @@ Result<void> registerCodecs(scene::CodecRegistry& codecs) {
 }
 class Demo final : public runtime::Gameplay {
   public:
-    Result<void> start(scene::World& world, const input::Configuration& configuration) override {
+    Result<void> start(scene::World& world, const runtime::StartContext& context) override {
+        const auto& configuration = context.mapping;
         auto player = world.find("player");
         auto move = configuration.axis("Move");
         if (!player)
             return tl::unexpected(player.error());
         if (!move)
             return tl::unexpected(move.error());
-        m_player = *player;
+        m_player = *world.id(*player);
         m_move = *move;
-        if (!world.registry().all_of<State>(m_player))
-            world.registry().emplace<State>(m_player);
+        if (!world.registry().all_of<State>(*player))
+            world.registry().emplace<State>(*player);
 #ifdef SPIKE_FAIL_START
-        auto local = world.registry().get<Transform>(m_player).current;
+        auto local = world.registry().get<Transform>(*player).current;
         local.position.x += 999;
-        auto changed = world.setLocal(m_player, local);
+        auto changed = world.setLocal(*player, local);
         if (!changed)
             return changed;
         return tl::unexpected(
@@ -77,7 +78,10 @@ class Demo final : public runtime::Gameplay {
     }
     Result<void> fixedUpdate(scene::World& world, const runtime::FixedUpdate& update) override {
         SOMNIUM_PROFILE_SCOPE("spike.game.step");
-        auto& state = world.registry().get<State>(m_player);
+        auto player = world.find(m_player);
+        if (!player)
+            return tl::unexpected(player.error());
+        auto& state = world.registry().get<State>(*player);
         if (!m_running || update.tick != state.ticks || update.inputs.step != update.tick)
             return tl::unexpected(Error{ErrorCode::InvalidState, "Tick was reset or replayed"});
 #ifdef SPIKE_NEW_LAYOUT
@@ -89,16 +93,16 @@ class Demo final : public runtime::Gameplay {
             update.inputs.axis(m_move) * speed * static_cast<float>(update.seconds);
         state.distance += distance;
         ++state.ticks;
-        auto local = world.registry().get<Transform>(m_player).current;
+        auto local = world.registry().get<Transform>(*player).current;
         local.position.x += distance;
-        return world.setLocal(m_player, local);
+        return world.setLocal(*player, local);
     }
     void stop(scene::World&) override {
         m_running = false;
     }
 
   private:
-    entt::entity m_player = entt::null;
+    std::string m_player;
     input::AxisId m_move;
     bool m_running = false;
 };

@@ -145,9 +145,14 @@ class InfrastructureTests(unittest.TestCase):
             setattr(runner, name, lambda *args, **kwargs: None)
         captures = []
         runner.captures = captures.append
+        presets = []
+        runner.configure = presets.append
+        runner.iteration_profiling = lambda: self.fail("Profiling iteration must be manual")
         with patch.object(run, "SYSTEM", "Windows"):
             runner.pipeline()
         self.assertEqual(captures, ["direct3d12", "vulkan"])
+        self.assertIn("iteration", presets)
+        self.assertNotIn("iteration-profiling", presets)
         workflow = (run.ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
         self.assertNotIn("windows-presentation:", workflow)
 

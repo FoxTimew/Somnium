@@ -15,4 +15,9 @@ if(BUILD_TESTING)
     endif()
     set_tests_properties(somnium_window_smoke PROPERTIES TIMEOUT 30 LABELS "window"
         ENVIRONMENT "SDL_ASSERT=abort;SDL_LOGGING=*=verbose")
+    if(SOMNIUM_ENABLE_ITERATION)
+        add_test(NAME somnium_iteration_window_smoke COMMAND sandbox --mode edit --frames 12)
+        set_tests_properties(somnium_iteration_window_smoke PROPERTIES TIMEOUT 30 LABELS "window"
+            ENVIRONMENT "SDL_ASSERT=abort;SDL_LOGGING=*=verbose")
+    endif()
 endif()

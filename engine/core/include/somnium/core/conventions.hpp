@@ -8,8 +8,10 @@
 namespace somnium::core {
 // Right-handed world, +Y up, meters, camera toward -Z. Column vectors:
 // clip = projectionRH_ZO * view * world * position; local = T * R * S.
-// Normalized quaternions internally; radians at API boundaries.
-// Scene JSON/debug UI: Euler degrees, extrinsic X then Y then Z (Rz * Ry * Rx).
+// Quaternions in memory and scene v2 ([x,y,z,w]); radians at API boundaries.
+// Euler degrees only in the editor and v1 migration: extrinsic X,Y,Z (Rz * Ry * Rx).
+// Validate squared length in double; never normalize accepted file values or change sign.
+inline constexpr double kQuaternionUnitTolerance = 1e-5;
 inline constexpr double kFixedStepSeconds = 1.0 / 60.0;
 inline constexpr double kMaxFrameSeconds = 0.250;
 inline constexpr std::uint32_t kMaxFixedSteps = 8;

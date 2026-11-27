@@ -13,6 +13,10 @@ struct ModelDraws {
 struct SceneCapacity {
     std::size_t entities, draws;
 };
+struct SceneView {
+    Trs pose;
+    Camera lens;
+};
 struct SceneFrame {
     renderer::FrameData uniforms;
     std::pmr::vector<renderer::Draw> draws;
@@ -22,15 +26,15 @@ struct SceneFrame {
 };
 [[nodiscard]] Result<void> extractScene(const scene::World& world, float alpha,
                                         gpu::FrameSize extent, std::span<const ModelDraws> models,
-                                        SceneFrame& frame);
+                                        SceneFrame& frame, const SceneView* view = nullptr);
 class SceneRendering final {
   public:
     SceneRendering(renderer::Renderer& renderer, assets::AssetManager<assets::Model>& models)
         : m_renderer(renderer), m_models(models) {}
     [[nodiscard]] Result<void> prepare(const scene::World& world);
-    [[nodiscard]] Result<void> extract(const scene::World& world, float alpha,
-                                       gpu::FrameSize size) {
-        return extractScene(world, alpha, size, m_bindings, m_frame);
+    [[nodiscard]] Result<void> extract(const scene::World& world, float alpha, gpu::FrameSize size,
+                                       const SceneView* view = nullptr) {
+        return extractScene(world, alpha, size, m_bindings, m_frame, view);
     }
     [[nodiscard]] const SceneFrame& frame() const {
         return m_frame;

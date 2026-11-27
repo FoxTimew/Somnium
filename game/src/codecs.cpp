@@ -76,11 +76,15 @@ Result<Json> writeDoor(const World& world, entt::entity entity) {
                 {"reach", value.reach},
                 {"duration", value.duration},
                 {"progress", value.progress},
-                {"state", state}};
+                {"state", state},
+                {"closedRotation", Json::array({value.closedRotation.x, value.closedRotation.y,
+                                                value.closedRotation.z, value.closedRotation.w})},
+                {"posed", value.posed}};
 }
 Result<void> readDoor(World& world, entt::entity entity, const Json& data,
                       DeserializeContext& context) {
-    auto fields = requireFields(data, {"pivot", "reach", "duration", "progress", "state"});
+    auto fields = requireFields(
+        data, {"pivot", "reach", "duration", "progress", "state", "closedRotation", "posed"});
     if (!fields)
         return fields;
     auto pivot = readString(data, "pivot"), state = readString(data, "state");
@@ -107,8 +111,13 @@ Result<void> readDoor(World& world, entt::entity entity, const Json& data,
         motion = DoorState::Open;
     else
         return invalid("door state and progress disagree");
+    auto closed = readQuaternion(data, "closedRotation");
+    if (!closed)
+        return tl::unexpected(closed.error());
+    if (!data["posed"].is_boolean())
+        return invalid("posed must be boolean");
     world.registry().emplace<Door>(entity, entt::null, *reach, *duration, *progress, motion,
-                                   glm::quat(1, 0, 0, 0));
+                                   *closed, data["posed"].get<bool>());
     context.deferEntity(
         entity, "game.Door/pivot", std::move(*pivot),
         [](World& target, entt::entity owner, entt::entity resolved) -> Result<void> {
@@ -117,6 +126,37 @@ Result<void> readDoor(World& world, entt::entity entity, const Json& data,
         });
     return {};
 }
+Result<Json> migrateDoor(std::uint32_t version, const Json& data) {
+    if (version != 1)
+        return invalid("Unsupported Door version");
+    auto fields = requireFields(data, {"pivot", "reach", "duration", "progress", "state"});
+    if (!fields)
+        return tl::unexpected(fields.error());
+    auto migrated = data;
+    migrated["closedRotation"] = {0, 0, 0, 1};
+    migrated["posed"] = false;
+    return migrated;
+}
+Json writeOrbit(const OrbitState& value) {
+    return {{"yawRadians", value.yaw}, {"pitchRadians", value.pitch}, {"distance", value.distance}};
+}
+Result<OrbitState> readOrbit(const Json& data) {
+    auto fields = requireFields(data, {"yawRadians", "pitchRadians", "distance"});
+    if (!fields)
+        return tl::unexpected(fields.error());
+    auto yaw = readNumber(data, "yawRadians"), pitch = readNumber(data, "pitchRadians"),
+         distance = readNumber(data, "distance");
+    if (!yaw)
+        return tl::unexpected(yaw.error());
+    if (!pitch)
+        return tl::unexpected(pitch.error());
+    if (!distance)
+        return tl::unexpected(distance.error());
+    if (*pitch < glm::radians(5.F) || *pitch > glm::radians(75.F) || *distance < 4 ||
+        *distance > 30 || *yaw < -std::numbers::pi_v<float> || *yaw > std::numbers::pi_v<float>)
+        return invalid("camera yaw [-pi,pi], pitch [5,75] degrees, distance [4,30] required");
+    return OrbitState{*yaw, *pitch, *distance};
+}
 Result<Json> writeCamera(const World& world, entt::entity entity) {
     const auto& value = world.registry().get<FollowCamera>(entity);
     auto target = world.id(value.target);
@@ -124,35 +164,30 @@ Result<Json> writeCamera(const World& world, entt::entity entity) {
         return tl::unexpected(target.error());
     return Json{{"target", std::string(*target)},
                 {"offset", vector(value.offset)},
-                {"yawDegrees", glm::degrees(value.orbit.yaw)},
-                {"pitchDegrees", glm::degrees(value.orbit.pitch)},
-                {"distance", value.orbit.distance}};
+                {"orbit", writeOrbit(value.orbit)},
+                {"resetOrbit", writeOrbit(value.resetOrbit)},
+                {"posed", value.posed}};
 }
 Result<void> readCamera(World& world, entt::entity entity, const Json& data,
                         DeserializeContext& context) {
-    auto fields =
-        requireFields(data, {"target", "offset", "yawDegrees", "pitchDegrees", "distance"});
+    auto fields = requireFields(data, {"target", "offset", "orbit", "resetOrbit", "posed"});
     if (!fields)
         return fields;
     auto target = readString(data, "target");
     auto offset = readVector3(data, "offset");
-    auto yaw = readNumber(data, "yawDegrees"), pitch = readNumber(data, "pitchDegrees"),
-         distance = readNumber(data, "distance");
+    auto orbit = readOrbit(data["orbit"]), reset = readOrbit(data["resetOrbit"]);
     if (!target)
         return tl::unexpected(target.error());
     if (!offset)
         return tl::unexpected(offset.error());
-    if (!yaw)
-        return tl::unexpected(yaw.error());
-    if (!pitch)
-        return tl::unexpected(pitch.error());
-    if (!distance)
-        return tl::unexpected(distance.error());
-    if (*pitch < 5 || *pitch > 75 || *distance < 4 || *distance > 30 || *yaw < -180 || *yaw > 180)
-        return invalid("camera yaw [-180,180], pitch [5,75], distance [4,30] required");
-    world.registry().emplace<FollowCamera>(
-        entity, entt::null, *offset,
-        OrbitState{glm::radians(*yaw), glm::radians(*pitch), *distance});
+    if (!orbit)
+        return tl::unexpected(orbit.error());
+    if (!reset)
+        return tl::unexpected(reset.error());
+    if (!data["posed"].is_boolean())
+        return invalid("posed must be boolean");
+    world.registry().emplace<FollowCamera>(entity, entt::null, *offset, *orbit, *reset,
+                                           data["posed"].get<bool>());
     context.deferEntity(
         entity, "game.FollowCamera/target", std::move(*target),
         [](World& destination, entt::entity owner, entt::entity resolved) -> Result<void> {
@@ -161,15 +196,40 @@ Result<void> readCamera(World& world, entt::entity entity, const Json& data,
         });
     return {};
 }
+Result<Json> migrateCamera(std::uint32_t version, const Json& data) {
+    if (version != 1)
+        return invalid("Unsupported FollowCamera version");
+    auto fields =
+        requireFields(data, {"target", "offset", "yawDegrees", "pitchDegrees", "distance"});
+    if (!fields)
+        return tl::unexpected(fields.error());
+    auto yaw = readNumber(data, "yawDegrees"), pitch = readNumber(data, "pitchDegrees"),
+         distance = readNumber(data, "distance");
+    if (!yaw)
+        return tl::unexpected(yaw.error());
+    if (!pitch)
+        return tl::unexpected(pitch.error());
+    if (!distance)
+        return tl::unexpected(distance.error());
+    auto migrated = data;
+    migrated.erase("yawDegrees");
+    migrated.erase("pitchDegrees");
+    migrated.erase("distance");
+    migrated["orbit"] = writeOrbit({glm::radians(*yaw), glm::radians(*pitch), *distance});
+    migrated["resetOrbit"] = migrated["orbit"];
+    migrated["posed"] = false;
+    return migrated;
+}
 } // namespace
 Result<void> registerCodecs(scene::CodecRegistry& table) {
-    for (auto codec : {scene::ComponentCodec{"game.AabbCollider", 1, contains<AabbCollider>,
-                                             writeCollider, readCollider},
-                       scene::ComponentCodec{"game.Character", 1, contains<Character>,
-                                             writeCharacter, readCharacter},
-                       scene::ComponentCodec{"game.Door", 1, contains<Door>, writeDoor, readDoor},
-                       scene::ComponentCodec{"game.FollowCamera", 1, contains<FollowCamera>,
-                                             writeCamera, readCamera}}) {
+    for (auto codec :
+         {scene::ComponentCodec{"game.AabbCollider", 1, contains<AabbCollider>, writeCollider,
+                                readCollider},
+          scene::ComponentCodec{"game.Character", 1, contains<Character>, writeCharacter,
+                                readCharacter},
+          scene::ComponentCodec{"game.Door", 2, contains<Door>, writeDoor, readDoor, migrateDoor},
+          scene::ComponentCodec{"game.FollowCamera", 2, contains<FollowCamera>, writeCamera,
+                                readCamera, migrateCamera}}) {
         auto result = table.add(std::move(codec));
         if (!result)
             return result;

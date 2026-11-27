@@ -16,7 +16,8 @@
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "BUILD_TESTING": "ON",
         "SOMNIUM_ENABLE_DEBUG_UI": "ON",
-        "SOMNIUM_DATA_MODE": "DEVELOPMENT"
+        "SOMNIUM_DATA_MODE": "DEVELOPMENT",
+        "SOMNIUM_ENABLE_ITERATION": "OFF"
       }
     },
     {
@@ -60,6 +61,20 @@
       "cacheVariables": {
         "SOMNIUM_ENABLE_SANITIZERS": "ON"
       }
+    },
+    {
+      "name": "iteration",
+      "inherits": "debug",
+      "cacheVariables": {
+        "SOMNIUM_ENABLE_ITERATION": "ON"
+      }
+    },
+    {
+      "name": "iteration-profiling",
+      "inherits": "profiling",
+      "cacheVariables": {
+        "SOMNIUM_ENABLE_ITERATION": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -82,6 +97,14 @@
     {
       "name": "asan-ubsan",
       "configurePreset": "asan-ubsan"
+    },
+    {
+      "name": "iteration",
+      "configurePreset": "iteration"
+    },
+    {
+      "name": "iteration-profiling",
+      "configurePreset": "iteration-profiling"
     }
   ],
   "testPresets": [
@@ -128,6 +151,26 @@
     {
       "name": "asan-ubsan",
       "configurePreset": "asan-ubsan",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "iteration",
+      "configurePreset": "iteration",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "iteration-profiling",
+      "configurePreset": "iteration-profiling",
       "output": {
         "outputOnFailure": true
       },

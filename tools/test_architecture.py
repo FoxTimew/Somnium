@@ -50,5 +50,15 @@ class Boundaries(unittest.TestCase):
             self.check_source("input/src/mapping.cpp", source, False)
         self.check_source("input/include/input.hpp", '#include <somnium/core/input_event.hpp>', True)
 
+    def test_public_headers_cannot_duplicate_mutable_engine_state(self):
+        for source in ["inline int state = 1;", "struct X { static int state; };",
+                       "inline int& state = other;", "inline const int* state = nullptr;",
+                       "inline int value() { static int counter = 0; return ++counter; }"]:
+            self.check_source("core/include/state.hpp", source, False)
+        for source in ["inline constexpr int kValue = 1;", "static const int kValue = 1;",
+                       "struct X { static int value(); };", "inline int value() { return 1; }",
+                       "// inline int state;\n/* static int state; */"]:
+            self.check_source("core/include/state.hpp", source, True)
+
 if __name__ == "__main__":
     unittest.main()

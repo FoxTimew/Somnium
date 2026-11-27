@@ -22,7 +22,7 @@ import uuid
 ROOT = Path(__file__).resolve().parents[2]
 PINS = json.loads((ROOT / "tools/ci/toolchain.json").read_text(encoding="utf-8"))
 SYSTEM = platform.system()
-PRESETS = ["debug", "release", "shipping", "profiling", "asan-ubsan"]
+PRESETS = ["debug", "release", "shipping", "profiling", "asan-ubsan", "iteration", "iteration-profiling"]
 
 
 def key(*files, context=""):
@@ -248,7 +248,7 @@ class Runner:
         if SYSTEM == "Windows":
             command += ["-DCMAKE_POLICY_DEFAULT_CMP0141=NEW", "-DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded"]
         if preset == "asan-ubsan":
-            command += ["-DSDL_X11_SHARED=OFF"]
+            command += ["-DSDL_X11_SHARED=OFF", "-DSOMNIUM_ENABLE_ITERATION=ON"]
         self.call("configure-" + preset, command)
         if preset == "shipping":
             self.py("shipping-graph", "tools/check_shipping.py", self.build_dir(preset))
@@ -273,7 +273,7 @@ class Runner:
         self.call("test-" + preset, command, window=True)
 
     def tidy(self):
-        self.py("tidy", "tools/run_clang_tidy.py", "--build", self.build_dir("debug"), "--tool", self.tidy_tool, "--jobs", self.args.jobs)
+        self.py("tidy", "tools/run_clang_tidy.py", "--build", self.build_dir("iteration"), "--tool", self.tidy_tool, "--jobs", self.args.jobs)
 
     def sanitizers(self):
         if SYSTEM != "Linux":
@@ -300,11 +300,11 @@ class Runner:
                 env["LD_LIBRARY_PATH"] = str(sdk / "x86_64/lib") + os.pathsep + env.get("LD_LIBRARY_PATH", "")
         return env
 
-    def gpu(self, backend):
+    def gpu(self, backend, preset="debug"):
         env = self.gpu_environment(backend)
         for test, executable in [("d5", "somnium_gpu_offscreen"), ("cube", "somnium_renderer_offscreen"), ("scene", "somnium_scene_offscreen")]:
             output = self.run / (test + "-" + backend)
-            arguments = ["--test", test, "--executable", self.build_dir("debug") / "bin" / (executable + self.suffix),
+            arguments = ["--test", test, "--executable", self.build_dir(preset) / "bin" / (executable + self.suffix),
                          "--backend", backend, "--output", output]
             if SYSTEM == "Darwin":
                 arguments += ["--allow-unavailable"]
@@ -325,7 +325,7 @@ class Runner:
                         print("SOMNIUM_SCENE_IMAGE " + json.dumps({"name": path.name,
                               "sha256": hashlib.sha256(data).hexdigest(),
                               "base64": base64.b64encode(data).decode("ascii")}), flush=True)
-        self.call("composition-" + backend, [self.build_dir("debug") / "bin" / ("somnium_gpu_capabilities" + self.suffix), backend,
+        self.call("composition-" + backend, [self.build_dir(preset) / "bin" / ("somnium_gpu_capabilities" + self.suffix), backend,
                   self.run / ("composition-" + backend + ".json")], env=env, window=True)
         log = (self.logs / ("composition-" + backend + ".log")).read_text(encoding="utf-8")
         sys.path.insert(0, str(ROOT / "tools/gpu"))
@@ -334,14 +334,14 @@ class Runner:
         if native_validation_error(log) or "COMPOSITION_PROBE_COMPLETE" not in log:
             raise RuntimeError("Composition probe missing or native validation diagnostic")
 
-    def captures(self, backend):
+    def captures(self, backend, preset="debug"):
         output = self.run / ("presentation-" + backend)
         if SYSTEM == "Windows" and self.args.window_mode == "service":
             output.mkdir(exist_ok=True)
             (output / "result.json").write_text(json.dumps({"status": "non validé", "reason": "Session 0/service; manual proof required"}), encoding="utf-8")
             self.summary("Presentation: **non validé** (service mode)")
             return
-        arguments = ["--executable", self.build_dir("debug") / "bin" / ("sandbox" + self.suffix),
+        arguments = ["--executable", self.build_dir(preset) / "bin" / ("sandbox" + self.suffix),
                      "--output", output, "--backend", backend]
         try:
             self.py("capture-" + backend, "tools/presentation/capture.py", *arguments, env=self.gpu_environment(backend), window=True)
@@ -377,6 +377,9 @@ class Runner:
             # Engine readback is independent of desktop overlap/focus and injects no OS input.
             # A usable window/swapchain is still required, as for the existing window tests.
             self.captures(backend)
+        self.configure("iteration")
+        self.build("iteration")
+        self.test("iteration")
         if SYSTEM == "Linux":
             self.tidy()
         for preset in ["release", "shipping", "profiling"]:
@@ -387,10 +390,20 @@ class Runner:
             self.sanitizers()
         self.call("sccache-statistics", ["sccache", "--show-stats"])
 
+    def iteration_profiling(self):
+        self.doctor()
+        self.cache_server()
+        self.compiler_cache()
+        self.shader_toolchain()
+        self.configure("iteration-profiling")
+        self.build("iteration-profiling")
+        self.test("iteration-profiling")
+        self.summary("Iteration + Tracy: CPU contracts and Play/Edit window tests; GPU validation remains in the required Debug jobs")
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("operation", choices=["doctor", "format", "compiler-cache", "shader-toolchain", "hot-reload-spike", "configure", "build", "test", "tidy", "sanitizers", "gpu", "captures", "pipeline", "cleanup"])
+    parser.add_argument("operation", choices=["doctor", "format", "compiler-cache", "shader-toolchain", "hot-reload-spike", "configure", "build", "test", "tidy", "sanitizers", "gpu", "captures", "pipeline", "iteration-profiling", "cleanup"])
     parser.add_argument("--root", type=Path, default=Path(os.environ.get("SOMNIUM_CI_ROOT", "C:/SomniumCI" if SYSTEM == "Windows" else str(Path.home() / "somnium-ci"))))
     parser.add_argument("--run-id", default=os.getenv("GITHUB_RUN_ID", "local-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S") + "-" + uuid.uuid4().hex[:6]) + "-" + os.getenv("GITHUB_RUN_ATTEMPT", "1"))
     parser.add_argument("--preset", choices=PRESETS, default="debug")
@@ -401,6 +414,7 @@ def main():
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,79}", args.run_id) or args.jobs < 1:
         parser.error("Unsafe run id or invalid job count")
     runner = Runner(args)
+    started = time.monotonic()
     status = "failure"
     with exclusive(runner.root / "operation.lock"), exclusive(runner.run / "active.lock"):
         try:
@@ -419,9 +433,11 @@ def main():
             data = {"owner": "somnium-ci", "operation": args.operation, "status": status,
                     "source": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
                     "source_dirty": bool(subprocess.check_output(["git", "status", "--porcelain"], cwd=ROOT, text=True).strip()),
-                    "os": SYSTEM, "records": runner.records, "finished": datetime.now(timezone.utc).isoformat()}
+                    "os": SYSTEM, "records": runner.records, "elapsed_seconds": round(time.monotonic() - started, 3),
+                    "finished": datetime.now(timezone.utc).isoformat()}
             (runner.run / "run.json").write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
             runner.summary(f"**{status}**: {args.operation}. Evidence retained locally: `{runner.run}`")
+            runner.summary(f"Total: {data['elapsed_seconds']:.3f} seconds; warm per-push objective: < 3600 seconds per runner")
 
 
 if __name__ == "__main__":

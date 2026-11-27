@@ -1,5 +1,6 @@
 // Exercises real identities, hierarchy and scene transactions entirely on the CPU.
 // Imported model fixtures also verify shared-asset lifetime across staged Worlds.
+#include <cmath>
 #include <doctest/doctest.h>
 #include <fstream>
 #include <iterator>
@@ -217,7 +218,7 @@ TEST_CASE("Invalid scene data fails explicitly including unknown codecs and came
         if (kind == "unknown")
             components["game.Unregistered"] = {{"version", 1}, {"data", Json::object()}};
         if (kind == "version")
-            invalid["version"] = 2;
+            invalid["version"] = 3;
         if (kind == "duplicate")
             invalid["entities"][1]["id"] = "child";
         if (kind == "missing-parent" || kind == "cycle" || kind == "scale" ||
@@ -250,6 +251,8 @@ TEST_CASE("Invalid scene data fails explicitly including unknown codecs and came
         CHECK_FALSE(loaded.error().message.empty());
     }
     CHECK_FALSE(deserialize("{", table));
+    source["version"] = 2;
+    CHECK_FALSE(deserialize(source.dump(), table)); // v2 cannot silently contain Euler TRS.
 }
 TEST_CASE("Scene model requests share ownership and failed loads roll back only their requests") {
     FixtureReader reader;
@@ -284,4 +287,81 @@ TEST_CASE("Scene model requests share ownership and failed loads roll back only 
     CHECK(output->find("cube.glb") != std::string::npos);
     active->reset();
     CHECK_FALSE(manager.state(handle));
+}
+TEST_CASE("Snapshot preserves bits, sign, temporal state and canonical sibling order") {
+    auto table = codecs();
+    World world;
+    const auto root = entity(world, "root");
+    for (const auto* name : {"z", "a", "m"})
+        REQUIRE(world.reparent(entity(world, name), root));
+    Trs local;
+    local.rotation = -glm::angleAxis(.71234567F, glm::normalize(glm::vec3(1, 2, 3)));
+    local.position = {1.2345678F, -0.F, 876.5432F};
+    REQUIRE(world.teleport(root, local));
+    world.beginStep();
+    local.position.x += .1267F;
+    REQUIRE(world.setLocal(root, local));
+    REQUIRE(world.propagate());
+    auto saved = snapshot(world, table);
+    REQUIRE(saved);
+    CHECK(saved->canonical.find("rotationDegrees") == std::string::npos);
+    for (int cycle = 0; cycle < 100; ++cycle) {
+        auto copy = restore(*saved, table);
+        REQUIRE(copy);
+        auto again = snapshot(**copy, table);
+        REQUIRE(again);
+        CHECK(again->canonical == saved->canonical);
+        CHECK(again->temporal == saved->temporal);
+        const auto copiedRoot = *(*copy)->find("root");
+        CHECK((*copy)->registry().get<Transform>(copiedRoot).current.rotation == local.rotation);
+        std::vector<std::string> siblings;
+        for (auto child = (*copy)->registry().get<Hierarchy>(copiedRoot).firstChild;
+             child != entt::null; child = (*copy)->registry().get<Hierarchy>(child).nextSibling)
+            siblings.emplace_back(*(*copy)->id(child));
+        CHECK(siblings == std::vector<std::string>{"a", "m", "z"});
+    }
+    auto invalid = *saved;
+    invalid.temporal = "{}broken";
+    CHECK_FALSE(restore(invalid, table));
+    CHECK(*serialize(world, table) == saved->canonical);
+}
+TEST_CASE("Quaternion threshold rejects rather than normalizing and keeps signed zero") {
+    const Json accepted{{"q", {-0.F, 0.F, 0.F, -1.000004F}}};
+    auto q = readQuaternion(accepted, "q");
+    REQUIRE(q);
+    CHECK(q->w == -1.000004F);
+    CHECK(std::signbit(q->x));
+    CHECK_FALSE(readQuaternion(Json{{"q", {0, 0, 0, 1.000006F}}}, "q"));
+    CHECK_FALSE(readQuaternion(Json{{"q", {0, 0, 0, .999994F}}}, "q"));
+}
+TEST_CASE("Snapshots reacquire models and balance requests on success and failure") {
+    FixtureReader reader;
+    assets::ModelLoader loader;
+    assets::AssetManager<assets::Model> manager(reader, loader);
+    AssetContext context{manager};
+    auto table = codecs();
+    auto source = document();
+    source["entities"] = Json::array({record("mesh", mesh("cube.glb"))});
+    auto active = deserialize(source.dump(), table, &context);
+    REQUIRE(active);
+    const auto handle = (*active)->registry().get<MeshRenderer>(*(*active)->find("mesh")).model;
+    auto saved = snapshot(**active, table);
+    REQUIRE(saved);
+    for (int cycle = 0; cycle < 100; ++cycle) {
+        auto copy = restore(*saved, table, &context);
+        REQUIRE(copy);
+        CHECK_FALSE(manager.unload(handle));
+        auto corrupt = *saved;
+        corrupt.temporal = "invalid";
+        CHECK_FALSE(restore(corrupt, table, &context));
+        CHECK(manager.get(handle));
+    }
+    active->reset();
+    CHECK_FALSE(manager.state(handle));
+    auto restored = restore(*saved, table, &context);
+    REQUIRE(restored);
+    const auto fresh = (*restored)->registry().get<MeshRenderer>(*(*restored)->find("mesh")).model;
+    CHECK(fresh != handle);
+    restored->reset();
+    CHECK_FALSE(manager.state(fresh));
 }

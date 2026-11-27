@@ -19,11 +19,14 @@ struct Door {
     entt::entity pivot = entt::null;
     float reach = 2.2F, duration = 1.F, progress = 0;
     DoorState state = DoorState::Closed;
-    glm::quat closedRotation{1, 0, 0, 0}; // Derived from the pivot and progress at start.
+    glm::quat closedRotation{1, 0, 0, 0};
+    bool posed = false;
 };
 struct FollowCamera {
     entt::entity target = entt::null;
     glm::vec3 offset{0, 1.1F, 0};
     OrbitState orbit{.25F, .45F, 10.F};
+    OrbitState resetOrbit{.25F, .45F, 10.F};
+    bool posed = false;
 };
 } // namespace somnium::game

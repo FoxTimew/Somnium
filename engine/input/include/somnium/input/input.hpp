@@ -28,7 +28,8 @@ struct Capture {
 class Input final {
   public:
     explicit Input(Configuration configuration,
-                   std::pmr::memory_resource* memory = std::pmr::get_default_resource());
+                   std::pmr::memory_resource* memory = std::pmr::get_default_resource(),
+                   std::uint64_t firstStep = 0);
     [[nodiscard]] const Configuration& configuration() const {
         return m_configuration;
     }

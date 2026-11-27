@@ -20,6 +20,29 @@ input::Configuration configuration() {
     return *c;
 }
 } // namespace
+TEST_CASE("A newly activated tool starts at the current tick without replaying prior events") {
+    auto config = configuration();
+    const auto fire = *config.action("fire");
+    input::Input input(config, std::pmr::get_default_resource(), 40);
+    CHECK_FALSE(input.advance(0));
+    const std::array old{
+        InputEvent{.kind = InputEventKind::Key, .step = 39, .key = core::Key::F24, .down = true}};
+    CHECK_FALSE(input.enqueue(old));
+    auto idle = input.advance(40);
+    REQUIRE(idle);
+    CHECK(idle->transitions.empty());
+    CHECK_FALSE(idle->action(fire).held);
+    const std::array fresh{
+        InputEvent{.kind = InputEventKind::Key, .step = 41, .key = core::Key::F24, .down = true}};
+    REQUIRE(input.enqueue(fresh));
+    auto pressed = input.advance(41);
+    REQUIRE(pressed);
+    CHECK(pressed->action(fire).pressed);
+    auto held = input.advance(42);
+    REQUIRE(held);
+    CHECK(held->action(fire).held);
+    CHECK_FALSE(held->action(fire).pressed);
+}
 TEST_CASE("Consecutive ticks preserve future events and an ordered double tap") {
     auto config = configuration();
     const auto fire = *config.action("fire");

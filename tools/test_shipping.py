@@ -10,6 +10,7 @@ class ShippingTests(unittest.TestCase):
     def test_static_game_and_existing_build_tools_are_allowed(self):
         validate("somnium_game: phony\nsandbox_lambert_vert_shaders: phony",
                  [{"file": "game/src/sandbox_game.cpp", "command": "c++ -c game.cpp"}], self.cache)
+        validate("somnium_scene: phony", [{"file": "engine/scene/src/serialization.cpp"}], self.cache)
 
     def test_each_optional_target_is_rejected(self):
         for target in ["somnium_imgui", "somnium_platform_imgui", "somnium_gpu_imgui",
@@ -22,6 +23,7 @@ class ShippingTests(unittest.TestCase):
     def test_sources_are_rejected_on_both_path_styles(self):
         for source in ["engine/platform/src/file_watch.cpp", "engine/platform/src/module_loader.cpp",
                        "engine/renderer/src/shader_reload.cpp", "engine/runtime/src/edit_session.cpp",
+                       "engine/runtime/src/iteration_session.cpp", "engine/platform/src/source_files.cpp",
                        "engine/debug_ui/src/editor_camera.cpp", "tools/hot_reload_spike/module.cpp"]:
             for path in ["/repo/" + source, "C:\\repo\\" + source.replace("/", "\\")]:
                 with self.subTest(path=path), self.assertRaisesRegex(ValueError, "source"):

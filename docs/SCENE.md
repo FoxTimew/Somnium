@@ -34,7 +34,7 @@ nulles ; un changement de signe exige une téléportation. Camera, DirectionalLi
 et tous leurs ancêtres ont une échelle exactement (1,1,1) ; chargement, reparentage
 et changement de TRS vérifient cette contrainte. La caméra suiveuse est une racine.
 
-## Fichier JSON v1
+## Fichier JSON v2 et migration v1
 
 Le document contient `version`, `nextId`, `settings`, `activeCamera`, `entities`.
 `settings` porte `ambient` (scalaire linéaire) et `clearColor` (RGBA linéaire).
@@ -46,15 +46,19 @@ enregistrement `version/data`, identifié par un nom stable qualifié :
 
 Les parents et les références du jeu sont des PersistentId ; les modèles sont
 des chemins logiques. Ni identifiants EnTT, ni handles, ni matrices monde, ni
-historique temporel ne sont enregistrés. Les Euler de Transform sont des degrés,
-extrinsèques X puis Y puis Z (`Rz × Ry × Rx`) ; la mémoire utilise des quaternions
-normalisés. Un aller-retour conserve la rotation, pas nécessairement le triplet
-Euler lorsqu'il existe plusieurs représentations équivalentes.
+historique temporel ne sont enregistrés. Transform v2 écrit `rotation: [x,y,z,w]`
+sans renormalisation ni changement de signe ; la longueur au carré, calculée en
+double, doit différer de 1 d’au plus `core::kQuaternionUnitTolerance = 1e-5`.
+Transform v1 migre explicitement ses Euler degrés `Rz × Ry × Rx`. Camera v2
+écrit `verticalFovRadians` pour éviter la perte d’un aller-retour degrés/radians.
+L’interface d’édition garde une vue Euler en degrés. Entités, clés et frères sont
+ordonnés par identité ; UTF-8, indentation de deux espaces et LF final.
 
 ## Codecs et transaction
 
 La table de codecs associe un nom et une version à la présence du composant et
-à ses fonctions serialize/deserialize. Le jeu enregistre ses codecs avant le
+à ses fonctions serialize/deserialize et à une migration de version explicite.
+Le jeu enregistre ses codecs avant le
 chargement. Les fonctions renvoient Result ; le parseur n'utilise pas d'exceptions.
 Composant/version inconnus, identités dupliquées, données invalides et références
 absentes échouent avec le chemin du champ et l'ID de l'entité concernés.
@@ -94,14 +98,23 @@ Le sandbox charge `scenes/courtyard.json` avec les codecs `game.AabbCollider`,
 expose délibérément `nlohmann::json` ; game utilise `requireFields`, `readString`,
 `readNumber`, `readVector3` et le résolveur commun. Un futur format binaire peut
 partir de la même valeur. Le round-trip d’une porte en mouvement conserve sa
-progression et sa référence au pivot ; la rotation fermée de base est redérivée
-au démarrage, jamais enregistrée comme état natif.
+progression, référence au pivot et rotation fermée. Door v2 et FollowCamera v2
+conservent l’état d’initialisation ; FollowCamera écrit les radians, l’orbite de
+réinitialisation et l’orbite courante. Les versions 1 migrent explicitement.
+
+`snapshot` capture la chaîne canonique et les données temporelles des codecs.
+`restore` reconstruit transactionnellement World, redemande les modèles et restaure
+l’historique sans l’écraser avec `beginStep`. Les callbacks temporels sont appariés ;
+Transform les utilise pour son TRS précédent. Ces capacités sont testées dans
+tous les presets, shipping compris. Les modes runtime et la caméra debug_ui sont
+compilés seulement avec `SOMNIUM_ENABLE_ITERATION`. Le jeu conserve ses références
+durables par PersistentId et reçoit `{mapping, tick}` au démarrage.
 
 L’inspecteur parcourt World en lecture seule, sélectionne par ID persistant et
-regroupe les demandes de TRS par ID. Runtime les applique au prochain pas par
-`teleport` ; la propagation suit le gameplay. Une entité supprimée ou une échelle
+regroupe les demandes de TRS par ID dans iteration. Runtime les applique en
+Édition au prochain pas par `teleport`. Une entité supprimée ou une échelle
 invalide donne un diagnostic visible sans arrêter le jeu ni rejouer la demande.
-Euler JSON et UI utilisent les mêmes fonctions de conversion dans scene.
+La migration Euler v1 et l’UI utilisent les mêmes conversions dans scene.
 
 La [preuve analytique](SCENE_VALIDATION.md) reste le JSON pivot/enfant, trois poses,
 référence et provenance inchangées. Les tests CPU de game chargent la fixture de

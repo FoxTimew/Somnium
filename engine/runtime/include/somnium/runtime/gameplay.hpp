@@ -6,6 +6,10 @@
 #include <somnium/scene/world.hpp>
 
 namespace somnium::runtime {
+struct StartContext {
+    const input::Configuration& mapping;
+    std::uint64_t tick = 0;
+};
 struct FixedUpdate {
     double seconds;
     std::uint64_t tick;
@@ -14,8 +18,8 @@ struct FixedUpdate {
 class Gameplay {
   public:
     virtual ~Gameplay() = default;
-    [[nodiscard]] virtual Result<void> start(scene::World& world,
-                                             const input::Configuration& mapping) = 0;
+    // A failed start may be followed by stop for partial initialization cleanup.
+    [[nodiscard]] virtual Result<void> start(scene::World& world, const StartContext& context) = 0;
     [[nodiscard]] virtual Result<void> fixedUpdate(scene::World& world,
                                                    const FixedUpdate& update) = 0;
     virtual void stop(scene::World& world) = 0;

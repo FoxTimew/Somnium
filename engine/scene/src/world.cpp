@@ -7,6 +7,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <limits>
 #include <somnium/core/assert.hpp>
+#include <somnium/core/conventions.hpp>
 #include <somnium/core/profile.hpp>
 #include <somnium/scene/world.hpp>
 
@@ -28,10 +29,12 @@ glm::mat4 localMatrix(const Trs& local) {
            glm::scale(glm::mat4(1), local.scale);
 }
 Result<void> validateTrs(const Trs& local) {
+    const glm::dquat rotation(local.rotation);
     if (!finite(local.position) || !finite(local.scale) || local.scale.x == 0 ||
         local.scale.y == 0 || local.scale.z == 0 || !std::isfinite(local.rotation.w) ||
         !std::isfinite(local.rotation.x) || !std::isfinite(local.rotation.y) ||
-        !std::isfinite(local.rotation.z) || std::abs(glm::length(local.rotation) - 1.F) > .0001F)
+        !std::isfinite(local.rotation.z) ||
+        std::abs(glm::dot(rotation, rotation) - 1.0) > core::kQuaternionUnitTolerance)
         return tl::unexpected(
             invalid("TRS must be finite, nonsingular and have a unit quaternion"));
     return {};
@@ -206,12 +209,20 @@ Result<void> World::reparent(entt::entity entity, entt::entity parent) {
     node.parent = parent;
     if (parent != entt::null) {
         auto& target = m_registry.get<Hierarchy>(parent);
-        node.previousSibling = target.lastChild;
-        if (target.lastChild != entt::null)
-            m_registry.get<Hierarchy>(target.lastChild).nextSibling = entity;
+        auto next = target.firstChild;
+        while (next != entt::null && *id(next) < *id(entity))
+            next = m_registry.get<Hierarchy>(next).nextSibling;
+        node.nextSibling = next;
+        node.previousSibling =
+            next == entt::null ? target.lastChild : m_registry.get<Hierarchy>(next).previousSibling;
+        if (node.previousSibling != entt::null)
+            m_registry.get<Hierarchy>(node.previousSibling).nextSibling = entity;
         else
             target.firstChild = entity;
-        target.lastChild = entity;
+        if (next != entt::null)
+            m_registry.get<Hierarchy>(next).previousSibling = entity;
+        else
+            target.lastChild = entity;
     }
     m_orderDirty = true;
     synchronize(entity);

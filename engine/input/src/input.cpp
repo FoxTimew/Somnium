@@ -29,10 +29,12 @@ float State::axis(AxisId id) const {
     SOMNIUM_ASSERT(id.value < axes.size());
     return axes[id.value];
 }
-Input::Input(Configuration configuration, std::pmr::memory_resource* memory)
+Input::Input(Configuration configuration, std::pmr::memory_resource* memory,
+             std::uint64_t firstStep)
     : m_configuration(std::move(configuration)),
       m_actions(m_configuration.actions().size(), memory),
-      m_axes(m_configuration.axes().size(), memory), m_transitions(memory), m_pending(memory) {
+      m_axes(m_configuration.axes().size(), memory), m_transitions(memory), m_pending(memory),
+      m_nextStep(firstStep) {
     m_pending.reserve(128);
     m_transitions.reserve(128);
 }

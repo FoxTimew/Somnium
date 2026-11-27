@@ -91,10 +91,22 @@ Le sandbox charge `assets/scenes/courtyard.json`, ses modèles originaux CC0
 Vitesse 3 m/s, diagonale normalisée, déplacement horizontal relatif au yaw de la
 caméra (orbite/reset pris en compte dans le même pas). Caméra à 4–30 m, pitch 5–75°. Une porte
 s’ouvre à 90° en 60 pas et reste bloquante jusqu’à ouverture complète. L’inspecteur
-à droite permet la sélection et l’édition des TRS locaux au prochain pas fixe ;
-les inputs affichés sont en lecture seule. Les champs pilotés par le jeu peuvent
-être réécrits par celui-ci. Pas de sauvegarde de scène depuis l’UI à cette phase.
+à droite montre la hiérarchie et les inputs. L’édition est réservée au preset
+`iteration`, avec moteur et jeu statiques. Pas encore de sauvegarde dans le lot 1.
 Les entrées captées par l’inspecteur ne commandent pas le personnage.
+
+```sh
+cmake --preset iteration
+cmake --build --preset iteration --parallel
+ctest --preset iteration
+build/iteration/bin/sandbox --mode edit
+```
+
+Sans `--mode edit`, le sandbox démarre en Jeu. **Stop** restaure l’instantané
+d’édition ; **Play** redémarre au tick courant. La caméra d’outil ne fait pas partie
+de la scène : bouton droit + souris, W/A/S/D, Q/E vertical et molette.
+`iteration-profiling` ajoute Tracy ; sa CI est manuelle et requise aux jalons.
+Les instantanés et la sérialisation canonique v2 restent disponibles en shipping.
 
 Rejouer les mêmes événements sans injection dans le système :
 

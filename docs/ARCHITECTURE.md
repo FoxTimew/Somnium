@@ -560,3 +560,17 @@ WorldSnapshot et la sérialisation canonique appartiennent à scene dans tous le
 presets, shipping compris. Les outils seuls dépendent d'iteration ; les lots 1
 à 3 restent statiques et le moteur partagé arrive au lot 4. L'intégration suit
 le plan de tests, avec arrêt après édition/enregistrement au lot 2.
+
+Le lot 1 implémente cette séparation : `scene::snapshot/restore`, migrations
+v1→v2 des codecs et frères canoniques, puis `runtime::IterationSession` privé.
+Une commande Play/Stop est consommée avant le pas fixe. En Édition, le tick des
+services avance, mais seul l’input de l’outil est consommé ; aucun appel gameplay.
+En Jeu, seul le gameplay consomme les actions et l’état d’input de l’outil n’existe
+pas : aucun second mapping dans le chemin chaud. Il est créé au tick de Stop,
+sans reprendre les transitions antérieures ; les touches déjà tenues doivent
+être relâchées puis pressées pour commander l’outil. L’état du jeu continue de
+consommer ses événements, sans transmettre les transitions inactives au jeu. Debug_ui
+possède la caméra d’outil ; l’extraction adapte sa pose sans l’ajouter à World.
+Les candidats de Play/Stop acquièrent les assets avant de remplacer le World
+actif, et un start refusé laisse l’édition intacte. StartContext fournit le tick
+courant ; les références durables du jeu sont des PersistentId.

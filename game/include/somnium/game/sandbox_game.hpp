@@ -7,7 +7,7 @@ namespace somnium::game {
 class SandboxGame final : public runtime::Gameplay {
   public:
     [[nodiscard]] Result<void> start(scene::World& world,
-                                     const input::Configuration& mapping) override;
+                                     const runtime::StartContext& context) override;
     [[nodiscard]] Result<void> fixedUpdate(scene::World& world,
                                            const runtime::FixedUpdate& update) override;
     void stop(scene::World& world) override;
@@ -18,12 +18,11 @@ class SandboxGame final : public runtime::Gameplay {
     [[nodiscard]] Result<void> moveCharacter(scene::World& world,
                                              const runtime::FixedUpdate& update);
     [[nodiscard]] Result<void> follow(scene::World& world, const runtime::FixedUpdate& update);
-    std::pmr::vector<entt::entity> m_colliders, m_doors;
+    std::pmr::vector<std::string> m_colliders, m_doors;
     // Scratch is reserved once from the loaded scene; no per-tick container allocation.
     std::pmr::vector<CollisionBounds> m_blocks;
-    entt::entity m_character = entt::null, m_camera = entt::null;
+    std::string m_character, m_camera;
     OrbitControls m_orbit;
-    OrbitState m_initialOrbit;
     input::ActionId m_interact;
     input::AxisId m_moveX, m_moveZ;
     std::uint64_t m_tick = 0;

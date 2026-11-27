@@ -27,6 +27,13 @@ int main(int argc, char** argv) {
         const std::string_view key(argv[index]), value(argv[index + 1]);
         if (key == "--backend")
             config.backend = value;
+#if defined(SOMNIUM_ENABLE_ITERATION)
+        else if (key == "--mode") {
+            if (value != "edit" && value != "play")
+                return 2;
+            options.startEditing = value == "edit";
+        }
+#endif
         else if (key == "--replay")
             config.replayPath = value;
         else if (key == "--capture-output") {

@@ -1,6 +1,9 @@
 // Drives bounded simulation and VSYNC presentation on the window thread.
 // An initialized game's stop hook runs on both successful and failed exits.
 #include "scene_rendering.hpp"
+#if defined(SOMNIUM_ENABLE_ITERATION)
+#include "iteration_session.hpp"
+#endif
 #include <somnium/runtime/engine.hpp>
 
 #include <somnium/core/assert.hpp>
@@ -130,7 +133,6 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
     if (!loaded)
         return tl::unexpected(loaded.error());
     m_impl->world = std::move(*loaded);
-    auto& world = *m_impl->world;
     auto mapping = input::Configuration::load(m_impl->resources, m_impl->inputPath);
     if (!mapping)
         return tl::unexpected(mapping.error());
@@ -138,21 +140,50 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
     if (options.captureSteps != 0 && !m_impl->platform->replaying())
         return tl::unexpected(
             Error{ErrorCode::InvalidArgument, "Capture requires an input replay"});
-    auto started = game.start(world, input.configuration());
+#if defined(SOMNIUM_ENABLE_ITERATION)
+    IterationSession session(m_impl->world, game, codecs, input.configuration(), &m_impl->assets);
+    if (!options.startEditing) {
+        auto started = session.play(0);
+        if (!started)
+            return tl::unexpected(started.error());
+    }
+    auto toolMapping = debug_ui::Overlay::iterationMapping();
+    if (!toolMapping)
+        return tl::unexpected(toolMapping.error());
+    std::unique_ptr<input::Input> toolInput;
+    if (options.startEditing)
+        toolInput = std::make_unique<input::Input>(*toolMapping);
+    auto initialized = m_impl->overlay->initializeToolCamera(*m_impl->world, *toolMapping);
+    if (!initialized)
+        return tl::unexpected(initialized.error());
+    std::string iterationError;
+#else
+    auto started = game.start(*m_impl->world, {input.configuration(), 0});
     if (!started)
         return tl::unexpected(started.error());
     struct StopGame {
         Gameplay& game;
-        scene::World& world;
+        std::unique_ptr<scene::World>& world;
         ~StopGame() {
-            game.stop(world);
+            game.stop(*world);
         }
-    } stopGame{game, world};
-    auto propagated = world.propagate();
+    } stopGame{game, m_impl->world};
+#endif
+    auto propagated = m_impl->world->propagate();
     if (!propagated)
         return tl::unexpected(propagated.error());
+    auto enqueue = [&](std::span<const core::InputEvent> events) -> Result<void> {
+        auto queued = input.enqueue(events);
+        if (!queued)
+            return queued;
+#if defined(SOMNIUM_ENABLE_ITERATION)
+        if (toolInput)
+            return toolInput->enqueue(events);
+#endif
+        return {};
+    };
     m_impl->scene = std::make_unique<SceneRendering>(*m_impl->renderer, m_impl->models);
-    auto resources = m_impl->scene->prepare(world);
+    auto resources = m_impl->scene->prepare(*m_impl->world);
     if (!resources)
         return tl::unexpected(resources.error());
     core::Clock clock;
@@ -177,14 +208,23 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
         }
         const auto frameSeconds = clock.sampleSeconds();
 #if defined(SOMNIUM_ENABLE_DEBUG_UI)
-        input.setCapture(m_impl->overlay->update(frameSeconds, world, input.configuration(),
-                                                 input.state(), m_impl->platform->replaying()));
+#if defined(SOMNIUM_ENABLE_ITERATION)
+        m_impl->overlay->iterationState(session.playing(), iterationError);
 #endif
-        auto queued = input.enqueue(deferredInput);
+        const auto captureInput =
+            m_impl->overlay->update(frameSeconds, *m_impl->world, input.configuration(),
+                                    input.state(), m_impl->platform->replaying());
+        input.setCapture(captureInput);
+#if defined(SOMNIUM_ENABLE_ITERATION)
+        if (toolInput)
+            toolInput->setCapture(captureInput);
+#endif
+#endif
+        auto queued = enqueue(deferredInput);
         if (!queued)
             return tl::unexpected(queued.error());
         deferredInput.clear();
-        queued = input.enqueue(events.input);
+        queued = enqueue(events.input);
         if (!queued)
             return tl::unexpected(queued.error());
         auto batch = accumulator.advance(frameSeconds);
@@ -198,21 +238,42 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
             auto replay = m_impl->platform->replayEvents(stats.fixedSteps);
             if (!replay)
                 return tl::unexpected(replay.error());
-            queued = input.enqueue(*replay);
+            queued = enqueue(*replay);
             if (!queued)
                 return tl::unexpected(queued.error());
             auto state = input.advance(stats.fixedSteps);
             if (!state)
                 return tl::unexpected(state.error());
-            world.beginStep();
-#if defined(SOMNIUM_ENABLE_DEBUG_UI)
-            m_impl->overlay->applyEdits(world);
+#if defined(SOMNIUM_ENABLE_ITERATION)
+            if (!session.playing())
+                m_impl->overlay->applyEdits(*m_impl->world);
+            if (auto request = m_impl->overlay->takePlayRequest()) {
+                auto changed = *request ? session.play(stats.fixedSteps) : session.stop();
+                iterationError = changed ? std::string{} : changed.error().message;
+                if (!changed)
+                    Log::write("iteration", Log::Level::Warning, iterationError);
+                else if (session.playing())
+                    toolInput.reset();
+                else
+                    toolInput = std::make_unique<input::Input>(
+                        *toolMapping, std::pmr::get_default_resource(), stats.fixedSteps);
+            }
+            if (session.playing()) {
 #endif
-            auto updated =
-                game.fixedUpdate(world, {core::kFixedStepSeconds, stats.fixedSteps, *state});
-            if (!updated)
-                return tl::unexpected(updated.error());
-            propagated = world.propagate();
+                m_impl->world->beginStep();
+                auto updated = game.fixedUpdate(
+                    *m_impl->world, {core::kFixedStepSeconds, stats.fixedSteps, *state});
+                if (!updated)
+                    return tl::unexpected(updated.error());
+#if defined(SOMNIUM_ENABLE_ITERATION)
+            } else {
+                auto toolState = toolInput->advance(stats.fixedSteps);
+                if (!toolState)
+                    return tl::unexpected(toolState.error());
+                m_impl->overlay->updateToolCamera(*toolState, core::kFixedStepSeconds);
+            }
+#endif
+            propagated = m_impl->world->propagate();
             if (!propagated)
                 return tl::unexpected(propagated.error());
             ++stats.fixedSteps;
@@ -220,7 +281,7 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
         const bool frozen = options.captureSteps != 0 && stats.fixedSteps >= options.captureSteps;
         if (captureReady)
             captureSeconds += frameSeconds;
-        resources = m_impl->scene->prepare(world);
+        resources = m_impl->scene->prepare(*m_impl->world);
         if (!resources)
             return tl::unexpected(resources.error());
         auto begun = m_impl->gpu->beginFrame();
@@ -299,8 +360,14 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
             m_impl->depth = *depth;
             previousSize = *size;
         }
-        auto extracted =
-            m_impl->scene->extract(world, frozen ? 1.F : static_cast<float>(batch->alpha), *size);
+        const SceneView* view = nullptr;
+#if defined(SOMNIUM_ENABLE_ITERATION)
+        const SceneView toolView{m_impl->overlay->toolPose(), m_impl->overlay->toolLens()};
+        if (!session.playing())
+            view = &toolView;
+#endif
+        auto extracted = m_impl->scene->extract(
+            *m_impl->world, frozen || view ? 1.F : static_cast<float>(batch->alpha), *size, view);
         if (!extracted)
             return tl::unexpected(extracted.error());
         const auto& sceneFrame = m_impl->scene->frame();
