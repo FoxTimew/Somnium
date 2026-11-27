@@ -39,7 +39,7 @@ les trois CLI ; [SHADERS.md](../SHADERS.md) conserve les mesures et commandes.
   cible inférieure rejetée. MSL **2.3.0** reste explicite : sous-ensemble suffisant,
   compatible macOS 11+, au-delà du minimum SDL Metal (macOS 10.14, GPU Mac2). Le MVP
   charge le MSL tel quel ; compilation driver autorisée. **.metallib reporté
-  au cuiseur de phase 4, prérequis de shipping macOS.**
+  au futur cuiseur (hors phase 4 « Itération »), prérequis de shipping macOS.**
 - **Vérification historique.** `SOMNIUM_VERIFY_SHADERCROSS_LIBRARY=OFF` par défaut ;
   le CLI isolé et ses tests constituent la preuve obligatoire.
 

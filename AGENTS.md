@@ -49,7 +49,7 @@ Toutes les conventions sont centralisées dans `engine/core/include/somnium/core
 - Repère main droite, **+Y vers le haut**, unités en **mètres**, caméra regardant vers **-Z** (convention glTF, aucune conversion à l'import).
 - Profondeur en espace de clip **0..1** ; projections via `glm::perspectiveRH_ZO` / `glm::orthoRH_ZO`. GLM est column-major : les matrices sont envoyées aux shaders sans transposition et le HLSL est écrit en conséquence.
 - Conventions NDC et UV de SDL GPU (sens de Y en NDC, origine des coordonnées de texture) : vérifie-les dans `SDL_gpu.h` de la version épinglée au début de la phase 1, consigne-les dans l'ADR-0002 et dérives-en le viewport et le sens de culling (`front face`).
-- Rotations stockées en quaternions ; angles d'Euler uniquement aux frontières (fichiers, UI de debug).
+- Rotations stockées en quaternions, en mémoire comme dans les scènes v2 ; angles d'Euler uniquement à la frontière d'édition (UI) et en lecture des scènes v1.
 - `Transform` = position, rotation, échelle locales + matrice monde calculée ; hiérarchie parent/enfant dès le MVP.
 
 **Erreurs**
@@ -209,7 +209,7 @@ Principe directeur : un seul mécanisme d'instantané de `World`, en mémoire et
 
 **Contraintes de la phase**
 
-- Rien de tout cela n'existe dans `shipping` : ni surveillance de fichiers, ni chargeur de module, ni modes d'édition ; `check_shipping` étendu le prouve.
+- WorldSnapshot et la sérialisation canonique v2 appartiennent à `scene` dans tous les presets, shipping compris. Les modes Édition/Jeu, commandes d'édition, écriture vers la racine source, surveillance de fichiers et chargeur de module sont réservés à `iteration` ; `check_shipping` étendu le prouve. Les lots 1 à 3 restent liés statiquement ; le moteur partagé arrive au lot 4.
 - Surveillance de fichiers et chargement de module sont des services neutres de `platform`. `game` ne voit toujours ni `renderer` ni ImGui.
 - Rien n'est ajouté au chemin chaud en régime stabilisé quand les outils sont inactifs.
 

@@ -1,0 +1,33 @@
+Internal ctest changing into directory: /home/foxti/somnium-ci/runs/46006326742-1/hot-reload-spike/plain
+UpdateCTestConfiguration  from :/home/foxti/somnium-ci/runs/46006326742-1/hot-reload-spike/plain/DartConfiguration.tcl
+UpdateCTestConfiguration  from :/home/foxti/somnium-ci/runs/46006326742-1/hot-reload-spike/plain/DartConfiguration.tcl
+Test project /home/foxti/somnium-ci/runs/46006326742-1/hot-reload-spike/plain
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: hot_reload_contract
+
+1: Test command: /home/foxti/somnium-ci/runs/46006326742-1/hot-reload-spike/plain/bin/spike_host "/home/foxti/somnium-ci/runs/46006326742-1/hot-reload-spike/plain/bin/libspike_v1.so" "/home/foxti/somnium-ci/runs/46006326742-1/hot-reload-spike/plain/bin/libspike_v2.so" "/home/foxti/somnium-ci/runs/46006326742-1/hot-reload-spike/plain/bin/libspike_bad_start.so" "/home/foxti/somnium-ci/runs/46006326742-1/hot-reload-spike/plain/bin/libspike_bad_abi.so" "/home/foxti/actions-runner/_work/Somnium/Somnium/tools/hot_reload_spike/replay.json" "/home/foxti/somnium-ci/runs/46006326742-1/hot-reload-spike/plain/shadow"
+1: Working Directory: /home/foxti/somnium-ci/runs/46006326742-1/hot-reload-spike/plain
+1: Test timeout computed to be: 60
+1: Expected rollback: Intentional candidate start failure
+1: Expected rejection: Module ABI rejected
+1: Expected rejection: Failed loading /home/foxti/somnium-ci/runs/46006326742-1/hot-reload-spike/plain/shadow/4/broken.module: /home/foxti/somnium-ci/runs/46006326742-1/hot-reload-spike/plain/shadow/4/broken.module: file too short
+1: PASS: World/IDs/codecs/state preserved; layouts 40 -> 104; 70 replay ticks; v1/v2 speeds; 3 rollback paths; 10 cycles; shared Log/Tracy; writable publication; retained images=15
+1/2 Test #1: hot_reload_contract ..............   Passed    0.07 sec
+test 2
+    Start 2: rotation_boundary_audit
+
+2: Test command: /home/foxti/somnium-ci/runs/46006326742-1/hot-reload-spike/plain/bin/spike_rotation_audit
+2: Working Directory: /home/foxti/somnium-ci/runs/46006326742-1/hot-reload-spike/plain
+2: Test timeout computed to be: 10
+2: Euler boundary: quaternion_bit_exact=0 canonical_euler_stable=0
+2/2 Test #2: rotation_boundary_audit ..........   Passed    0.00 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =   0.08 sec

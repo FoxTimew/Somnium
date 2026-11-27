@@ -1,0 +1,33 @@
+Internal ctest changing into directory: C:/SomniumCI/runs/46006326742-1/hot-reload-spike/profiling
+UpdateCTestConfiguration  from :C:/SomniumCI/runs/46006326742-1/hot-reload-spike/profiling/DartConfiguration.tcl
+UpdateCTestConfiguration  from :C:/SomniumCI/runs/46006326742-1/hot-reload-spike/profiling/DartConfiguration.tcl
+Test project C:/SomniumCI/runs/46006326742-1/hot-reload-spike/profiling
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: hot_reload_contract
+
+1: Test command: C:\SomniumCI\runs\46006326742-1\hot-reload-spike\profiling\bin\spike_host.exe "C:/SomniumCI/runs/46006326742-1/hot-reload-spike/profiling/bin/spike_v1.dll" "C:/SomniumCI/runs/46006326742-1/hot-reload-spike/profiling/bin/spike_v2.dll" "C:/SomniumCI/runs/46006326742-1/hot-reload-spike/profiling/bin/spike_bad_start.dll" "C:/SomniumCI/runs/46006326742-1/hot-reload-spike/profiling/bin/spike_bad_abi.dll" "C:/ActionsRunner/_work/Somnium/Somnium/tools/hot_reload_spike/replay.json" "C:/SomniumCI/runs/46006326742-1/hot-reload-spike/profiling/shadow"
+1: Working Directory: C:/SomniumCI/runs/46006326742-1/hot-reload-spike/profiling
+1: Test timeout computed to be: 60
+1: Expected rollback: Intentional candidate start failure
+1: Expected rejection: Module ABI rejected
+1: Expected rejection: Failed loading C:/SomniumCI/runs/46006326742-1/hot-reload-spike/profiling/shadow\4\broken.module:
+1: PASS: World/IDs/codecs/state preserved; layouts 48 -> 112; 70 replay ticks; v1/v2 speeds; 3 rollback paths; 10 cycles; shared Log/Tracy; writable publication; retained images=15
+1/2 Test #1: hot_reload_contract ..............   Passed    0.95 sec
+test 2
+    Start 2: rotation_boundary_audit
+
+2: Test command: C:\SomniumCI\runs\46006326742-1\hot-reload-spike\profiling\bin\spike_rotation_audit.exe
+2: Working Directory: C:/SomniumCI/runs/46006326742-1/hot-reload-spike/profiling
+2: Test timeout computed to be: 10
+2: Euler boundary: quaternion_bit_exact=0 canonical_euler_stable=0
+2/2 Test #2: rotation_boundary_audit ..........   Passed    0.25 sec
+
+100% tests passed, 0 tests failed out of 2
+
+Total Test time (real) =   1.24 sec

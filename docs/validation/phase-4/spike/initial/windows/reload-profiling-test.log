@@ -1,0 +1,25 @@
+Internal ctest changing into directory: C:/SomniumCI/runs/46002991162-1/hot-reload-spike/profiling
+UpdateCTestConfiguration  from :C:/SomniumCI/runs/46002991162-1/hot-reload-spike/profiling/DartConfiguration.tcl
+UpdateCTestConfiguration  from :C:/SomniumCI/runs/46002991162-1/hot-reload-spike/profiling/DartConfiguration.tcl
+Test project C:/SomniumCI/runs/46002991162-1/hot-reload-spike/profiling
+Constructing a list of tests
+Done constructing a list of tests
+Updating test list for fixtures
+Added 0 tests to meet fixture requirements
+Checking test dependency graph...
+Checking test dependency graph end
+test 1
+    Start 1: hot_reload_contract
+
+1: Test command: C:\SomniumCI\runs\46002991162-1\hot-reload-spike\profiling\bin\spike_host.exe "C:/SomniumCI/runs/46002991162-1/hot-reload-spike/profiling/bin/spike_v1.dll" "C:/SomniumCI/runs/46002991162-1/hot-reload-spike/profiling/bin/spike_v2.dll" "C:/SomniumCI/runs/46002991162-1/hot-reload-spike/profiling/bin/spike_bad_start.dll" "C:/SomniumCI/runs/46002991162-1/hot-reload-spike/profiling/bin/spike_bad_abi.dll" "C:/ActionsRunner/_work/Somnium/Somnium/tools/hot_reload_spike/replay.json" "C:/SomniumCI/runs/46002991162-1/hot-reload-spike/profiling/shadow"
+1: Working Directory: C:/SomniumCI/runs/46002991162-1/hot-reload-spike/profiling
+1: Test timeout computed to be: 60
+1: Expected rollback: Intentional candidate start failure
+1: Expected rejection: Module ABI rejected
+1: Expected rejection: Failed loading C:/SomniumCI/runs/46002991162-1/hot-reload-spike/profiling/shadow\4\broken.module:
+1: PASS: World/IDs/codecs/state preserved; layouts 48 -> 112; 70 replay ticks; v1/v2 speeds; 3 rollback paths; 10 cycles; shared Log/Tracy; writable publication; retained images=15
+1/1 Test #1: hot_reload_contract ..............   Passed    0.95 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Total Test time (real) =   0.98 sec

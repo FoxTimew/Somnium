@@ -199,6 +199,7 @@ class Runner:
         self.py("format", "tools/format.py", "--check")
         self.py("architecture", "tools/check_architecture.py", ROOT)
         self.py("architecture-rules", "tools/test_architecture.py")
+        self.py("shipping-rules", "tools/test_shipping.py")
         self.py("ci-contract", "tools/ci/test_ci.py")
         self.py("capture-replay-contract", "tools/presentation/test_capture.py")
 
@@ -209,6 +210,30 @@ class Runner:
         self.py("shader-toolchain", "tools/shader_toolchain/build.py", "--provider", self.provider,
                 "--jobs", self.args.jobs, "--cache-root", self.shader_cache,
                 "--report-dir", self.run / "shader-toolchain")
+
+    def hot_reload_spike(self):
+        if SYSTEM not in ["Windows", "Linux"]:
+            raise RuntimeError("The isolated reload spike is validated on Windows/Linux only")
+        variants = ["plain", "profiling"] + (["sanitizers"] if SYSTEM == "Linux" else [])
+        for variant in variants:
+            build = self.run / "hot-reload-spike" / variant
+            command = [self.cmake, "-S", ROOT / "tools/hot_reload_spike", "-B", build,
+                       "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Debug",
+                       f"-DSPIKE_PROFILING={'ON' if variant == 'profiling' else 'OFF'}",
+                       f"-DSOMNIUM_ENABLE_SANITIZERS={'ON' if variant == 'sanitizers' else 'OFF'}",
+                       "-DCMAKE_C_COMPILER_LAUNCHER=sccache", "-DCMAKE_CXX_COMPILER_LAUNCHER=sccache"]
+            if SYSTEM == "Linux":
+                command += ["-DCMAKE_C_COMPILER=clang-18", "-DCMAKE_CXX_COMPILER=clang++-18"]
+            else:
+                command += ["-DCMAKE_POLICY_DEFAULT_CMP0141=NEW", "-DCMAKE_MSVC_DEBUG_INFORMATION_FORMAT=Embedded"]
+            self.call(f"reload-{variant}-configure", command)
+            self.call(f"reload-{variant}-build", [self.cmake, "--build", build, "--parallel", self.args.jobs])
+            self.call(f"reload-{variant}-test", [self.ctest, "--test-dir", build, "--output-on-failure", "-V"],
+                      env={**self.env, "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
+                           "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1"})
+            if SYSTEM == "Linux" and variant == "plain":
+                self.py("reload-tidy", "tools/run_clang_tidy.py", "--build", build,
+                        "--tool", self.tidy_tool, "--jobs", self.args.jobs)
 
     def configure(self, preset):
         if not self.compiler.is_file():
@@ -337,6 +362,8 @@ class Runner:
         self.format()
         self.cache_server()
         self.compiler_cache()
+        if SYSTEM in ["Windows", "Linux"]:
+            self.hot_reload_spike()
         self.shader_toolchain()
         self.configure("debug")
         self.build("debug")
@@ -363,7 +390,7 @@ class Runner:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("operation", choices=["doctor", "format", "compiler-cache", "shader-toolchain", "configure", "build", "test", "tidy", "sanitizers", "gpu", "captures", "pipeline", "cleanup"])
+    parser.add_argument("operation", choices=["doctor", "format", "compiler-cache", "shader-toolchain", "hot-reload-spike", "configure", "build", "test", "tidy", "sanitizers", "gpu", "captures", "pipeline", "cleanup"])
     parser.add_argument("--root", type=Path, default=Path(os.environ.get("SOMNIUM_CI_ROOT", "C:/SomniumCI" if SYSTEM == "Windows" else str(Path.home() / "somnium-ci"))))
     parser.add_argument("--run-id", default=os.getenv("GITHUB_RUN_ID", "local-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S") + "-" + uuid.uuid4().hex[:6]) + "-" + os.getenv("GITHUB_RUN_ATTEMPT", "1"))
     parser.add_argument("--preset", choices=PRESETS, default="debug")
@@ -379,7 +406,7 @@ def main():
         try:
             clean_runs(runner.root, runner.run, PINS["retention_days"])
             (runner.run / "run.json").write_text(json.dumps({"owner": "somnium-ci", "status": "running", "operation": args.operation}), encoding="utf-8")
-            if args.operation in ["build", "sanitizers", "compiler-cache"]:
+            if args.operation in ["build", "sanitizers", "compiler-cache", "hot-reload-spike"]:
                 runner.cache_server()
             if args.operation in ["configure", "build", "test"]:
                 getattr(runner, args.operation)(args.preset)

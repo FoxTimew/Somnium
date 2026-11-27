@@ -68,7 +68,7 @@ type SDL dans les interfaces publiques.
 D3 : les HLSL Shader Model 6 sont transformés au build par le CLI shadercross
 en SPIR-V, DXIL et MSL. Le moteur charge le MSL ; la compilation effectuée par
 le driver est autorisée. Aucun compilateur HLSL dans le moteur. Le `.metallib`
-est reporté au cuiseur de phase 4 et sera inscrit dans l’ADR-0003 comme prérequis
+est reporté au futur cuiseur et sera inscrit dans l’ADR-0003 comme prérequis
 de shipping macOS. Aucun shader compilé n’est commité. DXC et SPIRV-Cross sont
 les dépendances du CLI ; leurs versions et notices sont verrouillées au build.
 Aucun chemin DXBC/vkd3d n’est ajouté.
@@ -116,7 +116,7 @@ phase 0 est développée depuis ce socle sans fusion ni tag avant validation.
 
 Shipping annonce donc **macOS 13.3 ou ultérieur** : désactiver l'UI ne réduit pas
 ce minimum et aucun binaire compatible macOS 11/12 n'est promis. Ce minimum est
-distinct du prérequis `.metallib` de phase 4 ; le MSL 2.3 utilisé au MVP reste
+distinct du prérequis `.metallib` du futur cuiseur ; le MSL 2.3 utilisé au MVP reste
 compatible avec la cible déclarée.
 
 Preuves : CLI shadercross lié à DXC et compilation HLSL sur les trois OS, sélection WARP, comparaison hors écran et captures GPU à établir en phase 1.

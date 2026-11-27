@@ -25,7 +25,7 @@ et commentaires de référence ; les autres modules les utiliseront.
 | --- | --- |
 | Monde et caméra | Repère main droite, +Y en haut, caméra dirigée vers -Z |
 | Distances et temps | Mètres et secondes ; horloge de simulation monotone |
-| Rotations | Quaternions normalisés ; Euler seulement aux frontières UI/fichiers |
+| Rotations | Quaternions en mémoire et scènes v2 `[x,y,z,w]` ; Euler seulement à l'édition et en lecture v1 |
 | Profondeur clip | Intervalle 0..1 ; near à 0, far à 1 |
 | Projection | `glm::perspectiveRH_ZO` et `glm::orthoRH_ZO` |
 | Stockage des matrices | GLM column-major ; aucune transposition à l'upload |
@@ -41,9 +41,14 @@ utilisant GLM, y compris gameplay et tests. Aucun fichier ne les redéfinit.
 pas une injection de flags incompatibles dans toutes les dépendances.
 
 Les unités n'effectuent pas de conversion de repère à l'import glTF. Les angles
-d'API internes sont en radians. L'ADR-0007 accepté fixe la frontière JSON/UI :
-Euler en degrés, rotations extrinsèques X puis Y puis Z, donc `Rz × Ry × Rx`.
-L'aller-retour conserve la rotation, pas nécessairement le triplet Euler aux singularités.
+d'API internes sont en radians. L'amendement accepté avec l'ADR-0009 fixe les
+scènes v2 en quaternion `[x,y,z,w]`, comme en mémoire. Ses quatre composantes
+doivent être finies et `|dot(q,q) - 1| ≤ 10⁻⁵` (calcul en double) ; rejet au-delà,
+aucune renormalisation en deçà, signe conservé. La constante est centralisée
+dans conventions.hpp. Les scènes v1 restent lues par migration explicite depuis
+Euler en degrés, rotations extrinsèques X puis Y puis Z (`Rz × Ry × Rx`).
+L'UI présente ces mêmes angles ; une lecture sans édition ne reconvertit jamais
+le quaternion. Cette frontière remplace la règle JSON Euler de l'ADR-0007.
 
 Les layouts GPU ne reposent pas sur le padding implicite d'une struct C++ :
 tailles, offsets et alignements sont contrôlés pour chaque bloc de transfert.
