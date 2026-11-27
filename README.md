@@ -10,7 +10,7 @@ sur pivot, caméra troisième personne et inspecteur ImGui. Déplacement clavier
 souris et manette, mapping JSON, simulation fixe à 60 Hz et rendu interpolé.
 
 Les phases 0 à 3 sont validées, fusionnées et taguées sur `main`. La phase 4
-« Itération » est au point de contrôle avant intégration ; ses ADR attendent validation.
+« Itération » a franchi son point de contrôle ; ses ADR sont acceptés.
 [Bilan et captures de phase 3](docs/validation/phase-3/FIN_DE_PHASE.md),
 [World et codecs](docs/SCENE.md), [preuve analytique de scène](docs/SCENE_VALIDATION.md).
 Windows/Radeon et Linux/WSL2 sont requis ; macOS reste manuel best effort,
@@ -228,8 +228,8 @@ fuites reste active, sans suppression. Wayland n'est pas couvert par ce job.
 
 Les phases 0 à 3 sont validées sur `main` et taguées. Le cadrage d'itération est dans
 [AGENTS.md](AGENTS.md). Le [spike autonome](docs/HOT_RELOAD_SPIKE.md), les
-[ADR-0009 à ADR-0011 et le plan de tests](docs/PHASE_4_TEST_PLAN.md) sont soumis à
-validation ; édition et rechargement ne sont pas encore intégrés au moteur.
+[ADR-0009 à ADR-0011 et le plan de tests](docs/PHASE_4_TEST_PLAN.md) sont acceptés ;
+l'intégration commence par les lots 1 et 2, avec arrêt au jalon édition/enregistrement.
 
 `tools/ci/windows.ps1 hot-reload-spike --jobs 2` et
 `bash tools/ci/linux.sh hot-reload-spike --jobs 2` exécutent les mêmes preuves

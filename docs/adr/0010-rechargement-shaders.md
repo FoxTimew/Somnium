@@ -1,7 +1,7 @@
-<!-- Proposition de rechargement ; la compilation reste exclusivement hors ligne. -->
+<!-- Décision de rechargement ; la compilation reste exclusivement hors ligne. -->
 # ADR-0010 — Rechargement des shaders
 
-Date : 27 novembre 2026. Statut : **proposé — validation requise**.
+Date : 27 novembre 2026. Statut : **accepté**.
 
 ## Contexte
 
@@ -24,8 +24,8 @@ layout incompatible doit préserver les garanties de l'ADR-0004.
   devra construire ce CLI aujourd'hui désactivé. Signature structurelle : étages,
   interfaces vertex/fragment, sets/bindings, catégories/nombres de ressources,
   tailles, offsets, types et strides des uniformes. Une modification de cette
-  signature exige un redémarrage/rebuild du consommateur. Le seul compte des
-  uniforms ne constitue pas une validation de layout.
+  signature produit le diagnostic dédié « redémarrage requis », distinct d'un
+  artefact invalide. Les seuls compteurs ne valident pas le layout.
 - **Consommateur** : service neutre platform de détection, limité à 4 Hz, actif
   seulement dans `iteration`. Il surveille manifeste/statut, pas les sources.
   Contrôle du schéma, des chemins logiques et des empreintes avant chargement.
@@ -41,7 +41,7 @@ layout incompatible doit préserver les garanties de l'ADR-0004.
   seule ; publication valide = erreur effacée. ADR-0002/0003 inchangés : vsMain/psMain,
   MSL 2.3, macOS 13.3 minimum ; metallib reporté.
 - **Exclusion** : surveillance, rechargement et diagnostic d'itération ne sont
-  compilés que pour `iteration`. Presets existants statiques et preuves inchangés ;
+  compilés que pour `iteration`, liée statiquement jusqu'au lot 3 inclus ;
   shipping sans ces sources/cibles/options, vérifié par check_shipping.
 
 ## Alternatives

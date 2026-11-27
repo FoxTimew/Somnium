@@ -4,8 +4,8 @@
 Le périmètre est celui d'[AGENTS.md](../AGENTS.md), §6. Les
 [ADR-0009](adr/0009-instantanes-edition-enregistrement.md),
 [ADR-0010](adr/0010-rechargement-shaders.md) et
-[ADR-0011](adr/0011-module-gameplay.md) sont proposés. Aucun lot de production
-n'est commencé ; le [spike](HOT_RELOAD_SPIKE.md) est un projet autonome sous tools.
+[ADR-0011](adr/0011-module-gameplay.md) sont acceptés avec les précisions du
+27 novembre. Le [spike](HOT_RELOAD_SPIKE.md) reste autonome sous tools.
 
 ## Acquis à préserver à chaque push
 
@@ -24,7 +24,8 @@ validation. Ils expriment des comportements, pas des copies de l'implémentation
 | Preuve | Conditions et oracle |
 | --- | --- |
 | Exactitude | World avec hiérarchie, références de jeu, réglages, nextId et rotations arbitraires/proches des pôles. Capture, N pas synthétiques, restauration : égalité des octets canoniques et des TRS précédent/courant ; pas seulement égalité visuelle. |
-| Versions | Scène v1 Euler lue selon ADR-0002 ; v2 quaternion proposée, floats finis/unitaires conservés sans renormalisation. Version/composant inconnu rejeté. Chargement fichier synchronise l'historique ; restauration mémoire le conserve. |
+| Versions | Scène v1 Euler migrée explicitement selon ADR-0002 ; v2 quaternion, signe et floats conservés sans renormalisation si abs(dot(q,q)-1) ≤ 1e-5 en double. Tester la frontière, le rejet au-delà et les non-finis. Version/composant inconnu rejeté. Chargement fichier synchronise l'historique ; restauration mémoire le conserve. |
+| Frères | World impose l'ordre lexicographique des PersistentId, racines et frères. Créations/reparentages dans des ordres différents donnent les mêmes liens/parcours ; snapshot/restauration conserve exactement cet ordre. |
 | Transaction | Asset absent/Failed, ID manquant, codec de jeu en erreur et échelle de caméra interdite : World actif, sélection par ID et dirty inchangés. Le candidat libère toutes ses demandes. |
 | Durées de vie | 100 cycles Jouer/Arrêter ; compteurs de requêtes/libérations équilibrés, pas de ressource restante après destruction. ASan/LSan/UBSan et test de callbacks retirés. |
 | Mode | Zéro fixedUpdate en Édition, start/stop appelés une seule fois par transition ; démarrage par défaut en Jeu reproduit le comportement actuel. Échec de start restitue l'édition et ne publie aucun état partiel. |
@@ -36,6 +37,9 @@ une seule capture ; l'enregistrement ne refait pas un parcours concurrent de Wor
 L'état hors World du jeu actuel est audité : caches reconstructibles autorisés,
 orbite de reset déplacée dans un composant, tick initial fourni par le contexte
 de démarrage. Des références empruntées ne survivent jamais à une transaction.
+Toute référence d'entité durable hors World est un PersistentId. Instantané et
+sérialisation canonique v2 sont testés dans tous les presets, shipping compris ;
+les modes et outils seulement dans iteration. Lots 1 à 3 : jeu et moteur statiques.
 
 ## Lot 2 — Édition et enregistrement
 
@@ -82,7 +86,7 @@ utilisateur avant shaders et module de production.
 | --- | --- |
 | Publication | Lire pendant l'écriture de la génération suivante : ancien ou nouveau programme complet, jamais mélange. Manifestes tronqués, hash erroné, fichier manquant et chemin interdit rejetés. |
 | Includes | Modifier un include transitif déclenche la génération existante ; aucun changement = aucun build, aucune publication. Erreur HLSL conserve l'ancien manifeste et publie un diagnostic borné. |
-| Réflexion | Compteurs égaux mais type/offset/stride d'un uniforme modifié, vertex input incompatible ou sortie fragment incompatible : refus avant création/échange. Signature issue du SPIR-V et comparée au contrat du renderer ; CLI de réflexion hors ligne épinglé. |
+| Réflexion | Compteurs égaux mais type/offset/stride d'un uniforme modifié, vertex input incompatible ou sortie fragment incompatible : diagnostic « redémarrage requis », distinct d'un artefact invalide, avant création/échange. Signature issue du SPIR-V et comparée au contrat du renderer ; CLI de réflexion hors ligne épinglé. |
 | Rendu | Variante de fragment à couleur constante analytique A puis B, capture hors écran après échange ; ensuite artefact invalide, image strictement B ; nouvelle publication valide A rétablie. Référence dédiée, jamais une nouvelle référence D5/cube/scène. |
 | Ressources | Plusieurs pipelines dépendants, dont culling miroir et format de cible différent ; échec du dernier candidat laisse tous les anciens actifs. Handles invalidés/libérations différées selon ADR-0004, soumission toujours respectée. |
 | Coût | Outils inactifs : aucun accès disque, hash, parsing ou allocation dans update/extraction/record. Actifs : au plus quatre sondages par seconde et diagnostic dédupliqué par génération. |
@@ -115,6 +119,10 @@ Tous les scénarios logiques sont sans fenêtre, avec rejeu JSON neutre, sur Win
 et Linux. Une preuve sandbox complète ensuite le changement de constante sans
 redémarrage. Les presets statiques et `iteration` utilisent les mêmes sources et
 le même contrat Gameplay révisé ; un changement ABI moteur impose un redémarrage.
+La garde CI contrôle les exports explicites et les objets/archives du module :
+aucune unité moteur liée dans game. Les en-têtes publics Somnium ne définissent
+aucun état mutable inline/statique ; les données exportées passent par accesseurs
+dans l'image moteur. Tests négatifs avec objet moteur et état mutable injectés.
 
 ## CI et shipping
 
@@ -123,8 +131,11 @@ Les workflows restent des enveloppes : `tools/ci/windows.ps1 pipeline --jobs 2
 dispose déjà de l'opération `hot-reload-spike`, identique en local et CI. Cache CPM
 et sccache existants, preuves dans un répertoire par run, aucune dépendance à
 actions/cache ou au service d'artefacts. Budget global conservé : 120 min Windows,
-150 min Linux ; nouveaux contrôles courts avant les builds GPU. Les timings du
-spike sont consignés dans son compte rendu, pas estimés depuis un cache froid.
+150 min Linux comme limites d'arrêt ; objectif mesuré de **moins de 60 min par
+push et par runner à cache chaud**. Profilage d'iteration dans des jobs manuels,
+exigés aux points de contrôle. Le bilan intermédiaire consigne la durée totale
+de chaque job requis et manuel, SHA, caches et commandes. Les timings du spike
+restent dans son compte rendu ; aucune mesure n'est annoncée comme cache froid.
 
 `check_shipping` est déjà étendu et testé contre des injections de :
 
@@ -136,8 +147,9 @@ spike sont consignés dans son compte rendu, pas estimés depuis un cache froid.
 - options CMake activées, racine de développement ou mode autre que COOKED.
 
 L'absence des nouvelles options est admise tant que les lots ne sont pas intégrés.
-Elles seront OFF dans tous les presets existants et ON seulement dans `iteration`,
-avec variante de profilage de cette même configuration. Le configure refusera
+Les options d'outils seront OFF dans tous les presets existants, ON dans `iteration`,
+avec variante de profilage manuelle. Snapshot/v2 ne dépendent pas de ces options.
+La liaison partagée est introduite seulement au lot 4. Le configure refusera
 iteration sans debug_ui ou avec COOKED. Les cibles/services porteront les noms
 contrôlés ; à leur introduction, compléter le contrôle par inspection des dépendances
 du binaire shipping et de son installation : aucun module de jeu ni image moteur

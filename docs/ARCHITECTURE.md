@@ -537,14 +537,14 @@ précèdent le gameplay. Les phases suivantes attendent une nouvelle validation.
 Les trois derniers emplacements sont réservés dans ce plan uniquement. Aucun
 module vide audio/tilemap/network, système physique ni scripting n'est ajouté.
 
-## 10. Phase 4 — propositions en attente de validation
+## 10. Phase 4 — contrats acceptés, intégration par lots
 
 Les phases 0 à 3 sont fusionnées et taguées. [AGENTS.md](../AGENTS.md) remplace
 l'ancien découpage de la phase 4 : l'itération précède le cuiseur d'assets.
 Le [spike](HOT_RELOAD_SPIKE.md) reste un projet autonome sous tools ; il ne change
 aucune source ni frontière moteur/game. Les [ADR-0009](adr/0009-instantanes-edition-enregistrement.md),
 [0010](adr/0010-rechargement-shaders.md) et [0011](adr/0011-module-gameplay.md)
-proposent instantanés/édition/sauvegarde, rechargement des shaders et module du jeu.
+fixent instantanés/édition/sauvegarde, rechargement des shaders et module du jeu.
 Le [plan de tests](PHASE_4_TEST_PLAN.md) fixe les preuves avant chaque passage.
 
 Les lignes Éditeur et Hot-reload du tableau précédent décrivent donc encore le
@@ -555,6 +555,8 @@ cuiseur, l'empaquetage shipping, KTX2/BC, mipmaps et metallib restent également
 reportés ; metallib demeure un prérequis de shipping macOS. Les contextes d'input
 génériques ne sont pas introduits par les modes exclusifs de l'outil.
 
-À ce jalon, aucune option `iteration`, aucun mode d'édition et aucun chargeur
-de production n'existe. Les changements proposés de format de Transform et de
-découpage partagé attendent l'accord explicite sur les ADR.
+Le format v2 quaternion, la migration v1 et les contrats sont acceptés.
+WorldSnapshot et la sérialisation canonique appartiennent à scene dans tous les
+presets, shipping compris. Les outils seuls dépendent d'iteration ; les lots 1
+à 3 restent statiques et le moteur partagé arrive au lot 4. L'intégration suit
+le plan de tests, avec arrêt après édition/enregistrement au lot 2.
