@@ -297,7 +297,8 @@ Result<std::unique_ptr<World>> restore(const WorldSnapshot& saved, const CodecRe
             if (codec.restoreTemporal && codec.contains(**world, entity) &&
                 (!temporal.contains(id) || !temporal[id].is_object() ||
                  !temporal[id].contains(name)))
-                return tl::unexpected(invalid(id + "/" + name + ": missing snapshot history"));
+                return tl::unexpected(
+                    contextual(**world, entity, name, invalid("Missing snapshot history")));
     }
     for (const auto& entityData : temporal.items()) {
         auto entity = (*world)->find(entityData.key());
