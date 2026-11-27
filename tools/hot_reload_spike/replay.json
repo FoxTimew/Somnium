@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "events": [
+    {"step": 0, "kind": "key", "control": "W", "down": true},
+    {"step": 60, "kind": "key", "control": "W", "down": false},
+    {"step": 65, "kind": "key", "control": "W", "down": true},
+    {"step": 70, "kind": "key", "control": "W", "down": false}
+  ]
+}

@@ -140,7 +140,7 @@ class InfrastructureTests(unittest.TestCase):
 
     def test_windows_pipeline_requires_both_engine_captures(self):
         runner = object.__new__(run.Runner)
-        for name in ["doctor", "format", "cache_server", "compiler_cache", "shader_toolchain",
+        for name in ["doctor", "format", "cache_server", "compiler_cache", "shader_toolchain", "hot_reload_spike",
                      "configure", "build", "test", "gpu", "call", "summary"]:
             setattr(runner, name, lambda *args, **kwargs: None)
         captures = []
