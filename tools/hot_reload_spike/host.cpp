@@ -57,7 +57,10 @@ class Images final {
             return tl::unexpected(Error{ErrorCode::Io, error.message()});
         auto symbols = source;
         symbols.replace_extension(".pdb");
-        if (std::filesystem::exists(symbols)) {
+        const bool hasSymbols = std::filesystem::exists(symbols, error);
+        if (error)
+            return tl::unexpected(Error{ErrorCode::Io, error.message()});
+        if (hasSymbols) {
             std::filesystem::copy_file(symbols, folder / symbols.filename(),
                                        std::filesystem::copy_options::overwrite_existing, error);
             if (error)
@@ -99,6 +102,10 @@ class Images final {
 };
 class Session final {
   public:
+    struct StateInfo {
+        std::size_t stateSize;
+        entt::id_type stateId;
+    };
     explicit Session(input::Configuration mapping)
         : m_input(std::move(mapping)), m_world(std::make_unique<scene::World>()) {
         checked(scene::registerBuiltinCodecs(m_codecs));
@@ -124,7 +131,7 @@ class Session final {
         m_game->stop(*m_world);
         const auto saved = snapshot();
         auto* previousImage = m_image;
-        const auto previousApi = m_api;
+        const auto previousStateId = m_api.stateId;
         const auto previousSize = m_world->size();
         m_api.destroy(m_game);
         m_game = nullptr;
@@ -174,7 +181,7 @@ class Session final {
             m_image = previousImage;
             m_game = m_api.create();
             checked(m_game->start(*m_world, m_input.configuration()));
-            require(m_api.stateId == previousApi.stateId, "Rollback selected the wrong generation");
+            require(m_api.stateId == previousStateId, "Rollback selected the wrong generation");
         }
         require(m_world->size() == previousSize, "World identities were lost");
         require(snapshot() == saved, "Reload changed canonical serialized state");
@@ -195,8 +202,8 @@ class Session final {
     float position() const {
         return m_world->registry().get<Transform>(take(m_world->find("player"))).current.position.x;
     }
-    ModuleApi api() const {
-        return m_api;
+    StateInfo stateInfo() const {
+        return {m_api.stateSize, m_api.stateId};
     }
 
   private:
@@ -231,11 +238,11 @@ int main(int argc, char** argv) {
     Images images(argv[6]);
     Session session(mapping);
     session.start(take(images.load(argv[1])));
-    const auto first = session.api();
+    const auto first = session.stateInfo();
     session.advance(replay, 30);
     require(std::abs(session.position() - .5F) < 1.e-5F, "v1 speed is wrong");
     require(session.reload(images, argv[2]), "v2 was rejected");
-    const auto second = session.api();
+    const auto second = session.stateInfo();
     require(second.stateSize > first.stateSize && second.stateId != first.stateId,
             "Layout/type-generation change was not exercised");
     session.advance(replay, 60);

@@ -16,7 +16,7 @@ bash tools/ci/linux.sh hot-reload-spike --jobs 2
 Les mêmes commandes s'utilisent sans GitHub. Résultats sous
 `<racine CI>/runs/<run>/hot-reload-spike/`, journaux et durées sous `logs/` et
 `SUMMARY.md`. Windows/Linux testent les configurations plain et profiling ;
-Linux ajoute ASan/UBSan. Le pipeline requis appelle cette opération avant les
+Linux ajoute clang-tidy 18 et ASan/UBSan. Le pipeline requis appelle cette opération avant les
 builds moteur. Aucun test n'ouvre de fenêtre ou n'injecte d'entrée système.
 
 Le contrat vérifie les vrais codecs et World, un composant à chaîne possédée dont
@@ -25,6 +25,9 @@ continu, la conservation de la sérialisation, une constante de vitesse modifié
 trois échecs récupérables (start, ABI, fichier invalide), dix répétitions et la
 possibilité de remplacer une publication dont la copie est chargée.
 Le filtre Log et l'adresse du client Tracy doivent être communs aux images.
+Un second test caractérise l'aller-retour Euler actuel : il borne l'erreur de
+rotation mais rapporte séparément l'absence d'exactitude binaire/canonique. Il ne
+prétend pas implémenter le futur instantané exact de la phase 4.
 
 Les images restent mappées jusqu'à la sortie, limite de 64 chargements : les zones
 Tracy peuvent conserver des adresses de chaînes statiques. Avant chaque échange,

@@ -231,6 +231,9 @@ class Runner:
             self.call(f"reload-{variant}-test", [self.ctest, "--test-dir", build, "--output-on-failure", "-V"],
                       env={**self.env, "ASAN_OPTIONS": "detect_leaks=1:halt_on_error=1",
                            "UBSAN_OPTIONS": "halt_on_error=1:print_stacktrace=1"})
+            if SYSTEM == "Linux" and variant == "plain":
+                self.py("reload-tidy", "tools/run_clang_tidy.py", "--build", build,
+                        "--tool", self.tidy_tool, "--jobs", self.args.jobs)
 
     def configure(self, preset):
         if not self.compiler.is_file():
