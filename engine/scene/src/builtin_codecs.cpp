@@ -192,6 +192,25 @@ Result<void> registerBuiltinCodecs(CodecRegistry& codecs) {
                          migrateCamera},
           ComponentCodec{"somnium.DirectionalLight", 1, contains<DirectionalLight>, writeLight,
                          readLight}}) {
+#if defined(SOMNIUM_ENABLE_ITERATION)
+        if (codec.name == "somnium.Name")
+            codec.editor.initial = {{"value", "Entity"}};
+        else if (codec.name == "somnium.Transform") {
+            codec.editor.initial = writeTrs({});
+            codec.editor.fields.emplace("/rotation", FieldPresentation::QuaternionEuler);
+        } else if (codec.name == "somnium.Hierarchy")
+            codec.editor.initial = {{"parent", nullptr}};
+        else if (codec.name == "somnium.MeshRenderer")
+            codec.editor.initial = {{"model", ""}};
+        else if (codec.name == "somnium.Camera") {
+            const Camera defaults;
+            codec.editor.initial = {{"verticalFovRadians", defaults.verticalFov},
+                                    {"near", defaults.nearPlane},
+                                    {"far", defaults.farPlane}};
+            codec.editor.fields.emplace("/verticalFovRadians", FieldPresentation::RadiansDegrees);
+        } else if (codec.name == "somnium.DirectionalLight")
+            codec.editor.initial = {{"direction", vector(DirectionalLight{}.direction)}};
+#endif
         auto added = codecs.add(std::move(codec));
         if (!added)
             return added;

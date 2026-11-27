@@ -24,7 +24,8 @@ struct Overlay::Impl {
 #if defined(SOMNIUM_ENABLE_ITERATION)
     detail::EditorCamera camera;
     bool playing = true;
-    std::optional<bool> playRequest;
+    bool dirty = false, discard = false;
+    std::vector<std::string> commands;
     std::string iterationError;
 #endif
     ~Impl() {
@@ -94,11 +95,24 @@ input::Capture Overlay::update(double frameSeconds, const scene::World& world,
     m_impl->previous = counters;
 #if defined(SOMNIUM_ENABLE_ITERATION)
     ImGui::SetNextWindowPos(ImVec2(16, 190), ImGuiCond_Always);
-    if (ImGui::Begin("Iteration", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    if (ImGui::Begin("Iteration", nullptr,
+                     ImGuiWindowFlags_AlwaysAutoResize |
+                         (replay ? ImGuiWindowFlags_NoInputs : 0))) {
         ImGui::TextUnformatted(m_impl->playing ? "Play / simulation running"
                                                : "Edit / simulation stopped");
         if (ImGui::Button(m_impl->playing ? "Stop" : "Play"))
-            m_impl->playRequest = !m_impl->playing;
+            m_impl->commands.push_back(m_impl->playing ? R"({"op":"stop"})" : R"({"op":"play"})");
+        ImGui::SameLine();
+        ImGui::TextUnformatted(m_impl->dirty ? "* Unsaved changes" : "Saved scene");
+        ImGui::BeginDisabled(m_impl->playing);
+        if (ImGui::Button("Save"))
+            m_impl->commands.emplace_back(R"({"op":"save"})");
+        ImGui::SameLine();
+        if (ImGui::Button("Reload"))
+            m_impl->commands.push_back(m_impl->discard ? R"({"op":"reload","discard":true})"
+                                                       : R"({"op":"reload","discard":false})");
+        ImGui::Checkbox("Discard unsaved changes on reload", &m_impl->discard);
+        ImGui::EndDisabled();
         if (!m_impl->playing)
             ImGui::TextUnformatted("Tool camera: RMB look, WASD + Q/E, wheel");
         if (!m_impl->iterationError.empty())
@@ -132,15 +146,28 @@ const Trs& Overlay::toolPose() const {
 const Camera& Overlay::toolLens() const {
     return m_impl->camera.lens();
 }
-void Overlay::iterationState(bool playing, std::string_view error) {
+void Overlay::configureEditor(const scene::CodecRegistry& codecs) {
+    m_impl->inspector.configure(codecs);
+}
+void Overlay::iterationState(bool playing, bool dirty, std::uint64_t revision,
+                             std::string_view error) {
     m_impl->playing = playing;
+    m_impl->dirty = dirty;
+    m_impl->inspector.revision(revision);
     m_impl->iterationError = error;
 }
-std::optional<bool> Overlay::takePlayRequest() {
-    return std::exchange(m_impl->playRequest, std::nullopt);
+std::vector<std::string> Overlay::takeCommands() {
+    auto commands = m_impl->inspector.takeCommands();
+    for (auto& command : m_impl->commands)
+        commands.push_back(std::move(command));
+    m_impl->commands.clear();
+    return commands;
 }
-void Overlay::applyEdits(scene::World& world) {
-    m_impl->inspector.apply(world);
+void Overlay::selectEntity(std::string_view id) {
+    m_impl->inspector.selectEntity(id);
+}
+void Overlay::selectComponent(std::string_view component) {
+    m_impl->inspector.selectComponent(component);
 }
 #endif
 Result<void> Overlay::prepare() {

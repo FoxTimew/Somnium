@@ -1,4 +1,4 @@
-<!-- Plan soumis à validation ; seules les preuves du spike et les gardes shipping existent. -->
+<!-- Plan accepté ; lots 1 et 2 intégrés, lots 3 et 4 après le jalon intermédiaire. -->
 # Phase 4 — Plan de tests et conditions de passage
 
 Le périmètre est celui d'[AGENTS.md](../AGENTS.md), §6. Les
@@ -16,8 +16,8 @@ produites par le moteur, sans entrée système ni lecture du bureau. Format 18,
 clang-tidy 18, warnings en erreurs, frontières CMake/scanner, debug/release/shipping/
 profiling et ASan/UBSan Linux restent requis. macOS manuel reste non bloquant.
 
-Les nouveaux tests de production ci-dessous seront ajoutés seulement après
-validation. Ils expriment des comportements, pas des copies de l'implémentation.
+Les tests des lots 1 et 2 sont intégrés. Ceux des lots 3 et 4 restent le contrat
+de leurs étapes ultérieures, après validation du jalon intermédiaire.
 
 ## Lot 1 — Instantanés et modes
 
@@ -69,10 +69,11 @@ les modes et outils seulement dans iteration. Lots 1 à 3 : jeu et moteur statiq
 - Mesurer 200 captures sur la cour après chauffe : p50/p95/max, taille JSON et
   mémoire retenue. Si p95 ≤ 1 ms et 16 états tiennent dans 16 Mio, implémenter une
   pile Annuler/Rétablir bornée ; sinon consigner son report au bilan intermédiaire.
-  Si activée : nouvel edit invalide la branche redo ; échec de restauration ne
+  Mesure locale iteration Debug : p95 7,20 ms, 16 états/552 432 octets ; annulation
+  reportée. Si activée ultérieurement : nouvel edit invalide la branche redo ; échec de restauration ne
   dépile pas l'état et ne change pas les demandes d'assets.
 
-Le réenregistrement des seuls `assets/scenes/*.json` se fera dans un commit dédié,
+Le réenregistrement des seuls `assets/scenes/*.json` est isolé dans un commit dédié,
 après les tests de migration. Les fixtures des preuves analytiques restent en v1
 pour préserver leurs empreintes et exercer la compatibilité de lecture.
 

@@ -37,4 +37,22 @@ TEST_CASE("Tool camera has separate bindings and cannot enter a World snapshot")
     CHECK(after->canonical == saved->canonical);
     CHECK(after->temporal == saved->temporal);
 }
+TEST_CASE("Tool camera can edit a scene without a gameplay camera") {
+    auto mapping = EditorCamera::configuration();
+    REQUIRE(mapping);
+    scene::World world;
+    scene::CodecRegistry codecs;
+    REQUIRE(scene::registerBuiltinCodecs(codecs));
+    const auto before = scene::snapshot(world, codecs);
+    REQUIRE(before);
+    EditorCamera tool;
+    REQUIRE(tool.initialize(world, *mapping));
+    CHECK(scene::validateTrs(tool.pose()));
+    CHECK(tool.pose().position == glm::vec3(0, 3, 6));
+    const auto after = scene::snapshot(world, codecs);
+    REQUIRE(after);
+    CHECK(after->canonical == before->canonical);
+    CHECK(after->temporal == before->temporal);
+    CHECK(world.activeCamera == entt::null);
+}
 } // namespace somnium::debug_ui::detail

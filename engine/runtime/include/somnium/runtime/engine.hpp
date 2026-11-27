@@ -15,7 +15,7 @@
 
 namespace somnium::runtime {
 struct EngineConfig {
-    std::string_view title = "Somnium - Phase 3";
+    std::string_view title = "Somnium";
     int width = 1280;
     int height = 720;
     std::string_view resourceRoot;
@@ -24,10 +24,15 @@ struct EngineConfig {
     std::string_view replayPath;
     // Empty selects D3D12 on Windows, Metal on macOS and Vulkan on Linux.
     std::string_view backend;
+#if defined(SOMNIUM_ENABLE_ITERATION)
+    std::string_view sourceRoot;
+    std::string_view editorReplayPath;
+#endif
 };
 struct RunOptions {
 #if defined(SOMNIUM_ENABLE_ITERATION)
     bool startEditing = false;
+    bool iterationReport = false;
 #endif
     // Freeze the replay at this tick. Without captureFrame, present for three seconds.
     std::uint64_t captureSteps = 0;
@@ -47,6 +52,9 @@ struct RunStats {
     double droppedSeconds = 0.0;
     double interpolationAlpha = 0.0;
     std::optional<FrameCapture> capture;
+#if defined(SOMNIUM_ENABLE_ITERATION)
+    std::string editorReport;
+#endif
 };
 
 class Engine final {

@@ -3,7 +3,6 @@
 #include "inspector.hpp"
 #include <algorithm>
 #include <imgui.h>
-#include <somnium/core/log.hpp>
 #include <somnium/scene/rotation.hpp>
 namespace somnium::debug_ui::detail {
 void Inspector::hierarchy(const scene::World& world) {
@@ -30,11 +29,13 @@ void Inspector::hierarchy(const scene::World& world) {
                 ImGui::Indent(indent);
             open = ImGui::TreeNodeEx(id.c_str(), flags, "%s",
                                      name.empty() ? id.c_str() : name.c_str());
+            if (id == m_selected && m_scrollToSelection)
+                ImGui::SetScrollHereY(.5F);
             if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
                 m_selected = id;
-                m_editing = false;
-                m_local = registry.get<Transform>(entity).current;
-                m_degrees = scene::eulerDegrees(m_local.rotation);
+#if defined(SOMNIUM_ENABLE_ITERATION)
+                m_editor.select({});
+#endif
             }
             if (indent > 0)
                 ImGui::Unindent(indent);
@@ -42,6 +43,7 @@ void Inspector::hierarchy(const scene::World& world) {
         m_ancestors.push_back({entity, visible && open});
     }
     m_ancestors.clear();
+    m_scrollToSelection = false;
 }
 void Inspector::transform(const scene::World& world) {
     auto entity = world.find(m_selected);
@@ -49,31 +51,6 @@ void Inspector::transform(const scene::World& world) {
         ImGui::TextUnformatted("Select an entity");
         return;
     }
-#if defined(SOMNIUM_ENABLE_ITERATION)
-    if (!m_editing && m_edits.empty()) {
-        m_local = world.registry().get<Transform>(*entity).current;
-        m_degrees = scene::eulerDegrees(m_local.rotation);
-    }
-    ImGui::TextWrapped("ID: %s", m_selected.c_str());
-    ImGui::TextUnformatted("Local transform / degrees XYZ");
-    ImGui::PushItemWidth(-80.F);
-    bool changed = ImGui::DragFloat3("Position", &m_local.position.x, .025F);
-    bool active = ImGui::IsItemActive();
-    changed |= ImGui::DragFloat3("Rotation", &m_degrees.x, .5F);
-    active |= ImGui::IsItemActive();
-    changed |= ImGui::DragFloat3("Scale", &m_local.scale.x, .01F);
-    active |= ImGui::IsItemActive();
-    ImGui::PopItemWidth();
-    m_editing = active;
-    if (changed) {
-        m_local.rotation = scene::rotationDegrees(m_degrees);
-        m_edits.queue(m_selected, m_local);
-        m_error.clear();
-    }
-    ImGui::TextWrapped("Edits apply at the next fixed step. Gameplay may drive this entity.");
-    if (!m_error.empty())
-        ImGui::TextWrapped("Rejected: %s", m_error.c_str());
-#else
     const auto& local = world.registry().get<Transform>(*entity).current;
     const auto degrees = scene::eulerDegrees(local.rotation);
     ImGui::TextWrapped("ID: %s", m_selected.c_str());
@@ -81,7 +58,6 @@ void Inspector::transform(const scene::World& world) {
     ImGui::Text("Rotation %.2f %.2f %.2f", degrees.x, degrees.y, degrees.z);
     ImGui::Text("Scale %.3f %.3f %.3f", local.scale.x, local.scale.y, local.scale.z);
     ImGui::TextUnformatted("Read only / use the iteration preset to edit");
-#endif
 }
 void Inspector::draw(const scene::World& world, const input::Configuration& mapping,
                      const input::State& inputs, bool replay, bool editing) {
@@ -99,13 +75,20 @@ void Inspector::draw(const scene::World& world, const input::Configuration& mapp
         if (replay)
             ImGui::TextUnformatted("Scripted replay / read only");
         ImGui::BeginDisabled(replay);
-        if (ImGui::BeginChild("Hierarchy", ImVec2(0, std::min(180.F, display.y * .25F)),
+        const auto hierarchyHeight = editing ? 140.F : 180.F;
+        if (ImGui::BeginChild("Hierarchy", ImVec2(0, std::min(hierarchyHeight, display.y * .25F)),
                               ImGuiChildFlags_Borders))
             hierarchy(world);
         ImGui::EndChild();
-        ImGui::BeginDisabled(!editing);
+#if defined(SOMNIUM_ENABLE_ITERATION)
+        if (editing)
+            m_editor.draw(world, m_selected, m_revision);
+        else
+            transform(world);
+#else
+        (void)editing;
         transform(world);
-        ImGui::EndDisabled();
+#endif
         ImGui::EndDisabled();
         ImGui::Separator();
         ImGui::Text("Inputs / step %llu", static_cast<unsigned long long>(inputs.step));
@@ -125,14 +108,4 @@ void Inspector::draw(const scene::World& world, const input::Configuration& mapp
     }
     ImGui::End();
 }
-#if defined(SOMNIUM_ENABLE_ITERATION)
-void Inspector::apply(scene::World& world) {
-    auto applied = m_edits.apply(world);
-    if (!applied) {
-        m_error = applied.error().message;
-        Log::write("debug_ui", Log::Level::Warning, m_error);
-        m_editing = false;
-    }
-}
-#endif
 } // namespace somnium::debug_ui::detail

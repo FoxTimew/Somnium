@@ -92,7 +92,8 @@ Vitesse 3 m/s, diagonale normalisée, déplacement horizontal relatif au yaw de 
 caméra (orbite/reset pris en compte dans le même pas). Caméra à 4–30 m, pitch 5–75°. Une porte
 s’ouvre à 90° en 60 pas et reste bloquante jusqu’à ouverture complète. L’inspecteur
 à droite montre la hiérarchie et les inputs. L’édition est réservée au preset
-`iteration`, avec moteur et jeu statiques. Pas encore de sauvegarde dans le lot 1.
+`iteration`, avec moteur et jeu statiques. Les composants sont édités par leurs
+codecs, puis enregistrés dans la scène source ; voir le [guide d’itération](docs/ITERATION.md).
 Les entrées captées par l’inspecteur ne commandent pas le personnage.
 
 ```sh
@@ -107,6 +108,14 @@ d’édition ; **Play** redémarre au tick courant. La caméra d’outil ne fait
 de la scène : bouton droit + souris, W/A/S/D, Q/E vertical et molette.
 `iteration-profiling` ajoute Tracy ; sa CI est manuelle et requise aux jalons.
 Les instantanés et la sérialisation canonique v2 restent disponibles en shipping.
+
+En Édition, créer/supprimer/reparenter depuis l’inspecteur, choisir un composant
+et appliquer son brouillon validé. **Save** écrit la scène v2 canonique par
+remplacement atomique ; **Reload** demande un abandon explicite si elle est modifiée.
+Save est refusé en Jeu. Les modèles restent des chemins logiques, par exemple
+`models/courtyard-wall.glb` ; aucun asset source n’est copié dans le build.
+L’annulation est reportée : la capture p95 dépasse 1 ms dans le preset iteration
+Debug, malgré une mémoire retenue inférieure à 16 Mio.
 
 Rejouer les mêmes événements sans injection dans le système :
 
@@ -241,7 +250,8 @@ fuites reste active, sans suppression. Wayland n'est pas couvert par ce job.
 Les phases 0 à 3 sont validées sur `main` et taguées. Le cadrage d'itération est dans
 [AGENTS.md](AGENTS.md). Le [spike autonome](docs/HOT_RELOAD_SPIKE.md), les
 [ADR-0009 à ADR-0011 et le plan de tests](docs/PHASE_4_TEST_PLAN.md) sont acceptés ;
-l'intégration commence par les lots 1 et 2, avec arrêt au jalon édition/enregistrement.
+les lots 1 et 2 sont intégrés, avec arrêt au jalon édition/enregistrement avant
+les shaders et le module rechargeables.
 
 `tools/ci/windows.ps1 hot-reload-spike --jobs 2` et
 `bash tools/ci/linux.sh hot-reload-spike --jobs 2` exécutent les mêmes preuves

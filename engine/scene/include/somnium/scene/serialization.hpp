@@ -27,6 +27,13 @@ class DeserializeContext final {
     World& m_world;
     std::vector<Reference> m_references;
 };
+#if defined(SOMNIUM_ENABLE_ITERATION)
+enum class FieldPresentation : std::uint8_t { QuaternionEuler, RadiansDegrees };
+struct EditorDescription {
+    Json initial = Json::object();
+    std::map<std::string, FieldPresentation, std::less<>> fields;
+};
+#endif
 struct ComponentCodec {
     std::string name;
     std::uint32_t version = 1;
@@ -38,6 +45,10 @@ struct ComponentCodec {
     // Transient interpolation state uses the same registry, but never enters a scene file.
     std::function<Result<Json>(const World&, entt::entity)> captureTemporal = {};
     std::function<Result<void>(World&, entt::entity, const Json&)> restoreTemporal = {};
+#if defined(SOMNIUM_ENABLE_ITERATION)
+    // Data-only hints; codecs never depend on an editor or UI callback.
+    EditorDescription editor = {};
+#endif
 };
 class CodecRegistry final {
   public:

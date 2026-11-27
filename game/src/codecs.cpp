@@ -230,6 +230,33 @@ Result<void> registerCodecs(scene::CodecRegistry& table) {
           scene::ComponentCodec{"game.Door", 2, contains<Door>, writeDoor, readDoor, migrateDoor},
           scene::ComponentCodec{"game.FollowCamera", 2, contains<FollowCamera>, writeCamera,
                                 readCamera, migrateCamera}}) {
+#if defined(SOMNIUM_ENABLE_ITERATION)
+        if (codec.name == "game.AabbCollider")
+            codec.editor.initial = {{"center", {0, 0, 0}}, {"halfExtent", {.5, .5, .5}}};
+        else if (codec.name == "game.Character")
+            codec.editor.initial = {{"speed", 3}, {"visual", ""}};
+        else if (codec.name == "game.Door") {
+            codec.editor.initial = {{"pivot", ""},
+                                    {"reach", 2},
+                                    {"duration", 1},
+                                    {"progress", 0},
+                                    {"state", "closed"},
+                                    {"posed", false},
+                                    {"closedRotation", {0, 0, 0, 1}}};
+            codec.editor.fields.emplace("/closedRotation",
+                                        scene::FieldPresentation::QuaternionEuler);
+        } else if (codec.name == "game.FollowCamera") {
+            const auto orbit = writeOrbit(OrbitState{});
+            codec.editor.initial = {{"target", ""},
+                                    {"offset", {0, 1, 0}},
+                                    {"orbit", orbit},
+                                    {"resetOrbit", orbit},
+                                    {"posed", false}};
+            for (auto path : {"/orbit/yawRadians", "/orbit/pitchRadians", "/resetOrbit/yawRadians",
+                              "/resetOrbit/pitchRadians"})
+                codec.editor.fields.emplace(path, scene::FieldPresentation::RadiansDegrees);
+        }
+#endif
         auto result = table.add(std::move(codec));
         if (!result)
             return result;

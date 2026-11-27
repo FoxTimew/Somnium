@@ -1,10 +1,13 @@
 // Owns the optional diagnostic overlay and sequences its integration facades.
 // Public interfaces contain neither SDL nor ImGui types.
 #pragma once
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <somnium/core/result.hpp>
+#include <string>
 #include <string_view>
+#include <vector>
 namespace somnium {
 struct Trs;
 struct Camera;
@@ -17,7 +20,8 @@ class Device;
 }
 namespace somnium::scene {
 class World;
-}
+class CodecRegistry;
+} // namespace somnium::scene
 namespace somnium::input {
 class Configuration;
 struct State;
@@ -41,9 +45,11 @@ class Overlay final {
     void updateToolCamera(const input::State& state, double seconds);
     [[nodiscard]] const Trs& toolPose() const;
     [[nodiscard]] const Camera& toolLens() const;
-    void iterationState(bool playing, std::string_view error);
-    [[nodiscard]] std::optional<bool> takePlayRequest();
-    void applyEdits(scene::World& world);
+    void configureEditor(const scene::CodecRegistry& codecs);
+    void iterationState(bool playing, bool dirty, std::uint64_t revision, std::string_view error);
+    [[nodiscard]] std::vector<std::string> takeCommands();
+    void selectEntity(std::string_view id);
+    void selectComponent(std::string_view component);
 #endif
     [[nodiscard]] Result<void> prepare();
     [[nodiscard]] Result<void> render();

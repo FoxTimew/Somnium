@@ -347,7 +347,8 @@ L'horloge monotone de `core` exprime les durées en secondes.
 Au démarrage, sandbox fournit le chemin de scène et la table de codecs (moteur
 puis ajouts game). Runtime charge le World transactionnel via le lecteur et le
 contexte d’assets, compile le mapping, appelle
-`Gameplay::start(World&, const input::Configuration&)`, propage et prépare les ressources. `requestModel`, `camera()` et les réglages de rendu ont quitté le
+`Gameplay::start(World&, const StartContext&)` (mapping et tick courant), propage et
+prépare les ressources. En iteration, le démarrage Édition omet start. `requestModel`, `camera()` et les réglages de rendu ont quitté le
 contrat Gameplay ; modèle, lumière, ambiant et fond proviennent du JSON.
 
 1. Platform collecte les événements natifs, transmet les événements à son adaptateur
@@ -356,8 +357,9 @@ contrat Gameplay ; modèle, lumière, ambiant et fond proviennent du JSON.
    d’input. Runtime applique la demande neutre de capture, puis met en file les
    événements différés du poll précédent et ceux du poll courant, dans cet ordre.
 3. Pour chaque pas fixe : demander le rejeu éventuel à platform, `input.advance(tick)`,
-   `World::beginStep`, appliquer les éditions UI par `World::teleport`, appeler
-   `game.fixedUpdate(world,{seconds,tick,inputs})`, puis `World::propagate`.
+   appliquer les commandes d’iteration sur un World candidat.
+   En Jeu, appeler `World::beginStep` puis `game.fixedUpdate(world,{seconds,tick,inputs})` ; en Édition,
+   mettre à jour seulement la caméra d’outil. Terminer par `World::propagate`.
    Seul game exécute déplacement, collisions, portes et caméra. Chaque transition
    et impulsion n’est consommée qu’une fois.
 4. SceneRendering prépare les nouveaux handles de Model et retire les ressources
@@ -375,8 +377,9 @@ contrat Gameplay ; modèle, lumière, ambiant et fond proviennent du JSON.
    × (Lambert + ambiant) linéaire → swapchain SDR_LINEAR. Soumettre, présenter et
    marquer la frame Tracy ; aucune attente artificielle.
 
-Sur demande explicite de capture, après un premier frame figé stabilisant l’UI,
-le frame suivant utilise une cible couleur possédée au format/extent acquis.
+Sur demande explicite de capture, après un frame figé stabilisant l’UI (deux en
+Édition pour le défilement de la sélection), le suivant utilise une cible couleur
+possédée au format/extent acquis.
 Renderer et intégration UI la partagent par la coopération privée GPU ; copie
 vers swapchain avant soumission, relecture par transfer buffer après fence.
 Le sandbox écrit RGBA8 sRGB et métadonnées ; aucun contenu de bureau n’est lu.
@@ -526,7 +529,7 @@ précèdent le gameplay. Les phases suivantes attendent une nouvelle validation.
 | Arènes | Conteneurs `std::pmr` réutilisables ; aucune arène custom aujourd'hui |
 | Render graph, ombres, PBR | Passe forward isolée, données de matériau et pipeline |
 | Cuiseur, formats binaires, textures compressées, asynchrone | Lecture injectée, loaders par type, handles et états |
-| Éditeur | Sérialisation par composant et inspecteur séparé |
+| Éditeur complet : gizmos, prefabs, navigateur | Édition de base par codecs et inspecteur séparé dans iteration |
 | Hot-reload gameplay/shaders | Cible game distincte et chargement de shader centralisé ; aucune DLL ni surveillance de fichiers |
 | Contextes d'input et modes partageant une source | IDs résolus à la configuration ; une source physique, une destination au MVP, condition limitée aux deltas pendant une action maintenue (ADR-0008) |
 | Audio | Emplacement futur `engine/audio`, sous-système possédé par Engine |
@@ -547,9 +550,8 @@ aucune source ni frontière moteur/game. Les [ADR-0009](adr/0009-instantanes-edi
 fixent instantanés/édition/sauvegarde, rechargement des shaders et module du jeu.
 Le [plan de tests](PHASE_4_TEST_PLAN.md) fixe les preuves avant chaque passage.
 
-Les lignes Éditeur et Hot-reload du tableau précédent décrivent donc encore le
-code livré en phase 3, tandis que leur périmètre limité entre dans le cadrage de
-phase 4. Gizmos, sélection dans la vue, prefabs, scènes multiples, navigateur
+L’édition de base entre dans le lot 2 ; le rechargement reste dans les lots 3 et 4.
+Gizmos, sélection dans la vue, prefabs, scènes multiples, navigateur
 d'assets, hot-reload modèles/textures ou modules moteur restent reportés. Le
 cuiseur, l'empaquetage shipping, KTX2/BC, mipmaps et metallib restent également
 reportés ; metallib demeure un prérequis de shipping macOS. Les contextes d'input
@@ -574,3 +576,35 @@ possède la caméra d’outil ; l’extraction adapte sa pose sans l’ajouter �
 Les candidats de Play/Stop acquièrent les assets avant de remplacer le World
 actif, et un start refusé laisse l’édition intacte. StartContext fournit le tick
 courant ; les références durables du jeu sont des PersistentId.
+
+Le lot 2 ajoute `runtime::EditSession` et des commandes JSON par ID, communes à
+l’inspecteur et au rejeu d’édition versionné. Les actions explicites reconstruisent
+un candidat par les codecs. Les opérations structurelles passent par World ;
+les références et assets sont validés avant l’échange. Les modèles supprimés ne
+conservent aucune demande dans le World publié, et SceneRendering retire son cache
+GPU avant l’enregistrement de la frame suivante. Les historiques inchangés sont
+conservés ; TRS/parent édités synchronisent uniquement leur branche.
+
+Debug_ui affiche un brouillon générique de composant, ses défauts et ses indications
+de champs en données. La conversion quaternion→Euler n’est qu’une vue, sans
+réécriture avant une modification explicite. La caméra d’outil et la sélection ne
+sont jamais dans le fichier. Play/Stop, création, suppression de sous-arbre,
+reparentage, nom, composants et réglages sont consommés en frontière de pas.
+Le jeu ne reçoit ni commande d’éditeur ni type renderer.
+
+`platform::SourceFiles`, compilé seulement dans iteration, borne l’écriture à une
+racine source absolue. Save est refusé en Jeu ; en Édition, il vérifie les octets
+observés, écrit et synchronise un temporaire voisin exclusif, revérifie la source
+puis la remplace atomiquement. Le contrôle de modification externe est optimiste,
+pas un verrou interprocessus. Reload exige un abandon explicite si dirty et valide
+un candidat avant de remplacer World. Deux Save sans changement conservent les
+mêmes octets. Les sources ne sont pas copiées dans le build.
+
+L’éditeur n’effectue ni sérialisation, ni accès disque, ni allocation de commandes
+dans la boucle lorsque ses outils sont inactifs. Les transactions explicites et
+le dessin de brouillons en Édition allouent ; la préparation des nouveaux modèles
+peut agrandir les réserves hors enregistrement GPU. L’annulation par instantanés
+est reportée : p95 mesuré au-dessus de 1 ms dans iteration Debug ; la mémoire de
+16 états reste sous 16 Mio. Le benchmark CPU est exécuté en CI, y compris dans
+les jobs manuels iteration-profiling requis aux jalons. Les rechargements des
+shaders et du gameplay attendent la validation de ce point de contrôle.

@@ -24,6 +24,8 @@ class ShippingTests(unittest.TestCase):
         for source in ["engine/platform/src/file_watch.cpp", "engine/platform/src/module_loader.cpp",
                        "engine/renderer/src/shader_reload.cpp", "engine/runtime/src/edit_session.cpp",
                        "engine/runtime/src/iteration_session.cpp", "engine/platform/src/source_files.cpp",
+                       "engine/platform/src/source_files_atomic.cpp", "engine/runtime/src/scene_editor.cpp",
+                       "game/tests/iteration_benchmark.cpp",
                        "engine/debug_ui/src/editor_camera.cpp", "tools/hot_reload_spike/module.cpp"]:
             for path in ["/repo/" + source, "C:\\repo\\" + source.replace("/", "\\")]:
                 with self.subTest(path=path), self.assertRaisesRegex(ValueError, "source"):

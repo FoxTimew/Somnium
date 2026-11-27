@@ -19,12 +19,16 @@ Result<input::Configuration> EditorCamera::configuration() {
 Result<void> EditorCamera::initialize(const scene::World& world,
                                       const input::Configuration& mapping) {
     const auto camera = world.activeCamera;
-    if (camera == entt::null)
-        return tl::unexpected(
-            Error{ErrorCode::InvalidState, "Tool camera needs an initial scene camera"});
-    m_pose.position = glm::vec3(world.registry().get<Transform>(camera).world[3]);
-    m_pose.rotation = glm::quat_cast(glm::mat3(world.registry().get<Transform>(camera).world));
-    m_lens = world.registry().get<Camera>(camera);
+    if (camera == entt::null) {
+        m_pose = {};
+        m_pose.position = {0, 3, 6};
+        m_pose.rotation = glm::angleAxis(-0.25F, glm::vec3(1, 0, 0));
+        m_lens = {};
+    } else {
+        m_pose.position = glm::vec3(world.registry().get<Transform>(camera).world[3]);
+        m_pose.rotation = glm::quat_cast(glm::mat3(world.registry().get<Transform>(camera).world));
+        m_lens = world.registry().get<Camera>(camera);
+    }
     const auto forward = m_pose.rotation * glm::vec3(0, 0, -1);
     m_yaw = std::atan2(-forward.x, -forward.z);
     m_pitch = std::asin(std::clamp(forward.y, -1.F, 1.F));

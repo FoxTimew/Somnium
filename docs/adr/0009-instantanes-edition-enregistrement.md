@@ -40,8 +40,8 @@ L'aller-retour Euler n'est pas exact ([mesure](../HOT_RELOAD_SPIKE.md#rotations)
   dernier enregistrement réussi ; Recharger exige abandon explicite si dirty.
   Réenregistrement de `assets/scenes/` dans un commit dédié ; fixtures analytiques
   et provenances inchangées.
-- **Annulation** : 16 instantanés/16 Mio si capture p95 ≤ 1 ms sur la cour,
-  sinon report documenté. Modes, commandes, écriture source, surveillance et
+- **Annulation** : reportée après mesure sur la cour en iteration Debug :
+  p95 7,20 ms (> 1 ms), 16 états/552 432 octets (< 16 Mio). Modes, commandes, écriture source, surveillance et
   chargeur exclus du shipping. Lots 1 à 3 avec jeu/moteur statiques ; partagé
   seulement au lot 4. Profilage d'iteration manuel, exigé aux jalons.
 
@@ -56,4 +56,4 @@ Codecs versionnés et données transitoires, lecteurs vérifiés. Tout état dur
 du jeu appartient à World ; références extérieures par PersistentId. Reconstruction
 aux actions explicites, aucun travail d'édition inactif.
 
-Preuves : CI du lot 1, édition/sauvegarde/rechargement, annulation et durées CI au jalon intermédiaire.
+Preuves : restauration lors du rechargement du module réel (lot 4) ; édition macOS hors couverture requise.

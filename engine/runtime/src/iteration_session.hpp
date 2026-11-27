@@ -12,6 +12,8 @@ class IterationSession final {
                      scene::AssetContext* assets = nullptr)
         : m_world(world), m_game(game), m_codecs(codecs), m_mapping(mapping), m_assets(assets) {}
     ~IterationSession();
+    IterationSession(const IterationSession&) = delete;
+    IterationSession& operator=(const IterationSession&) = delete;
     [[nodiscard]] Result<void> play(std::uint64_t tick);
     [[nodiscard]] Result<void> stop();
     [[nodiscard]] bool playing() const {

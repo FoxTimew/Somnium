@@ -14,6 +14,9 @@
 int main(int argc, char** argv) {
     somnium::runtime::RunOptions options;
     std::string captureOutput;
+#if defined(SOMNIUM_ENABLE_ITERATION)
+    std::string iterationOutput;
+#endif
     somnium::runtime::EngineConfig config;
     config.scenePath = "scenes/courtyard.json";
     config.inputPath = "input/courtyard.json";
@@ -32,8 +35,17 @@ int main(int argc, char** argv) {
             if (value != "edit" && value != "play")
                 return 2;
             options.startEditing = value == "edit";
+        } else if (key == "--source-root")
+            config.sourceRoot = value;
+        else if (key == "--editor-replay")
+            config.editorReplayPath = value;
+        else if (key == "--iteration-report") {
+            iterationOutput = value;
+            options.iterationReport = true;
         }
 #endif
+        else if (key == "--scene")
+            config.scenePath = value;
         else if (key == "--replay")
             config.replayPath = value;
         else if (key == "--capture-output") {
@@ -74,6 +86,18 @@ int main(int argc, char** argv) {
                 static_cast<unsigned long long>(result->fixedSteps), result->interpolationAlpha,
                 result->droppedSeconds);
     const auto& capturedFrame = result->capture;
+#if defined(SOMNIUM_ENABLE_ITERATION)
+    if (options.iterationReport) {
+        std::ofstream report(iterationOutput, std::ios::binary);
+        report << result->editorReport;
+        report.close();
+        if (!report) {
+            somnium::Log::write("sandbox", somnium::Log::Level::Error,
+                                "Could not write iteration report");
+            return 1;
+        }
+    }
+#endif
     if (capturedFrame) {
         const auto& capture = *capturedFrame;
         std::ofstream pixels(captureOutput + ".rgba", std::ios::binary);

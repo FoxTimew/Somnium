@@ -13,7 +13,7 @@ ITERATION_OPTIONS = ("SOMNIUM_ENABLE_ITERATION", "SOMNIUM_ENABLE_SHADER_RELOAD",
                      "SOMNIUM_ENABLE_GAMEPLAY_RELOAD")
 FORBIDDEN_SOURCE = re.compile(
     r"(?:imgui|/debug_ui/|/integration/|inspector|/hot_reload_spike/|"
-    r"/(?:file_watch|module_loader|shader_reload|edit_session|iteration_session|source_files|editor_camera|scene_editor)[^/]*\.)")
+    r"/(?:file_watch|module_loader|shader_reload|edit_session|iteration_session|iteration_benchmark|source_files|editor_camera|scene_editor)[^/]*\.)")
 
 
 def validate(targets, commands, cache):

@@ -110,11 +110,22 @@ tous les presets, shipping compris. Les modes runtime et la caméra debug_ui son
 compilés seulement avec `SOMNIUM_ENABLE_ITERATION`. Le jeu conserve ses références
 durables par PersistentId et reçoit `{mapping, tick}` au démarrage.
 
-L’inspecteur parcourt World en lecture seule, sélectionne par ID persistant et
-regroupe les demandes de TRS par ID dans iteration. Runtime les applique en
-Édition au prochain pas par `teleport`. Une entité supprimée ou une échelle
-invalide donne un diagnostic visible sans arrêter le jeu ni rejouer la demande.
-La migration Euler v1 et l’UI utilisent les mêmes conversions dans scene.
+L’inspecteur parcourt World en lecture seule et sélectionne par ID persistant.
+Dans iteration, chaque codec fournit facultativement des défauts JSON et des
+indications de présentation de champs ; aucun callback ImGui n’entre dans les codecs.
+Le brouillon générique est appliqué par une commande runtime au prochain pas.
+Création/suppression/reparentage passent par World ; les modifications de composants
+repassent par les mêmes lecteurs et le résolveur de références que le chargement.
+Un World candidat absorbe les erreurs : asset absent, référence pendante, cycle,
+échelle ou composant invalide ne changent pas la scène active ni dirty.
+
+Les historiques des composants inchangés sont conservés. Modifier un TRS ou un
+parent synchronise la branche concernée, sans effacer l’historique des autres
+entités. Name, Transform et Hierarchy restent requis ; leur retrait est refusé.
+Les nombres/quaternions non modifiés ne sont jamais réécrits par une vue Euler.
+La migration Euler v1 et cette vue utilisent les mêmes conversions dans scene.
+Save, refusé en Jeu, publie la chaîne canonique via platform ; Reload construit
+également un candidat. Voir le [guide d’itération](ITERATION.md).
 
 La [preuve analytique](SCENE_VALIDATION.md) reste le JSON pivot/enfant, trois poses,
 référence et provenance inchangées. Les tests CPU de game chargent la fixture de

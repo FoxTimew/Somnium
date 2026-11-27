@@ -271,6 +271,11 @@ class Runner:
             command += ["-LE", "window"]
             self.summary("Window tests: **non validé** (session 0/service); manual proof required")
         self.call("test-" + preset, command, window=True)
+        if preset in ["iteration", "iteration-profiling"]:
+            measurement = json.loads((self.build_dir(preset) / "iteration-benchmark.json").read_text(encoding="utf-8"))
+            self.summary(f"Snapshot {preset}: 200 samples, p95 {measurement['p95_ms']:.3f} ms, "
+                         f"16 retained states {measurement['retained_16_bytes']} bytes; "
+                         f"undo budget met: {measurement['undo_budget_met']}")
 
     def tidy(self):
         self.py("tidy", "tools/run_clang_tidy.py", "--build", self.build_dir("iteration"), "--tool", self.tidy_tool, "--jobs", self.args.jobs)
@@ -356,6 +361,21 @@ class Runner:
                           "sha256": hashlib.sha256(data).hexdigest(),
                           "base64": base64.b64encode(data).decode("ascii")}), flush=True)
 
+    def iteration_proof(self, backend=None):
+        backend = backend or self.args.backend
+        output = self.run / ("iteration-" + backend)
+        if SYSTEM == "Windows" and self.args.window_mode == "service":
+            output.mkdir(exist_ok=True)
+            (output / "result.json").write_text(json.dumps(
+                {"status": "non validé", "reason": "Session 0/service; interactive proof required"}), encoding="utf-8")
+            self.summary("Iteration captures: **non validé** (service mode)")
+            return
+        self.py("iteration-" + backend, "tools/iteration/prove.py",
+                "--executable", self.build_dir("iteration") / "bin" / ("sandbox" + self.suffix),
+                "--backend", backend, "--output", output,
+                env=self.gpu_environment(backend), window=True)
+        self.summary(f"Edition, atomic save, Stop and process restart {backend}: **validé** — {output}")
+
     def pipeline(self):
         # One job per OS: cheap checks first, GPU smoke before four full build variants.
         self.doctor()
@@ -380,6 +400,8 @@ class Runner:
         self.configure("iteration")
         self.build("iteration")
         self.test("iteration")
+        for backend in backends:
+            self.iteration_proof(backend)
         if SYSTEM == "Linux":
             self.tidy()
         for preset in ["release", "shipping", "profiling"]:
@@ -403,7 +425,7 @@ class Runner:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("operation", choices=["doctor", "format", "compiler-cache", "shader-toolchain", "hot-reload-spike", "configure", "build", "test", "tidy", "sanitizers", "gpu", "captures", "pipeline", "iteration-profiling", "cleanup"])
+    parser.add_argument("operation", choices=["doctor", "format", "compiler-cache", "shader-toolchain", "hot-reload-spike", "configure", "build", "test", "tidy", "sanitizers", "gpu", "captures", "iteration-proof", "pipeline", "iteration-profiling", "cleanup"])
     parser.add_argument("--root", type=Path, default=Path(os.environ.get("SOMNIUM_CI_ROOT", "C:/SomniumCI" if SYSTEM == "Windows" else str(Path.home() / "somnium-ci"))))
     parser.add_argument("--run-id", default=os.getenv("GITHUB_RUN_ID", "local-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S") + "-" + uuid.uuid4().hex[:6]) + "-" + os.getenv("GITHUB_RUN_ATTEMPT", "1"))
     parser.add_argument("--preset", choices=PRESETS, default="debug")

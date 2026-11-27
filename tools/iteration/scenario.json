@@ -1,0 +1,358 @@
+{
+  "version": 1,
+  "commands": [
+    {
+      "step": 1,
+      "command": {
+        "op": "create",
+        "id": "iteration-pivot",
+        "name": "Authored pivot",
+        "parent": ""
+      }
+    },
+    {
+      "step": 2,
+      "command": {
+        "op": "set",
+        "id": "iteration-pivot",
+        "component": "somnium.Transform",
+        "data": {
+          "position": [
+            2,
+            0,
+            1
+          ],
+          "rotation": [
+            0,
+            0.3826834323650898,
+            0,
+            0.9238795325112867
+          ],
+          "scale": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "step": 3,
+      "command": {
+        "op": "create",
+        "id": "iteration-box",
+        "name": "New block",
+        "parent": ""
+      }
+    },
+    {
+      "step": 4,
+      "command": {
+        "op": "add",
+        "id": "iteration-box",
+        "component": "somnium.MeshRenderer",
+        "data": {
+          "model": "models/courtyard-wall.glb"
+        }
+      }
+    },
+    {
+      "step": 5,
+      "command": {
+        "op": "set",
+        "id": "iteration-box",
+        "component": "somnium.Transform",
+        "data": {
+          "position": [
+            0,
+            1,
+            2
+          ],
+          "rotation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "scale": [
+            1,
+            2,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "step": 6,
+      "command": {
+        "op": "reparent",
+        "id": "iteration-box",
+        "parent": "iteration-pivot"
+      }
+    },
+    {
+      "step": 7,
+      "command": {
+        "op": "add",
+        "id": "iteration-pivot",
+        "component": "game.AabbCollider",
+        "data": {
+          "center": [
+            0,
+            1,
+            2
+          ],
+          "halfExtent": [
+            0.5,
+            1,
+            0.5
+          ]
+        }
+      }
+    },
+    {
+      "step": 8,
+      "command": {
+        "op": "set",
+        "id": "iteration-pivot",
+        "component": "game.AabbCollider",
+        "data": {
+          "center": [
+            0,
+            1,
+            2
+          ],
+          "halfExtent": [
+            0.6,
+            1.2,
+            0.6
+          ]
+        }
+      }
+    },
+    {
+      "step": 9,
+      "command": {
+        "op": "set",
+        "id": "iteration-box",
+        "component": "somnium.Name",
+        "data": {
+          "value": "Edited block"
+        }
+      }
+    },
+    {
+      "step": 10,
+      "command": {
+        "op": "create",
+        "id": "iteration-disposable",
+        "name": "Temporary child",
+        "parent": "iteration-box"
+      }
+    },
+    {
+      "step": 11,
+      "command": {
+        "op": "add",
+        "id": "iteration-disposable",
+        "component": "game.AabbCollider",
+        "data": {
+          "center": [
+            0,
+            0,
+            0
+          ],
+          "halfExtent": [
+            1,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "step": 12,
+      "command": {
+        "op": "remove",
+        "id": "iteration-disposable",
+        "component": "game.AabbCollider"
+      }
+    },
+    {
+      "step": 13,
+      "command": {
+        "op": "delete",
+        "id": "iteration-disposable"
+      }
+    },
+    {
+      "step": 14,
+      "command": {
+        "op": "set",
+        "id": "iteration-pivot",
+        "component": "game.AabbCollider",
+        "data": {
+          "center": [
+            0,
+            1,
+            2
+          ],
+          "halfExtent": [
+            -1,
+            1,
+            1
+          ]
+        }
+      },
+      "errorContains": "strictly positive"
+    },
+    {
+      "step": 15,
+      "command": {
+        "op": "reparent",
+        "id": "iteration-pivot",
+        "parent": "iteration-box"
+      },
+      "errorContains": "cycle"
+    },
+    {
+      "step": 16,
+      "command": {
+        "op": "set",
+        "id": "iteration-box",
+        "component": "somnium.MeshRenderer",
+        "data": {
+          "model": "models/missing.glb"
+        }
+      },
+      "errorContains": "absent"
+    },
+    {
+      "step": 17,
+      "command": {
+        "op": "select",
+        "id": "iteration-pivot",
+        "component": "game.AabbCollider"
+      }
+    },
+    {
+      "step": 18,
+      "command": {
+        "op": "save"
+      }
+    },
+    {
+      "step": 19,
+      "command": {
+        "op": "save"
+      }
+    },
+    {
+      "step": 20,
+      "command": {
+        "op": "play"
+      }
+    },
+    {
+      "step": 25,
+      "command": {
+        "op": "save"
+      },
+      "errorContains": "Play"
+    },
+    {
+      "step": 90,
+      "command": {
+        "op": "stop"
+      }
+    },
+    {
+      "step": 91,
+      "command": {
+        "op": "select",
+        "id": "iteration-pivot",
+        "component": "game.AabbCollider"
+      }
+    }
+  ],
+  "input": {
+    "version": 1,
+    "events": [
+      {
+        "step": 0,
+        "kind": "mouseButton",
+        "control": "Right",
+        "down": true
+      },
+      {
+        "step": 0,
+        "kind": "mouseMotion",
+        "x": 0,
+        "y": 150
+      },
+      {
+        "step": 1,
+        "kind": "mouseButton",
+        "control": "Right",
+        "down": false
+      },
+      {
+        "step": 21,
+        "kind": "key",
+        "control": "D",
+        "down": true
+      },
+      {
+        "step": 61,
+        "kind": "key",
+        "control": "D",
+        "down": false
+      }
+    ]
+  },
+  "cases": [
+    {
+      "name": "initial",
+      "steps": 1
+    },
+    {
+      "name": "edited-saved",
+      "steps": 20
+    },
+    {
+      "name": "stopped-restored",
+      "steps": 92
+    }
+  ],
+  "ui_probes": [
+    {
+      "name": "generic inspector",
+      "region": [
+        0.75,
+        0.05,
+        0.98,
+        0.9
+      ],
+      "minimum_channel": 230,
+      "minimum_pixels": 200
+    },
+    {
+      "name": "iteration toolbar",
+      "region": [
+        0.02,
+        0.27,
+        0.3,
+        0.48
+      ],
+      "minimum_channel": 230,
+      "minimum_pixels": 100
+    }
+  ],
+  "scene_region": [
+    0.4,
+    0.32,
+    0.7,
+    0.9
+  ],
+  "minimum_edited_pixels": 150
+}

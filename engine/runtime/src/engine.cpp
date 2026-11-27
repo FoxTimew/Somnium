@@ -2,7 +2,7 @@
 // An initialized game's stop hook runs on both successful and failed exits.
 #include "scene_rendering.hpp"
 #if defined(SOMNIUM_ENABLE_ITERATION)
-#include "iteration_session.hpp"
+#include "edit_session.hpp"
 #endif
 #include <somnium/runtime/engine.hpp>
 
@@ -51,6 +51,10 @@ struct Engine::Impl {
     std::unique_ptr<debug_ui::Overlay> overlay = nullptr;
 #endif
     bool hasRun = false;
+#if defined(SOMNIUM_ENABLE_ITERATION)
+    std::optional<platform::SourceFiles> sourceFiles;
+    std::string editorReplayPath;
+#endif
 };
 
 Engine::Engine(std::unique_ptr<Impl> impl) : m_impl(std::move(impl)) {
@@ -67,7 +71,17 @@ Result<std::unique_ptr<Engine>> Engine::create(const EngineConfig& config) {
     if (!platform) {
         return tl::unexpected(platform.error());
     }
+#if defined(SOMNIUM_ENABLE_ITERATION)
+    if (!config.resourceRoot.empty())
+        return tl::unexpected(
+            Error{ErrorCode::InvalidArgument, "Iteration uses sourceRoot instead of resourceRoot"});
+    auto sourceFiles = platform::SourceFiles::create(config.sourceRoot);
+    if (!sourceFiles)
+        return tl::unexpected(sourceFiles.error());
+    auto resources = sourceFiles->dataReader();
+#else
     auto resources = platform::FileReader::create(config.resourceRoot);
+#endif
     if (!resources) {
         return tl::unexpected(resources.error());
     }
@@ -105,12 +119,24 @@ Result<std::unique_ptr<Engine>> Engine::create(const EngineConfig& config) {
     impl->scenePath = config.scenePath;
     impl->presentationFormat = *format;
     impl->inputPath = config.inputPath;
+#if defined(SOMNIUM_ENABLE_ITERATION)
+    impl->sourceFiles = std::move(*sourceFiles);
+    impl->editorReplayPath = config.editorReplayPath;
+#endif
     if (!config.replayPath.empty()) {
         auto replay = platform::InputReplay::load(impl->resources, config.replayPath);
         if (!replay)
             return tl::unexpected(replay.error());
         impl->platform->setReplay(std::move(*replay));
     }
+#if defined(SOMNIUM_ENABLE_ITERATION)
+    else if (!config.editorReplayPath.empty()) {
+        auto replay = platform::InputReplay::parse(R"({"version":1,"events":[]})");
+        if (!replay)
+            return tl::unexpected(replay.error());
+        impl->platform->setReplay(std::move(*replay));
+    }
+#endif
 #if defined(SOMNIUM_ENABLE_DEBUG_UI)
     auto overlay = debug_ui::Overlay::create(*impl->platform, *impl->gpu);
     if (!overlay)
@@ -142,6 +168,32 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
             Error{ErrorCode::InvalidArgument, "Capture requires an input replay"});
 #if defined(SOMNIUM_ENABLE_ITERATION)
     IterationSession session(m_impl->world, game, codecs, input.configuration(), &m_impl->assets);
+    EditSession editor(m_impl->world, session, codecs, *m_impl->sourceFiles, m_impl->scenePath,
+                       &m_impl->assets);
+    auto baseline = editor.initialize();
+    if (!baseline)
+        return tl::unexpected(baseline.error());
+    m_impl->overlay->configureEditor(codecs);
+    std::vector<EditorReplayEntry> editorReplay;
+    std::size_t editorCursor = 0;
+    if (!m_impl->editorReplayPath.empty()) {
+        auto bytes = m_impl->resources.read(m_impl->editorReplayPath);
+        if (!bytes)
+            return tl::unexpected(bytes.error());
+        auto replay = parseEditorReplay(
+            std::string_view(reinterpret_cast<const char*>(bytes->data()), bytes->size()));
+        if (!replay)
+            return tl::unexpected(replay.error());
+        editorReplay = std::move(*replay);
+    }
+    scene::Json report;
+    if (options.iterationReport) {
+        auto initial = scene::serialize(*m_impl->world, codecs);
+        if (!initial)
+            return tl::unexpected(initial.error());
+        report = {
+            {"version", 1}, {"initial", std::move(*initial)}, {"events", scene::Json::array()}};
+    }
     if (!options.startEditing) {
         auto started = session.play(0);
         if (!started)
@@ -156,7 +208,6 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
     auto initialized = m_impl->overlay->initializeToolCamera(*m_impl->world, *toolMapping);
     if (!initialized)
         return tl::unexpected(initialized.error());
-    std::string iterationError;
 #else
     auto started = game.start(*m_impl->world, {input.configuration(), 0});
     if (!started)
@@ -191,6 +242,7 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
     RunStats stats;
     double captureSeconds = 0;
     bool captureReady = false;
+    std::uint32_t frozenFrames = 0;
     gpu::FrameSize previousSize;
     bool firstModelFrame = true;
     // Events collected after acquisition wait for the next UI capture decision.
@@ -209,7 +261,8 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
         const auto frameSeconds = clock.sampleSeconds();
 #if defined(SOMNIUM_ENABLE_DEBUG_UI)
 #if defined(SOMNIUM_ENABLE_ITERATION)
-        m_impl->overlay->iterationState(session.playing(), iterationError);
+        m_impl->overlay->iterationState(session.playing(), editor.dirty(), editor.revision(),
+                                        editor.error());
 #endif
         const auto captureInput =
             m_impl->overlay->update(frameSeconds, *m_impl->world, input.configuration(),
@@ -245,18 +298,57 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
             if (!state)
                 return tl::unexpected(state.error());
 #if defined(SOMNIUM_ENABLE_ITERATION)
-            if (!session.playing())
-                m_impl->overlay->applyEdits(*m_impl->world);
-            if (auto request = m_impl->overlay->takePlayRequest()) {
-                auto changed = *request ? session.play(stats.fixedSteps) : session.stop();
-                iterationError = changed ? std::string{} : changed.error().message;
-                if (!changed)
-                    Log::write("iteration", Log::Level::Warning, iterationError);
-                else if (session.playing())
-                    toolInput.reset();
-                else
-                    toolInput = std::make_unique<input::Input>(
-                        *toolMapping, std::pmr::get_default_resource(), stats.fixedSteps);
+            const auto command = [&](const scene::Json& value) -> Result<EditEffect> {
+                const bool wasPlaying = session.playing();
+                auto effect = editor.execute(value, stats.fixedSteps);
+                if (!effect)
+                    Log::write("iteration", Log::Level::Warning, effect.error().message);
+                else {
+                    if (effect->selected) {
+                        m_impl->overlay->selectEntity(*effect->selected);
+                        m_impl->overlay->selectComponent(effect->component);
+                    }
+                    if (wasPlaying != session.playing()) {
+                        if (session.playing())
+                            toolInput.reset();
+                        else
+                            toolInput = std::make_unique<input::Input>(
+                                *toolMapping, std::pmr::get_default_resource(), stats.fixedSteps);
+                    }
+                }
+                return effect;
+            };
+            for (const auto& text : m_impl->overlay->takeCommands())
+                (void)command(scene::Json::parse(text, nullptr, false));
+            while (editorCursor < editorReplay.size() &&
+                   editorReplay[editorCursor].step <= stats.fixedSteps) {
+                const auto& entry = editorReplay[editorCursor++];
+                if (entry.step != stats.fixedSteps)
+                    return tl::unexpected(
+                        Error{ErrorCode::InvalidState, "Editor replay step was missed"});
+                auto effect = command(entry.command);
+                const bool expected =
+                    entry.errorContains.empty()
+                        ? bool(effect)
+                        : !effect &&
+                              effect.error().message.find(entry.errorContains) != std::string::npos;
+                if (!expected)
+                    return tl::unexpected(Error{
+                        ErrorCode::InvalidState,
+                        "Editor replay expectation failed: " +
+                            (effect ? std::string("unexpected success") : effect.error().message)});
+                if (options.iterationReport) {
+                    auto canonical = scene::serialize(*m_impl->world, codecs);
+                    if (!canonical)
+                        return tl::unexpected(canonical.error());
+                    report["events"].push_back({{"step", entry.step},
+                                                {"command", entry.command},
+                                                {"accepted", bool(effect)},
+                                                {"error", effect ? "" : effect.error().message},
+                                                {"playing", session.playing()},
+                                                {"dirty", editor.dirty()},
+                                                {"canonical", std::move(*canonical)}});
+                }
             }
             if (session.playing()) {
 #endif
@@ -362,17 +454,19 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
         }
         const SceneView* view = nullptr;
 #if defined(SOMNIUM_ENABLE_ITERATION)
-        const SceneView toolView{m_impl->overlay->toolPose(), m_impl->overlay->toolLens()};
-        if (!session.playing())
-            view = &toolView;
+        std::optional<SceneView> toolView;
+        if (!session.playing()) {
+            toolView.emplace(m_impl->overlay->toolPose(), m_impl->overlay->toolLens());
+            view = &*toolView;
+        }
 #endif
         auto extracted = m_impl->scene->extract(
             *m_impl->world, frozen || view ? 1.F : static_cast<float>(batch->alpha), *size, view);
         if (!extracted)
             return tl::unexpected(extracted.error());
         const auto& sceneFrame = m_impl->scene->frame();
-        // The first frozen frame primes the UI. On the next frame both the scene
-        // and the UI were built from the exact requested fixed-step state.
+        // Frozen frames prime the UI from the exact requested fixed-step state.
+        // Iteration also lets a selection's deferred hierarchy scroll take effect.
         const bool capture = options.captureFrame && captureReady;
         if (capture) {
             gpu::TextureKind kind{};
@@ -437,9 +531,16 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
                 return tl::unexpected(released.error());
         }
         if (frozen && !captureReady) {
-            captureReady = true;
-            Log::write("runtime", Log::Level::Info, "CAPTURE_READY steps={}", stats.fixedSteps);
-            Log::flush();
+            std::uint32_t requiredFrames = 1;
+#if defined(SOMNIUM_ENABLE_ITERATION)
+            if (!session.playing())
+                requiredFrames = 2;
+#endif
+            captureReady = ++frozenFrames >= requiredFrames;
+            if (captureReady) {
+                Log::write("runtime", Log::Level::Info, "CAPTURE_READY steps={}", stats.fixedSteps);
+                Log::flush();
+            }
         }
         if (firstModelFrame && !sceneFrame.draws.empty()) {
             Log::write("runtime", Log::Level::Info, "First model frame presented");
@@ -452,6 +553,18 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
     }
     if (options.captureFrame && !stats.capture)
         return tl::unexpected(Error{ErrorCode::InvalidState, "Session ended before frame capture"});
+#if defined(SOMNIUM_ENABLE_ITERATION)
+    if (options.iterationReport) {
+        auto canonical = scene::serialize(*m_impl->world, codecs);
+        if (!canonical)
+            return tl::unexpected(canonical.error());
+        report["final"] = std::move(*canonical);
+        report["playing"] = session.playing();
+        report["dirty"] = editor.dirty();
+        report["steps"] = stats.fixedSteps;
+        stats.editorReport = report.dump(2) + "\n";
+    }
+#endif
     return stats;
 }
 } // namespace somnium::runtime
