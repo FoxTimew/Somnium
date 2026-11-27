@@ -1,0 +1,175 @@
+{
+  "origin": "CI Windows",
+  "backend": "direct3d12",
+  "source_commit": "740467076a4b3865ec1ac5a2eb42692a5f608628",
+  "source_dirty": false,
+  "binary_sha256": "ec7a0c05a649ea35d027f2160dcae76c708e07ba47a888bb6ded52e3225a3887",
+  "replay_sha256": "b8f111dc75b965cb5dede93b52526d9d1eaac634916f25a01c507186f563c732",
+  "scenario_sha256": "b1831132351bbfae35de6d192f1d90f1bd81d9f88d2e3d1cf52b4076f31fdc35",
+  "input_source": "platform fixed-step replay (no OS input)",
+  "capture_source": "engine-composed-frame (scene + UI, swapchain extent)",
+  "status": "validé",
+  "captures": [
+    {
+      "name": "initial.png",
+      "steps": 1,
+      "width": 1280,
+      "height": 720,
+      "metadata": {
+        "debug_ui": true,
+        "encoding": "sRGB",
+        "format": "RGBA8",
+        "height": 720,
+        "source": "engine-composed-frame",
+        "steps": 1,
+        "version": 1,
+        "width": 1280
+      },
+      "ui_probes": [
+        {
+          "name": "inspector",
+          "pixels": 2537
+        },
+        {
+          "name": "diagnostics",
+          "pixels": 1768
+        }
+      ],
+      "sha256": "f28cac2bf7b4c34affcf632b4c9ab09d5262c78d04c9d613487c57d4356142db"
+    },
+    {
+      "name": "movement.png",
+      "steps": 45,
+      "width": 1280,
+      "height": 720,
+      "metadata": {
+        "debug_ui": true,
+        "encoding": "sRGB",
+        "format": "RGBA8",
+        "height": 720,
+        "source": "engine-composed-frame",
+        "steps": 45,
+        "version": 1,
+        "width": 1280
+      },
+      "ui_probes": [
+        {
+          "name": "inspector",
+          "pixels": 2542
+        },
+        {
+          "name": "diagnostics",
+          "pixels": 1751
+        }
+      ],
+      "sha256": "7ea98be90691f9c08fbbffd8c952a062ca7db123d0eb9dc9a24dae4c460c1f9e"
+    },
+    {
+      "name": "wall.png",
+      "steps": 205,
+      "width": 1280,
+      "height": 720,
+      "metadata": {
+        "debug_ui": true,
+        "encoding": "sRGB",
+        "format": "RGBA8",
+        "height": 720,
+        "source": "engine-composed-frame",
+        "steps": 205,
+        "version": 1,
+        "width": 1280
+      },
+      "ui_probes": [
+        {
+          "name": "inspector",
+          "pixels": 2581
+        },
+        {
+          "name": "diagnostics",
+          "pixels": 1769
+        }
+      ],
+      "sha256": "b7196ffe1797065a7480efa0bbcbfc4b998021af5a071affc96c606f4ec6dc1d"
+    },
+    {
+      "name": "door-open.png",
+      "steps": 345,
+      "width": 1280,
+      "height": 720,
+      "metadata": {
+        "debug_ui": true,
+        "encoding": "sRGB",
+        "format": "RGBA8",
+        "height": 720,
+        "source": "engine-composed-frame",
+        "steps": 345,
+        "version": 1,
+        "width": 1280
+      },
+      "ui_probes": [
+        {
+          "name": "inspector",
+          "pixels": 2560
+        },
+        {
+          "name": "diagnostics",
+          "pixels": 1778
+        }
+      ],
+      "sha256": "9cfd4e371370e3000b3fea439a198df9ed1c3d8547d101adafeb1f0c78445cb2"
+    },
+    {
+      "name": "inspector.png",
+      "steps": 415,
+      "width": 1280,
+      "height": 720,
+      "metadata": {
+        "debug_ui": true,
+        "encoding": "sRGB",
+        "format": "RGBA8",
+        "height": 720,
+        "source": "engine-composed-frame",
+        "steps": 415,
+        "version": 1,
+        "width": 1280
+      },
+      "ui_probes": [
+        {
+          "name": "inspector",
+          "pixels": 2569
+        },
+        {
+          "name": "diagnostics",
+          "pixels": 1779
+        }
+      ],
+      "sha256": "4a53f5b52bef457e46277fce6d73201dec133c1362114030778c6c90d1602cca"
+    }
+  ],
+  "comparisons": [
+    {
+      "a": "initial",
+      "b": "movement",
+      "minimum": 1000,
+      "different_pixels": 145414
+    },
+    {
+      "a": "movement",
+      "b": "wall",
+      "minimum": 1000,
+      "different_pixels": 188737
+    },
+    {
+      "a": "wall",
+      "b": "door-open",
+      "minimum": 1000,
+      "different_pixels": 131360
+    },
+    {
+      "a": "door-open",
+      "b": "inspector",
+      "minimum": 1000,
+      "different_pixels": 108349
+    }
+  ]
+}

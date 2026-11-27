@@ -4,6 +4,7 @@
 
 #include <somnium/core/input_event.hpp>
 #include <somnium/core/result.hpp>
+#include <somnium/platform/input_replay.hpp>
 
 #include <cstdint>
 #include <memory>
@@ -37,6 +38,9 @@ class Platform final {
     Platform(const Platform&) = delete;
     Platform& operator=(const Platform&) = delete;
     [[nodiscard]] Events pollEvents(std::uint64_t nextStep = 0);
+    void setReplay(InputReplay replay);
+    [[nodiscard]] bool replaying() const;
+    [[nodiscard]] Result<std::span<const core::InputEvent>> replayEvents(std::uint64_t step);
     [[nodiscard]] Result<void> requestQuit();
     // Waits for events only while presentation has no drawable; does not consume the event.
     [[nodiscard]] Result<void> waitEvents() const;

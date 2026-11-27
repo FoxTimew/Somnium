@@ -1,0 +1,15 @@
+[composition-metal] /Users/runner/somnium-ci/runs/45794898319-1/build/debug/bin/somnium_gpu_capabilities metal /Users/runner/somnium-ci/runs/45794898319-1/composition-metal.json
+2026-11-26 10:03:47.459 somnium_gpu_capabilities[61421:101532] App name: somnium_gpu_capabilities
+2026-11-26 10:03:47.459 somnium_gpu_capabilities[61421:101532] App version: <unspecified>
+2026-11-26 10:03:47.459 somnium_gpu_capabilities[61421:101532] App ID: <unspecified>
+2026-11-26 10:03:47.459 somnium_gpu_capabilities[61421:101532] SDL revision: SDL-3.4.18-HEAD-HASH-NOTFOUND
+2026-11-26 10:03:47.563 somnium_gpu_capabilities[61421:101532] SDL chose video backend 'cocoa'
+2026-11-26 10:03:47.676 somnium_gpu_capabilities[61421:101532] Couldn't load libusb
+2026-11-26 10:03:47.725 somnium_gpu_capabilities[61421:101532] SDL chose gpu backend 'metal'
+2026-11-26 10:03:47.726 somnium_gpu_capabilities[61421:101532] SDL_GPU Driver: Metal
+2026-11-26 10:03:47.727 somnium_gpu_capabilities[61421:101532] Metal Device: Apple Paravirtual device
+2026-11-26 10:03:47.744 somnium_gpu_capabilities[61421:101532] SDL chose gpu backend 'metal'
+2026-11-26 10:03:47.748 somnium_gpu_capabilities[61421:101532] SDL_GPU Driver: Metal
+2026-11-26 10:03:47.748 somnium_gpu_capabilities[61421:101532] Metal Device: Apple Paravirtual device
+COMPOSITION_PROBE_COMPLETE: SDR_LINEAR=1
+composition-metal: OK — 0.935 s — `/Users/runner/somnium-ci/runs/45794898319-1/logs/composition-metal.log`

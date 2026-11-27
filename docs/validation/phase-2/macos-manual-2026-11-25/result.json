@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-25",
+  "repository": "FoxTimew/Somnium",
+  "branch": "main",
+  "commit": "bf0976aded532668946ad71b92847ff8ca7b3a2c",
+  "workflow": "macos-manual.yml",
+  "event": "workflow_dispatch",
+  "run_id": 45630158935,
+  "url": "https://github.com/FoxTimew/Somnium/actions/runs/45630158935",
+  "conclusion": "failure",
+  "required": false,
+  "dispatch_count": 1,
+  "jobs": [
+    {
+      "id": 139260877123,
+      "label": "macos-latest",
+      "host": "macOS-26.7.2-arm64-arm-64bit",
+      "xcode": "26.6",
+      "conclusion": "failure",
+      "excerpt": "macos-latest.txt"
+    },
+    {
+      "id": 139260877423,
+      "label": "macos-15",
+      "host": "macOS-15.8.2-arm64-arm-64bit",
+      "xcode": "16.4",
+      "conclusion": "failure",
+      "excerpt": "macos-15.txt"
+    }
+  ],
+  "failure": {
+    "test": "InfrastructureTests.test_retention_preserves_current_unowned_recent_and_cache",
+    "file": "tools/ci/test_ci.py",
+    "line": 82,
+    "message": "AssertionError: False is not true",
+    "tests_run": 7,
+    "failures": 1
+  },
+  "completed_checks": [
+    "provisioning",
+    "versions",
+    "format",
+    "architecture"
+  ],
+  "not_reached": [
+    "shader toolchain bootstrap",
+    "engine build",
+    "engine tests",
+    "GPU device probe",
+    "D5",
+    "cube",
+    "Metal presentation"
+  ],
+  "metal": "non valide",
+  "diagnosis": "Probable comparaison entre chemin resolu et chemin temporaire non resolu dans clean_runs ; hypothese non reproduite separement.",
+  "followup": "Normaliser current puis verifier le cas des chemins aliases avant un prochain lancement macOS autorise."
+}

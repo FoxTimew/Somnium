@@ -1,0 +1,503 @@
+{
+  "backend": "vulkan",
+  "test": "cube",
+  "status": "valid\u00e9",
+  "binary_sha256": "b3f14af6d309820a421544ff0cb1daa2dd179c7f7761583144975b7e32bec1c4",
+  "source_commit": "740467076a4b3865ec1ac5a2eb42692a5f608628",
+  "ci_run": "45795328234",
+  "shader_manifests": {
+    "modelVertex.vsMain.vert.json": "a4c561b351dc9243d1c939bef5151664c79e04d07b4e4c0f7c4d227379d3b0cb",
+    "modelFragment.psMain.frag.json": "28212311aaef424fdbce9000610115cc9799170b8a098e51ece8c052e3fb0dbf"
+  },
+  "scene_sha256": "ea4c2cbe36bf1484008ca25a14eb118369a5f383cf4880518618de628c172260",
+  "fixture_sha256": "6cd95ff987472a80dc3fe0a49ed7920aeea04b1cbc48cc1facd3cef7d1efb305",
+  "exit_code": 0,
+  "image_sha256": "dedd7662f51f2b6baeee2fa3f41c1d1e3a2cedfd6eb7d0c1a3b657a40be22af5",
+  "probes": [
+    {
+      "name": "background",
+      "x": 10,
+      "y": 10,
+      "face": "background",
+      "rgba": [
+        32,
+        48,
+        64,
+        255
+      ],
+      "actual": [
+        32,
+        48,
+        64,
+        255
+      ]
+    },
+    {
+      "name": "front_srgb",
+      "x": 54,
+      "y": 123,
+      "face": "front",
+      "rgba": [
+        83,
+        176,
+        64,
+        255
+      ],
+      "actual": [
+        83,
+        176,
+        64,
+        255
+      ]
+    },
+    {
+      "name": "right_lambert_zero",
+      "x": 146,
+      "y": 118,
+      "face": "right",
+      "rgba": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "actual": [
+        0,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "top_lambert_zero",
+      "x": 96,
+      "y": 56,
+      "face": "top",
+      "rgba": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "actual": [
+        0,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "occluded_late_draw",
+      "x": 124,
+      "y": 78,
+      "face": "right",
+      "rgba": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "actual": [
+        0,
+        0,
+        0,
+        255
+      ]
+    }
+  ],
+  "comparison": {
+    "passed": true,
+    "exact_probes": true,
+    "different_pixels": 0,
+    "different_fraction": 0.0,
+    "max_channel_error": 0,
+    "probes": [
+      {
+        "name": "background",
+        "x": 10,
+        "y": 10,
+        "face": "background",
+        "rgba": [
+          32,
+          48,
+          64,
+          255
+        ],
+        "actual": [
+          32,
+          48,
+          64,
+          255
+        ]
+      },
+      {
+        "name": "front_srgb",
+        "x": 54,
+        "y": 123,
+        "face": "front",
+        "rgba": [
+          83,
+          176,
+          64,
+          255
+        ],
+        "actual": [
+          83,
+          176,
+          64,
+          255
+        ]
+      },
+      {
+        "name": "right_lambert_zero",
+        "x": 146,
+        "y": 118,
+        "face": "right",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "top_lambert_zero",
+        "x": 96,
+        "y": 56,
+        "face": "top",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "occluded_late_draw",
+        "x": 124,
+        "y": 78,
+        "face": "right",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      }
+    ],
+    "reference_probes": [
+      {
+        "name": "background",
+        "x": 10,
+        "y": 10,
+        "face": "background",
+        "rgba": [
+          32,
+          48,
+          64,
+          255
+        ],
+        "actual": [
+          32,
+          48,
+          64,
+          255
+        ]
+      },
+      {
+        "name": "front_srgb",
+        "x": 54,
+        "y": 123,
+        "face": "front",
+        "rgba": [
+          83,
+          176,
+          64,
+          255
+        ],
+        "actual": [
+          83,
+          176,
+          64,
+          255
+        ]
+      },
+      {
+        "name": "right_lambert_zero",
+        "x": 146,
+        "y": 118,
+        "face": "right",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "top_lambert_zero",
+        "x": 96,
+        "y": 56,
+        "face": "top",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "occluded_late_draw",
+        "x": 124,
+        "y": 78,
+        "face": "right",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      }
+    ]
+  },
+  "mirrored_comparison": {
+    "passed": true,
+    "exact_probes": true,
+    "different_pixels": 0,
+    "different_fraction": 0.0,
+    "max_channel_error": 0,
+    "probes": [
+      {
+        "name": "background",
+        "x": 10,
+        "y": 10,
+        "face": "background",
+        "rgba": [
+          32,
+          48,
+          64,
+          255
+        ],
+        "actual": [
+          32,
+          48,
+          64,
+          255
+        ]
+      },
+      {
+        "name": "front_srgb",
+        "x": 54,
+        "y": 123,
+        "face": "front",
+        "rgba": [
+          83,
+          176,
+          64,
+          255
+        ],
+        "actual": [
+          83,
+          176,
+          64,
+          255
+        ]
+      },
+      {
+        "name": "right_lambert_zero",
+        "x": 146,
+        "y": 118,
+        "face": "right",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "top_lambert_zero",
+        "x": 96,
+        "y": 56,
+        "face": "top",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "occluded_late_draw",
+        "x": 124,
+        "y": 78,
+        "face": "right",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      }
+    ],
+    "reference_probes": [
+      {
+        "name": "background",
+        "x": 10,
+        "y": 10,
+        "face": "background",
+        "rgba": [
+          32,
+          48,
+          64,
+          255
+        ],
+        "actual": [
+          32,
+          48,
+          64,
+          255
+        ]
+      },
+      {
+        "name": "front_srgb",
+        "x": 54,
+        "y": 123,
+        "face": "front",
+        "rgba": [
+          83,
+          176,
+          64,
+          255
+        ],
+        "actual": [
+          83,
+          176,
+          64,
+          255
+        ]
+      },
+      {
+        "name": "right_lambert_zero",
+        "x": 146,
+        "y": 118,
+        "face": "right",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "top_lambert_zero",
+        "x": 96,
+        "y": 56,
+        "face": "top",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "occluded_late_draw",
+        "x": 124,
+        "y": 78,
+        "face": "right",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      }
+    ]
+  },
+  "mirrored_image_sha256": "dedd7662f51f2b6baeee2fa3f41c1d1e3a2cedfd6eb7d0c1a3b657a40be22af5",
+  "capture_complete": true,
+  "device": {
+    "backend": "vulkan",
+    "debug": true,
+    "device": "AMD Radeon RX 6600M",
+    "draw_calls": 14,
+    "driver_version": "2.0.353",
+    "output_encoding": "shader sRGB into RGBA8 UNORM",
+    "resource_checks": "passed"
+  },
+  "validation_enabled": true,
+  "reason": "Image, exact witnesses, resource lifetime and validation passed"
+}

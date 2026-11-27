@@ -1,0 +1,8 @@
+{
+  "run": 45794898319,
+  "job": 139822930203,
+  "url": "https://github.com/FoxTimew/Somnium/actions/runs/45794898319/job/139822930203",
+  "head_sha": "dd376fabe0bc048aa27a9c23e07df5db2828109c",
+  "conclusion": "success",
+  "archive": "Selected decoded job logs; PNG bytes decoded from bounded log records and checked by SHA-256."
+}

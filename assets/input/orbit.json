@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "actions": [
+    {
+      "name": "Orbit",
+      "bindings": [
+        {
+          "source": "mouseButton",
+          "control": "Right"
+        }
+      ]
+    },
+    {
+      "name": "Reset",
+      "bindings": [
+        {
+          "source": "key",
+          "control": "R"
+        },
+        {
+          "source": "gamepadButton",
+          "control": "South"
+        }
+      ]
+    }
+  ],
+  "axes": [
+    {
+      "name": "MouseYaw",
+      "mode": "delta",
+      "bindings": [
+        {
+          "source": "mouseX",
+          "scale": 0.01,
+          "held": "Orbit"
+        }
+      ]
+    },
+    {
+      "name": "MousePitch",
+      "mode": "delta",
+      "bindings": [
+        {
+          "source": "mouseY",
+          "scale": 0.01,
+          "held": "Orbit"
+        }
+      ]
+    },
+    {
+      "name": "WheelZoom",
+      "mode": "delta",
+      "bindings": [
+        {
+          "source": "wheelY",
+          "scale": 0.2
+        }
+      ]
+    },
+    {
+      "name": "StickYaw",
+      "mode": "rate",
+      "bindings": [
+        {
+          "source": "gamepadAxis",
+          "scale": 1,
+          "control": "RightX",
+          "deadzone": 0.15
+        }
+      ]
+    },
+    {
+      "name": "StickPitch",
+      "mode": "rate",
+      "bindings": [
+        {
+          "source": "gamepadAxis",
+          "scale": 1,
+          "control": "RightY",
+          "deadzone": 0.15
+        }
+      ]
+    },
+    {
+      "name": "TriggerZoom",
+      "mode": "rate",
+      "bindings": [
+        {
+          "source": "gamepadAxis",
+          "control": "RightTrigger"
+        },
+        {
+          "source": "gamepadAxis",
+          "control": "LeftTrigger",
+          "invert": true
+        }
+      ]
+    }
+  ]
+}

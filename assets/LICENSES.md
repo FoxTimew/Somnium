@@ -11,3 +11,10 @@ Le GLB contient les buffers et le PNG ; aucun téléchargement n'est requis.
 Le modèle source est versionné sous LFS et lu directement depuis cette racine
 en développement. Il n'est pas copié dans le build par CMake. Le conditionnement
 automatique et les formats cuits relèvent de la phase 4.
+
+`models/courtyard-{ground,wall,door,character}.glb` : créations originales Somnium,
+2026, dédiées au domaine public sous CC0 1.0. Boîtes, personnage non animé et
+texture damier sont construits par `tools/assets/generate_sandbox.py` ; aucune
+source tierce. `--verify` contrôle les octets ; seule l’option explicite
+`--confirm-regeneration` réécrit ces modèles. La scène `scenes/courtyard.json`
+les instancie ; ses dimensions et colliders sont exprimés en mètres.

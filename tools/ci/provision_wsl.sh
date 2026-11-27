@@ -14,7 +14,7 @@ if [[ $EUID == 0 ]]; then
     apt-get install -y python3
     version=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["llvm_deb"])' "$here/toolchain.json")
     apt-get install -y "clang-18=$version" "clang-tidy-18=$version" build-essential libstdc++-13-dev \
-        python3 ca-certificates curl git xz-utils xvfb xauth xdotool imagemagick mesa-vulkan-drivers vulkan-tools \
+        python3 ca-certificates curl git xz-utils xvfb xauth mesa-vulkan-drivers vulkan-tools \
         libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxfixes-dev libxss-dev libxtst-dev \
         libxkbcommon-dev libegl1-mesa-dev libgl1-mesa-dev libasound2-dev libpulse-dev libudev-dev
     echo 'System packages installed. Now run this script without sudo as the runner user (foxti on this host).'

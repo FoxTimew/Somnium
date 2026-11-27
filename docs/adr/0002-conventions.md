@@ -41,9 +41,9 @@ utilisant GLM, y compris gameplay et tests. Aucun fichier ne les redéfinit.
 pas une injection de flags incompatibles dans toutes les dépendances.
 
 Les unités n'effectuent pas de conversion de repère à l'import glTF. Les angles
-d'API internes sont en radians. Le schéma JSON/UI annoncera explicitement son
-unité d'Euler ; aucune convention d'ordre Euler implicite ne sera ajoutée avant
-l'ADR-0007.
+d'API internes sont en radians. L'ADR-0007 accepté fixe la frontière JSON/UI :
+Euler en degrés, rotations extrinsèques X puis Y puis Z, donc `Rz × Ry × Rx`.
+L'aller-retour conserve la rotation, pas nécessairement le triplet Euler aux singularités.
 
 Les layouts GPU ne reposent pas sur le padding implicite d'une struct C++ :
 tailles, offsets et alignements sont contrôlés pour chaque bloc de transfert.

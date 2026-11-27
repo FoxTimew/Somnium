@@ -26,6 +26,8 @@ D2 et D5 ; détails dans [GPU_VALIDATION.md](../GPU_VALIDATION.md).
   seulement sans texture acquise ; **après acquisition, toujours soumettre**,
   y compris sur fermeture/erreur. `renderOffscreen` compose la même API sans
   swapchain. Uploads moteur avant la frame ; uploads ImGui avant les passes.
+  Capture explicite : cible possédée de même format/extent, scène puis UI,
+  copie vers swapchain avant soumission, relecture avec fence après soumission.
 - **Ressources.** Handles générationnels détenus par le device. Destruction
   pendant l'enregistrement : invalidation immédiate, `SDL_ReleaseGPU*` différé
   jusqu'à soumission/annulation ; SDL diffère ensuite la libération native jusqu'à
@@ -54,8 +56,8 @@ Wait-idle par frame : parallélisme perdu. WARP natif : frontière SDL contourn�
 
 ## Conséquences
 
-Les tests de handles vérifient l'invalidation et la libération différée. D5 passe
-sur lavapipe, WARP et Metal/macOS 15 avec validation. Présentation et captures
+Les tests de handles vérifient l'invalidation et la libération différée. D5 a passé
+sur lavapipe, WARP et Metal/macOS 15 en phase 1 ; CI actuelle dans ADR-0006. Présentation et captures
 restent une preuve séparée ; absence de device/couche : « non validé » explicite.
 
-Preuves : aucune restante pour cette décision ; capture Metal CI acceptée comme substitut local le 21 octobre 2026.
+Preuves : invalidation, libération différée, copie et relecture de la frame composée validées sur les trois backends ; capture Metal CI acceptée comme substitut local, pièces dans le bilan de phase 3.

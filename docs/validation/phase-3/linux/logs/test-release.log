@@ -1,0 +1,56 @@
+Internal ctest changing into directory: /home/foxti/somnium-ci/runs/45682666750-1/build/release
+Test project /home/foxti/somnium-ci/runs/45682666750-1/build/release
+      Start  1: somnium_core_tests
+ 1/23 Test  #1: somnium_core_tests ...............   Passed    0.00 sec
+      Start  2: somnium_log_output
+ 2/23 Test  #2: somnium_log_output ...............   Passed    0.02 sec
+      Start  3: somnium_platform_tests
+ 3/23 Test  #3: somnium_platform_tests ...........   Passed    0.00 sec
+      Start  4: somnium_gpu_tests
+ 4/23 Test  #4: somnium_gpu_tests ................   Passed    0.00 sec
+      Start  5: somnium_gpu_comparison_tests
+ 5/23 Test  #5: somnium_gpu_comparison_tests .....   Passed    0.09 sec
+      Start  6: somnium_renderer_tests
+ 6/23 Test  #6: somnium_renderer_tests ...........   Passed    0.00 sec
+      Start  7: somnium_assets_tests
+ 7/23 Test  #7: somnium_assets_tests .............   Passed    0.00 sec
+      Start  8: somnium_assets_warning
+ 8/23 Test  #8: somnium_assets_warning ...........   Passed    0.02 sec
+      Start  9: somnium_scene_tests
+ 9/23 Test  #9: somnium_scene_tests ..............   Passed    0.00 sec
+      Start 10: somnium_scene_structure_guard
+10/23 Test #10: somnium_scene_structure_guard ....   Passed    0.03 sec
+      Start 11: somnium_input_tests
+11/23 Test #11: somnium_input_tests ..............   Passed    0.00 sec
+      Start 12: somnium_debug_ui_tests
+12/23 Test #12: somnium_debug_ui_tests ...........   Passed    0.00 sec
+      Start 13: somnium_runtime_tests
+13/23 Test #13: somnium_runtime_tests ............   Passed    0.00 sec
+      Start 14: somnium_scene_extraction_tests
+14/23 Test #14: somnium_scene_extraction_tests ...   Passed    0.00 sec
+      Start 15: somnium_cube_reference_tests
+15/23 Test #15: somnium_cube_reference_tests .....   Passed    0.82 sec
+      Start 16: somnium_scene_reference_tests
+16/23 Test #16: somnium_scene_reference_tests ....   Passed    1.12 sec
+      Start 17: somnium_game_tests
+17/23 Test #17: somnium_game_tests ...............   Passed    0.00 sec
+      Start 18: somnium_game_scene_tests
+18/23 Test #18: somnium_game_scene_tests .........   Passed    0.00 sec
+      Start 19: somnium_window_smoke
+19/23 Test #19: somnium_window_smoke .............   Passed    0.26 sec
+      Start 20: somnium_shader_build_tests
+20/23 Test #20: somnium_shader_build_tests .......   Passed    3.42 sec
+      Start 21: somnium_dependency_tests
+21/23 Test #21: somnium_dependency_tests .........   Passed    0.00 sec
+      Start 22: somnium_architecture
+22/23 Test #22: somnium_architecture .............   Passed    0.04 sec
+      Start 23: somnium_architecture_rules
+23/23 Test #23: somnium_architecture_rules .......   Passed    0.79 sec
+
+100% tests passed, 0 tests failed out of 23
+
+Label Time Summary:
+shaders    =   3.42 sec*proc (1 test)
+window     =   0.26 sec*proc (1 test)
+
+Total Test time (real) =   6.65 sec

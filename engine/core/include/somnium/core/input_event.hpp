@@ -2,10 +2,11 @@
 // step is the next simulation tick at collection; motion is pixels, wheel is scroll units.
 #pragma once
 
+#include <somnium/core/keys.hpp>
+
 #include <cstdint>
 
 namespace somnium::core {
-enum class Key : std::uint8_t { Unknown, R, Escape, Space, Left, Right, Up, Down };
 enum class MouseButton : std::uint8_t { Unknown, Left, Middle, Right, Extra1, Extra2 };
 enum class GamepadButton : std::uint8_t {
     Unknown,

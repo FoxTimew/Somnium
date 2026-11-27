@@ -31,7 +31,15 @@ using Pipeline = Handle<struct PipelineTag>;
 enum class Backend : std::uint8_t { Vulkan, D3D12, Metal };
 enum class ShaderFormat : std::uint8_t { Spirv, Dxil, Msl };
 enum class ShaderStage : std::uint8_t { Vertex, Fragment };
-enum class TextureKind : std::uint8_t { SampledRgba8, SampledRgba8Srgb, ColorRgba8, Depth32 };
+enum class TextureKind : std::uint8_t {
+    SampledRgba8,
+    SampledRgba8Srgb,
+    ColorRgba8,
+    Depth32,
+    ColorBgra8,
+    ColorRgba8Srgb,
+    ColorBgra8Srgb
+};
 enum class IndexFormat : std::uint8_t { Uint16, Uint32 };
 enum class Filter : std::uint8_t { Nearest, Linear };
 enum class AddressMode : std::uint8_t { Repeat, Clamp };
@@ -137,7 +145,8 @@ struct Draw {
     std::int32_t baseVertex = 0;
 };
 struct RenderPass {
-    // An empty color handle selects the acquired swapchain; empty depth disables depth.
+    // Empty color selects the frame's presentation target (normally the swapchain).
+    // Empty depth disables depth.
     Texture color;
     Texture depth;
     std::array<float, 4> clearColor;
@@ -166,6 +175,10 @@ class Device final {
     [[nodiscard]] Result<void> beginFrame();
     // Blocking VSYNC acquisition. A zero extent means no drawable (e.g. minimized).
     [[nodiscard]] Result<FrameSize> acquireSwapchain();
+    // Tools may compose into an owned texture matching the acquired swapchain's extent/format.
+    // Selection lasts for this frame and also applies to private cooperation render passes.
+    [[nodiscard]] Result<void> setPresentationTarget(Texture texture);
+    [[nodiscard]] Result<void> copyToSwapchain(Texture texture);
     [[nodiscard]] Result<void> recordPass(const RenderPass& pass, std::span<const Draw> draws);
     [[nodiscard]] Result<void> submitFrame();
     // Cancels offscreen recording; an acquired swapchain always forces submission.
@@ -175,7 +188,8 @@ class Device final {
     [[nodiscard]] Result<void> upload(Texture texture, std::span<const std::byte> rgba);
     // Convenience wrapper over beginFrame/recordPass/submitFrame, without presentation.
     [[nodiscard]] Result<void> renderOffscreen(const RenderPass& pass, std::span<const Draw> draws);
-    // Explicit blocking readback for tests/tools, never an implicit per-frame wait.
+    // Explicit blocking readback, tightly packed RGBA8 (sRGB bytes remain encoded).
+    // Tests/tools only, never an implicit per-frame wait.
     [[nodiscard]] Result<std::vector<std::byte>> readback(Texture texture);
     [[nodiscard]] Result<void> destroy(Buffer handle);
     [[nodiscard]] Result<void> destroy(Texture handle);

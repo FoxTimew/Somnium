@@ -1,0 +1,32 @@
+Source : journal original du job GitHub ; extraits sans modification des diagnostics.
+Run : https://github.com/FoxTimew/Somnium/actions/runs/45630158935
+Job : 139260877123 (macos-latest)
+
+2026-11-25T14:05:08.4227600Z Xcode 26.6
+2026-11-25T14:05:08.7588060Z Host: macOS-26.7.2-arm64-arm-64bit; free disk: 95 GiB
+
+2026-11-25T14:05:10.1466550Z FAIL: test_retention_preserves_current_unowned_recent_and_cache (__main__.InfrastructureTests.test_retention_preserves_current_unowned_recent_and_cache)
+2026-11-25T14:05:10.1468500Z ----------------------------------------------------------------------
+2026-11-25T14:05:10.1469560Z Traceback (most recent call last):
+2026-11-25T14:05:10.1471170Z   File "/Users/runner/work/Somnium/Somnium/tools/ci/test_ci.py", line 82, in test_retention_preserves_current_unowned_recent_and_cache
+2026-11-25T14:05:10.1474780Z     self.assertTrue(path.exists())
+2026-11-25T14:05:10.1475780Z AssertionError: False is not true
+2026-11-25T14:05:10.1476300Z ----------------------------------------------------------------------
+2026-11-25T14:05:10.1476650Z Ran 7 tests in 0.009s
+2026-11-25T14:05:10.1476910Z FAILED (failures=1)
+2026-11-25T14:05:10.1580100Z ci-contract: FAILED — 0.234 s — `/Users/runner/somnium-ci/runs/45630158935-1/logs/ci-contract.log`
+2026-11-25T14:05:10.4092780Z **failure**: pipeline. Evidence retained locally: `/Users/runner/somnium-ci/runs/45630158935-1`
+2026-11-25T14:05:10.4105990Z Traceback (most recent call last):
+2026-11-25T14:05:10.4106800Z   File "/Users/runner/work/Somnium/Somnium/tools/ci/run.py", line 381, in <module>
+2026-11-25T14:05:10.4107730Z     main()
+2026-11-25T14:05:10.4108040Z   File "/Users/runner/work/Somnium/Somnium/tools/ci/run.py", line 369, in main
+2026-11-25T14:05:10.4108470Z     getattr(runner, args.operation.replace("-", "_"))()
+2026-11-25T14:05:10.4108860Z   File "/Users/runner/work/Somnium/Somnium/tools/ci/run.py", line 314, in pipeline
+2026-11-25T14:05:10.4109250Z     self.format()
+2026-11-25T14:05:10.4109640Z   File "/Users/runner/work/Somnium/Somnium/tools/ci/run.py", line 199, in format
+2026-11-25T14:05:10.4110110Z     self.py("ci-contract", "tools/ci/test_ci.py")
+2026-11-25T14:05:10.4110470Z   File "/Users/runner/work/Somnium/Somnium/tools/ci/run.py", line 147, in py
+2026-11-25T14:05:10.4111000Z     self.call(label, [sys.executable, ROOT / script, *arguments], **kwargs)
+2026-11-25T14:05:10.4111420Z   File "/Users/runner/work/Somnium/Somnium/tools/ci/run.py", line 132, in call
+2026-11-25T14:05:10.4111970Z     raise RuntimeError(f"{label} failed ({status}); log: {logfile}")
+2026-11-25T14:05:10.4112570Z RuntimeError: ci-contract failed (1); log: /Users/runner/somnium-ci/runs/45630158935-1/logs/ci-contract.log

@@ -3,6 +3,7 @@
 Only summaries use GitHub environment variables; no operation requires GitHub.
 """
 import argparse
+import base64
 import contextlib
 import ctypes
 from datetime import datetime, timezone
@@ -55,6 +56,8 @@ def exclusive(path):
 
 def clean_runs(root, current, days):
     runs = (root / "runs").resolve()
+    # Compare physical paths on both sides, including macOS temporary aliases.
+    current = current.resolve()
     if not runs.is_dir():
         return
     cutoff = time.time() - days * 86400
@@ -197,8 +200,7 @@ class Runner:
         self.py("architecture", "tools/check_architecture.py", ROOT)
         self.py("architecture-rules", "tools/test_architecture.py")
         self.py("ci-contract", "tools/ci/test_ci.py")
-        if SYSTEM == "Windows":
-            self.py("capture-focus-contract", "tools/presentation/test_capture_windows.py")
+        self.py("capture-replay-contract", "tools/presentation/test_capture.py")
 
     def compiler_cache(self):
         self.py("compiler-cache-dependencies", "tools/ci/test_compiler_cache.py", "--cmake", self.cmake, "--work", self.run)
@@ -275,7 +277,7 @@ class Runner:
 
     def gpu(self, backend):
         env = self.gpu_environment(backend)
-        for test, executable in [("d5", "somnium_gpu_offscreen"), ("cube", "somnium_renderer_offscreen")]:
+        for test, executable in [("d5", "somnium_gpu_offscreen"), ("cube", "somnium_renderer_offscreen"), ("scene", "somnium_scene_offscreen")]:
             output = self.run / (test + "-" + backend)
             arguments = ["--test", test, "--executable", self.build_dir("debug") / "bin" / (executable + self.suffix),
                          "--backend", backend, "--output", output]
@@ -286,6 +288,18 @@ class Runner:
             if SYSTEM == "Windows" and "6600M" not in report.get("device", {}).get("device", ""):
                 raise RuntimeError("Windows GPU proof did not use Radeon RX 6600M")
             self.summary(f"{test} {backend}: **{report['status']}** — `{output}`")
+            # Hosted macOS disks disappear after the job. Preserve only the three
+            # small scene images in ordinary logs, without an artifact service.
+            if SYSTEM == "Darwin" and test == "scene":
+                for name in ["previous", "actual", "current"]:
+                    path = output / (name + ".png")
+                    if path.exists():
+                        data = path.read_bytes()
+                        if len(data) > 1024 * 1024:
+                            raise RuntimeError("Scene log capture exceeds 1 MiB")
+                        print("SOMNIUM_SCENE_IMAGE " + json.dumps({"name": path.name,
+                              "sha256": hashlib.sha256(data).hexdigest(),
+                              "base64": base64.b64encode(data).decode("ascii")}), flush=True)
         self.call("composition-" + backend, [self.build_dir("debug") / "bin" / ("somnium_gpu_capabilities" + self.suffix), backend,
                   self.run / ("composition-" + backend + ".json")], env=env, window=True)
         log = (self.logs / ("composition-" + backend + ".log")).read_text(encoding="utf-8")
@@ -302,11 +316,20 @@ class Runner:
             (output / "result.json").write_text(json.dumps({"status": "non validé", "reason": "Session 0/service; manual proof required"}), encoding="utf-8")
             self.summary("Presentation: **non validé** (service mode)")
             return
-        script = {"Windows": "capture_windows.py", "Linux": "capture_linux.py", "Darwin": "capture_macos.py"}[SYSTEM]
-        arguments = ["--executable", self.build_dir("debug") / "bin" / ("sandbox" + self.suffix), "--output", output]
-        if SYSTEM == "Windows":
-            arguments += ["--backend", backend]
-        self.py("capture-" + backend, "tools/presentation/" + script, *arguments, env=self.gpu_environment(backend), window=True)
+        arguments = ["--executable", self.build_dir("debug") / "bin" / ("sandbox" + self.suffix),
+                     "--output", output, "--backend", backend]
+        try:
+            self.py("capture-" + backend, "tools/presentation/capture.py", *arguments, env=self.gpu_environment(backend), window=True)
+        finally:
+            # Hosted disks are ephemeral. Retain produced frames even if comparison fails.
+            if SYSTEM == "Darwin":
+                for path in sorted(output.glob("*.png")):
+                    data = path.read_bytes()
+                    if len(data) > 2 * 1024 * 1024:
+                        raise RuntimeError("Presentation log capture exceeds 2 MiB")
+                    print("SOMNIUM_PRESENTATION_IMAGE " + json.dumps({"name": path.name,
+                          "sha256": hashlib.sha256(data).hexdigest(),
+                          "base64": base64.b64encode(data).decode("ascii")}), flush=True)
 
     def pipeline(self):
         # One job per OS: cheap checks first, GPU smoke before four full build variants.
@@ -324,12 +347,9 @@ class Runner:
             self.summary("Metal: **non validé** on this build-only host; the independent macos-15 job probes Metal")
         for backend in backends:
             self.gpu(backend)
-            # Windows capture injects real desktop input; only an explicit manual
-            # operation may invoke it. Xvfb/hosted macOS have isolated sessions.
-            if SYSTEM != "Windows":
-                self.captures(backend)
-        if SYSTEM == "Windows":
-            self.summary("Presentation captures: manual workflow_dispatch job only; window tests and offscreen GPU proofs remain required")
+            # Engine readback is independent of desktop overlap/focus and injects no OS input.
+            # A usable window/swapchain is still required, as for the existing window tests.
+            self.captures(backend)
         if SYSTEM == "Linux":
             self.tidy()
         for preset in ["release", "shipping", "profiling"]:

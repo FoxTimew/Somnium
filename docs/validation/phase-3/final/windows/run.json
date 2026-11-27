@@ -1,0 +1,233 @@
+{
+  "owner": "somnium-ci",
+  "operation": "pipeline",
+  "status": "success",
+  "source": "740467076a4b3865ec1ac5a2eb42692a5f608628",
+  "source_dirty": false,
+  "os": "Windows",
+  "records": [
+    {
+      "step": "version-cmake",
+      "seconds": 0.062,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\version-cmake.log"
+    },
+    {
+      "step": "version-ninja",
+      "seconds": 0.016,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\version-ninja.log"
+    },
+    {
+      "step": "version-format",
+      "seconds": 0.016,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\version-format.log"
+    },
+    {
+      "step": "version-sccache",
+      "seconds": 0.016,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\version-sccache.log"
+    },
+    {
+      "step": "version-lfs",
+      "seconds": 0.296,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\version-lfs.log"
+    },
+    {
+      "step": "format",
+      "seconds": 0.703,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\format.log"
+    },
+    {
+      "step": "architecture",
+      "seconds": 0.125,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\architecture.log"
+    },
+    {
+      "step": "architecture-rules",
+      "seconds": 1.875,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\architecture-rules.log"
+    },
+    {
+      "step": "ci-contract",
+      "seconds": 0.36,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\ci-contract.log"
+    },
+    {
+      "step": "capture-replay-contract",
+      "seconds": 0.203,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\capture-replay-contract.log"
+    },
+    {
+      "step": "sccache-start",
+      "seconds": 0.063,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\sccache-start.log"
+    },
+    {
+      "step": "compiler-cache-dependencies",
+      "seconds": 5.797,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\compiler-cache-dependencies.log"
+    },
+    {
+      "step": "shader-toolchain",
+      "seconds": 0.765,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\shader-toolchain.log"
+    },
+    {
+      "step": "configure-debug",
+      "seconds": 17.625,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\configure-debug.log"
+    },
+    {
+      "step": "build-debug",
+      "seconds": 82.704,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\build-debug.log"
+    },
+    {
+      "step": "test-debug",
+      "seconds": 23.438,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\test-debug.log"
+    },
+    {
+      "step": "d5-direct3d12",
+      "seconds": 1.609,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\d5-direct3d12.log"
+    },
+    {
+      "step": "cube-direct3d12",
+      "seconds": 2.859,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\cube-direct3d12.log"
+    },
+    {
+      "step": "scene-direct3d12",
+      "seconds": 3.359,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\scene-direct3d12.log"
+    },
+    {
+      "step": "composition-direct3d12",
+      "seconds": 1.047,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\composition-direct3d12.log"
+    },
+    {
+      "step": "capture-direct3d12",
+      "seconds": 59.266,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\capture-direct3d12.log"
+    },
+    {
+      "step": "d5-vulkan",
+      "seconds": 1.453,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\d5-vulkan.log"
+    },
+    {
+      "step": "cube-vulkan",
+      "seconds": 2.203,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\cube-vulkan.log"
+    },
+    {
+      "step": "scene-vulkan",
+      "seconds": 2.953,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\scene-vulkan.log"
+    },
+    {
+      "step": "composition-vulkan",
+      "seconds": 1.438,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\composition-vulkan.log"
+    },
+    {
+      "step": "capture-vulkan",
+      "seconds": 62.031,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\capture-vulkan.log"
+    },
+    {
+      "step": "configure-release",
+      "seconds": 20.313,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\configure-release.log"
+    },
+    {
+      "step": "build-release",
+      "seconds": 115.531,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\build-release.log"
+    },
+    {
+      "step": "test-release",
+      "seconds": 22.375,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\test-release.log"
+    },
+    {
+      "step": "configure-shipping",
+      "seconds": 23.875,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\configure-shipping.log"
+    },
+    {
+      "step": "shipping-graph",
+      "seconds": 0.375,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\shipping-graph.log"
+    },
+    {
+      "step": "build-shipping",
+      "seconds": 107.765,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\build-shipping.log"
+    },
+    {
+      "step": "test-shipping",
+      "seconds": 25.703,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\test-shipping.log"
+    },
+    {
+      "step": "configure-profiling",
+      "seconds": 22.594,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\configure-profiling.log"
+    },
+    {
+      "step": "build-profiling",
+      "seconds": 134.062,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\build-profiling.log"
+    },
+    {
+      "step": "test-profiling",
+      "seconds": 22.5,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\test-profiling.log"
+    },
+    {
+      "step": "sccache-statistics",
+      "seconds": 0.047,
+      "exit_code": 0,
+      "log": "C:\\SomniumCI\\runs\\45795328234-1\\logs\\sccache-statistics.log"
+    }
+  ],
+  "finished": "2026-11-26T10:01:12.715174+00:00"
+}

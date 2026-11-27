@@ -27,6 +27,26 @@ int encode(float value) {
 } // namespace
 somnium::Result<void> checkExtensions(somnium::gpu::Device& device,
                                       const somnium::core::ByteReader& shaders) {
+    // Presentation readback must preserve encoding and normalize BGRA channel order.
+    const std::array clear{0.25F, 0.5F, 0.75F, 1.F};
+    for (const auto kind : {TextureKind::ColorRgba8, TextureKind::ColorBgra8,
+                            TextureKind::ColorRgba8Srgb, TextureKind::ColorBgra8Srgb}) {
+        SOMNIUM_TEST_TRY(color, device.createTexture({kind, 7, 3, clear}));
+        if (device.setPresentationTarget(*color) || device.copyToSwapchain(*color))
+            return failed(); // No acquired swapchain.
+        SOMNIUM_TEST_TRY(cleared, device.renderOffscreen({*color, {}, clear}, {}));
+        SOMNIUM_TEST_TRY(pixels, device.readback(*color));
+        const bool srgb =
+            kind == TextureKind::ColorRgba8Srgb || kind == TextureKind::ColorBgra8Srgb;
+        for (std::size_t i = 0; i < pixels->size(); ++i) {
+            const auto expected = srgb && i % 4 != 3
+                                      ? encode(clear[i % 4])
+                                      : static_cast<int>(std::lround(255 * clear[i % 4]));
+            if (std::abs(std::to_integer<int>((*pixels)[i]) - expected) > 1)
+                return failed();
+        }
+        SOMNIUM_TEST_TRY(released, device.destroy(*color));
+    }
     SOMNIUM_TEST_TRY(vs, device.loadShader(shaders, "extensionsVertex.vsMain.vert.json"));
     SOMNIUM_TEST_TRY(ps, device.loadShader(shaders, "extensionsFragment.psMain.frag.json"));
     PipelineDescription description{*vs, *ps};

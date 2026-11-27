@@ -4,13 +4,25 @@
 #include <somnium/runtime/gameplay.hpp>
 
 namespace somnium::game {
+struct OrbitControls {
+    input::ActionId reset;
+    input::AxisId mouseYaw, mousePitch, wheelZoom, stickYaw, stickPitch, triggerZoom;
+    [[nodiscard]] static Result<OrbitControls> resolve(const input::Configuration& mapping);
+};
+struct OrbitState {
+    float yaw = .65F, pitch = .45F, distance = 10.F;
+};
 class OrbitCamera final {
   public:
+    explicit OrbitCamera(OrbitState state = {}) : m_state(state) {}
+    [[nodiscard]] OrbitState state() const {
+        return m_state;
+    }
     void reset();
-    void update(const input::State& input, double seconds);
-    [[nodiscard]] renderer::Camera camera() const;
+    void update(const input::State& input, const OrbitControls& controls, double seconds);
+    [[nodiscard]] Trs pose(glm::vec3 target = glm::vec3(0)) const;
 
   private:
-    float m_yaw = 0.65F, m_pitch = 0.45F, m_distance = 10.F;
+    OrbitState m_state;
 };
 } // namespace somnium::game

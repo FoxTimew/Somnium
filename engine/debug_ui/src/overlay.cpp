@@ -1,6 +1,7 @@
 // Coordinates context ownership, platform events, GPU preparation and overlay drawing.
 // Only integration facades cross module boundaries; native backends stay private.
 #include "frame_times.hpp"
+#include "inspector.hpp"
 #include <imgui.h>
 #include <somnium/core/profile.hpp>
 #include <somnium/debug_ui/overlay.hpp>
@@ -14,6 +15,7 @@ struct Overlay::Impl {
     std::unique_ptr<platform_imgui::Adapter> platform;
     std::unique_ptr<gpu_imgui::Adapter> gpu;
     detail::FrameTimes timing;
+    detail::Inspector inspector;
     gpu_imgui::Counters previous{};
     std::string label;
     ~Impl() {
@@ -52,8 +54,10 @@ Result<std::unique_ptr<Overlay>> Overlay::create(platform::Platform& platform,
     impl->previous = impl->gpu->counters();
     return std::unique_ptr<Overlay>(new Overlay(std::move(impl)));
 }
-Result<void> Overlay::prepare(double frameSeconds) {
-    SOMNIUM_PROFILE_SCOPE("debug_ui.prepare");
+input::Capture Overlay::update(double frameSeconds, const scene::World& world,
+                               const input::Configuration& mapping, const input::State& inputs,
+                               bool replay) {
+    SOMNIUM_PROFILE_SCOPE("debug_ui.update");
     ImGui::SetCurrentContext(m_impl->context);
     m_impl->gpu->newFrame();
     m_impl->platform->newFrame();
@@ -79,7 +83,17 @@ Result<void> Overlay::prepare(double frameSeconds) {
     }
     ImGui::End();
     m_impl->previous = counters;
+    m_impl->inspector.draw(world, mapping, inputs, replay);
     ImGui::Render();
+    const auto& io = ImGui::GetIO();
+    return replay ? input::Capture{} : input::Capture{io.WantCaptureKeyboard, io.WantCaptureMouse};
+}
+void Overlay::applyEdits(scene::World& world) {
+    m_impl->inspector.apply(world);
+}
+Result<void> Overlay::prepare() {
+    SOMNIUM_PROFILE_SCOPE("debug_ui.prepare");
+    ImGui::SetCurrentContext(m_impl->context);
     return m_impl->gpu->prepare();
 }
 Result<void> Overlay::render() {

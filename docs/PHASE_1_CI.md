@@ -4,7 +4,7 @@ Les résultats D5 et les preuves de présentation restent distincts des jobs de 
 -->
 # Plan CI de phase 1 — accepté le 21 octobre 2026
 
-## Infrastructure courante — 25 novembre 2026
+## Infrastructure courante — 26 novembre 2026
 
 L'[ADR-0006](adr/0006-ci-auto-hebergee.md) remplace l'infrastructure hébergée
 requise décrite dans l'historique ci-dessous. Windows/Radeon RX 6600M (D3D12 et
@@ -12,8 +12,8 @@ Vulkan) et Ubuntu 24.04/WSL2/lavapipe sont désormais requis. **WARP n'est plus
 couvert** : ses captures antérieures restent des preuves des anciens commits.
 Windows fonctionne sous Foxti en tâche non élevée et session interactive ; WSL
 utilise le service systemd sous foxti. Le job requis garde fenêtres et preuves hors
-écran ; les captures Windows injectant souris/clavier passent uniquement par le
-job manuel workflow_dispatch. Décision et risque du compte personnel : ADR-0006.
+écran, plus les captures scène + UI par rejeu et relecture GPU, indépendantes du
+bureau et sans injection système. Décision et risque du compte personnel : ADR-0006.
 
 macOS devient un workflow manuel best effort, indépendant de la validation requise.
 Le build macos-latest et la validation Metal macos-15 construisent chacun leurs
@@ -25,7 +25,8 @@ Les scripts [tools/ci](../tools/ci/) sont communs au local et aux workflows.
 Caches CPM/shaders/sccache sur disque par hash, sorties par run et rétention
 14 jours ; aucune action cache/upload/download. Installation, sécurité et preuves
 reproductibles dans [CI_RUNNER.md](CI_RUNNER.md). Les résultats des nouveaux
-runners sont consignés dans le [bilan de phase 2](validation/phase-2/FIN_DE_PHASE.md) ; aucun ancien résultat WARP
+runners sont consignés dans les [bilans de phase 2](validation/phase-2/FIN_DE_PHASE.md) et
+[phase 3](validation/phase-3/FIN_DE_PHASE.md) ; aucun ancien résultat WARP
 ou Metal n'est présenté comme validation d'un commit non exécuté.
 
 ## Ce qui est déjà prouvé
@@ -75,7 +76,7 @@ captures ont le même SHA-256 que la référence commune ; celle-ci n'a pas chan
 Le label de rendu `macos-15` désigne ici **arm64**, pas `macos-15-intel`.
 GitHub évoque le retrait de macOS 15 à l’**automne 2027**
 [dans l’annonce de fin du support Intel](https://github.blog/changelog/2025-09-19-github-actions-macos-13-runner-image-is-closing-down/).
-Cet horizon sert à préparer la migration ; au 21 octobre 2026, l’annonce ne donne
+Cet horizon sert à préparer la migration ; vérifié le 25 novembre 2026, l’annonce ne donne
 aucun jour de retrait propre au label arm64. La date **août 2027** du [ticket Intel](https://github.com/actions/runner-images/issues/13045)
 concerne `macos-15-intel` et ne doit pas être présentée comme date arm64 confirmée.
 La migration du job Metal exige d'abord un probe SDK indépendant et D5 verts

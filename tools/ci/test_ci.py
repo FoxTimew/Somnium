@@ -63,6 +63,32 @@ class DownloadTests(unittest.TestCase):
 
 
 class InfrastructureTests(unittest.TestCase):
+    def assert_current_survives_alias(self, root, current):
+        for name in ["current", "old"]:
+            directory = root / "runs" / name
+            directory.mkdir(parents=True)
+            marker = directory / "run.json"
+            marker.write_text('{"owner":"somnium-ci"}')
+            os.utime(marker, (0, 0))
+        run.clean_runs(root, current, 14)
+        self.assertTrue((root / "runs/current/run.json").is_file())
+        self.assertFalse((root / "runs/old").exists())
+
+    def test_retention_normalizes_current_path(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            self.assert_current_survives_alias(root, root / "runs/../runs/current")
+
+    @unittest.skipIf(os.name == "nt", "Creating symlinks requires a privilege on Windows")
+    def test_retention_preserves_current_through_temporary_directory_alias(self):
+        # Model macOS /var -> /private/var without depending on the host TMPDIR.
+        with tempfile.TemporaryDirectory() as folder:
+            physical = Path(folder).resolve() / "physical"
+            physical.mkdir()
+            alias = Path(folder) / "temporary-alias"
+            alias.symlink_to(physical, target_is_directory=True)
+            self.assert_current_survives_alias(alias, alias / "runs/current")
+
     def test_retention_preserves_current_unowned_recent_and_cache(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
@@ -112,22 +138,18 @@ class InfrastructureTests(unittest.TestCase):
         self.assertNotIn("  push:", optional)
         self.assertNotIn("  pull_request:", optional)
 
-    def test_windows_pipeline_never_injects_desktop_input(self):
-        # Run orchestration with inert build operations; any accidental desktop
-        # capture in the required Windows pipeline is an immediate test failure.
+    def test_windows_pipeline_requires_both_engine_captures(self):
         runner = object.__new__(run.Runner)
         for name in ["doctor", "format", "cache_server", "compiler_cache", "shader_toolchain",
                      "configure", "build", "test", "gpu", "call", "summary"]:
             setattr(runner, name, lambda *args, **kwargs: None)
-        runner.captures = lambda *_: self.fail("Required Windows pipeline injected desktop input")
+        captures = []
+        runner.captures = captures.append
         with patch.object(run, "SYSTEM", "Windows"):
             runner.pipeline()
+        self.assertEqual(captures, ["direct3d12", "vulkan"])
         workflow = (run.ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
-        required, manual = workflow.split("  windows-presentation:", 1)
-        self.assertNotIn("windows.ps1 captures", required)
-        self.assertIn("github.event_name == 'workflow_dispatch' && inputs.presentation", manual)
-        self.assertIn("needs: windows", manual)
-        self.assertIn("windows.ps1 captures --backend direct3d12", manual)
+        self.assertNotIn("windows-presentation:", workflow)
 
 
 if __name__ == "__main__":

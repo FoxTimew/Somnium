@@ -1,0 +1,1 @@
+[shader-toolchain] /Users/runner/somnium-ci/tools/python/bin/python3 /Users/runner/work/Somnium/Somnium/tools/shader_toolchain/build.py --provider source --jobs 3 --cache-root /Users/runner/somnium-ci/cache/shaders/433291f965f3bfb51906fc5a --report-dir /Users/runner/somnium-ci/runs/45794898319-1/shader-toolchain

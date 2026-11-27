@@ -21,6 +21,9 @@ sont `SYSTEM`. Les tests et outils hors ligne peuvent utiliser exceptions/RTTI.
 Les tests de phase 0 utilisent toutefois la même configuration sans exceptions
 ni RTTI que les modules liés, notamment pour éviter une incompatibilité UBSan/vptr.
 `JSON_NOEXCEPTION` et `SPDLOG_NO_EXCEPTIONS` sont définis de façon cohérente.
+Par décision (ADR-0007), `nlohmann::json` est public dans les codecs de scène :
+les codecs game sérialisent la même valeur, exploitable aussi par un futur format
+binaire. Le JSON du mapping et du rejeu reste privé à input/platform.
 
 Décision de plateforme acceptée le 21 octobre 2026 : **macOS 13.3 minimum** pour
 le moteur, via `CMAKE_OSX_DEPLOYMENT_TARGET`, dans tous les presets. La surcharge

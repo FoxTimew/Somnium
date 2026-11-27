@@ -1,0 +1,563 @@
+[d5-metal] /Users/runner/somnium-ci/tools/python/bin/python3 /Users/runner/work/Somnium/Somnium/tools/gpu/run.py --test d5 --executable /Users/runner/somnium-ci/runs/45794898319-1/build/debug/bin/somnium_gpu_offscreen --backend metal --output /Users/runner/somnium-ci/runs/45794898319-1/d5-metal --allow-unavailable
+2026-11-26 10:03:40.251 somnium_gpu_offscreen[61218:100944] App name: somnium_gpu_offscreen
+2026-11-26 10:03:40.252 somnium_gpu_offscreen[61218:100944] App version: <unspecified>
+2026-11-26 10:03:40.252 somnium_gpu_offscreen[61218:100944] App ID: <unspecified>
+2026-11-26 10:03:40.252 somnium_gpu_offscreen[61218:100944] SDL revision: SDL-3.4.18-HEAD-HASH-NOTFOUND
+2026-11-26 10:03:40.403 somnium_gpu_offscreen[61218:100944] SDL chose video backend 'cocoa'
+2026-11-26 10:03:40.418 somnium_gpu_offscreen[61218:100944] SDL chose gpu backend 'metal'
+2026-11-26 10:03:40.420 somnium_gpu_offscreen[61218:100944] Metal API Validation Enabled
+2026-11-26 10:03:40.420 somnium_gpu_offscreen[61218:100944] Metal GPU Validation Enabled
+2026-11-26 10:03:40.511 somnium_gpu_offscreen[61218:100944] SDL_GPU Driver: Metal
+2026-11-26 10:03:40.511 somnium_gpu_offscreen[61218:100944] Metal Device: Apple Paravirtual device
+D5_CAPTURE_COMPLETE
+
+{
+  "backend": "metal",
+  "test": "d5",
+  "status": "valid\u00e9",
+  "binary_sha256": "2504e251f0e8ba04b9b3dc8a767f969c0861c59b2b6e216096cad7a38efea8d0",
+  "source_commit": "dd376fabe0bc048aa27a9c23e07df5db2828109c",
+  "ci_run": "45794898319",
+  "shader_manifests": {
+    "d5Vertex.vsMain.vert.json": "87b9f740f845738575178a3ae4629db3911324a634b44cf3a6718d0bd6a210c5",
+    "d5Fragment.psMain.frag.json": "1cfbdfaa7d2163bfbe122bfe92cdaa937b18f53ad1b9c3be58a53dfa5e8f51ec"
+  },
+  "scene_sha256": "8f8bd58c4c3ef44e44cd003b34d5de60b2f1f81e15ae7bc917ff72b1552fa292",
+  "exit_code": 0,
+  "image_sha256": "cb88b4b571fc5b7216bb775ba458386fc0d8e0f224aad5a941faa9fcd93b20c6",
+  "probes": [
+    {
+      "name": "CCW",
+      "x": 32,
+      "y": 32,
+      "rgba": [
+        255,
+        0,
+        0,
+        255
+      ],
+      "actual": [
+        255,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "CW culling",
+      "x": 128,
+      "y": 32,
+      "rgba": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "actual": [
+        0,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "near plane zero",
+      "x": 212,
+      "y": 32,
+      "rgba": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "actual": [
+        0,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "UV TL",
+      "x": 36,
+      "y": 164,
+      "rgba": [
+        255,
+        0,
+        0,
+        255
+      ],
+      "actual": [
+        255,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "UV TR",
+      "x": 76,
+      "y": 164,
+      "rgba": [
+        0,
+        255,
+        0,
+        255
+      ],
+      "actual": [
+        0,
+        255,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "UV BL",
+      "x": 36,
+      "y": 204,
+      "rgba": [
+        0,
+        0,
+        255,
+        255
+      ],
+      "actual": [
+        0,
+        0,
+        255,
+        255
+      ]
+    },
+    {
+      "name": "UV BR",
+      "x": 76,
+      "y": 204,
+      "rgba": [
+        255,
+        255,
+        0,
+        255
+      ],
+      "actual": [
+        255,
+        255,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "depth LESS",
+      "x": 192,
+      "y": 184,
+      "rgba": [
+        255,
+        255,
+        0,
+        255
+      ],
+      "actual": [
+        255,
+        255,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "clear depth one",
+      "x": 152,
+      "y": 152,
+      "rgba": [
+        0,
+        0,
+        255,
+        255
+      ],
+      "actual": [
+        0,
+        0,
+        255,
+        255
+      ]
+    },
+    {
+      "name": "background",
+      "x": 128,
+      "y": 128,
+      "rgba": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "actual": [
+        0,
+        0,
+        0,
+        255
+      ]
+    }
+  ],
+  "comparison": {
+    "passed": true,
+    "exact_probes": true,
+    "different_pixels": 0,
+    "different_fraction": 0.0,
+    "max_channel_error": 0,
+    "probes": [
+      {
+        "name": "CCW",
+        "x": 32,
+        "y": 32,
+        "rgba": [
+          255,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          255,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "CW culling",
+        "x": 128,
+        "y": 32,
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "near plane zero",
+        "x": 212,
+        "y": 32,
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "UV TL",
+        "x": 36,
+        "y": 164,
+        "rgba": [
+          255,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          255,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "UV TR",
+        "x": 76,
+        "y": 164,
+        "rgba": [
+          0,
+          255,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          255,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "UV BL",
+        "x": 36,
+        "y": 204,
+        "rgba": [
+          0,
+          0,
+          255,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          255,
+          255
+        ]
+      },
+      {
+        "name": "UV BR",
+        "x": 76,
+        "y": 204,
+        "rgba": [
+          255,
+          255,
+          0,
+          255
+        ],
+        "actual": [
+          255,
+          255,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "depth LESS",
+        "x": 192,
+        "y": 184,
+        "rgba": [
+          255,
+          255,
+          0,
+          255
+        ],
+        "actual": [
+          255,
+          255,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "clear depth one",
+        "x": 152,
+        "y": 152,
+        "rgba": [
+          0,
+          0,
+          255,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          255,
+          255
+        ]
+      },
+      {
+        "name": "background",
+        "x": 128,
+        "y": 128,
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      }
+    ],
+    "reference_probes": [
+      {
+        "name": "CCW",
+        "x": 32,
+        "y": 32,
+        "rgba": [
+          255,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          255,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "CW culling",
+        "x": 128,
+        "y": 32,
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "near plane zero",
+        "x": 212,
+        "y": 32,
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "UV TL",
+        "x": 36,
+        "y": 164,
+        "rgba": [
+          255,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          255,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "UV TR",
+        "x": 76,
+        "y": 164,
+        "rgba": [
+          0,
+          255,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          255,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "UV BL",
+        "x": 36,
+        "y": 204,
+        "rgba": [
+          0,
+          0,
+          255,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          255,
+          255
+        ]
+      },
+      {
+        "name": "UV BR",
+        "x": 76,
+        "y": 204,
+        "rgba": [
+          255,
+          255,
+          0,
+          255
+        ],
+        "actual": [
+          255,
+          255,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "depth LESS",
+        "x": 192,
+        "y": 184,
+        "rgba": [
+          255,
+          255,
+          0,
+          255
+        ],
+        "actual": [
+          255,
+          255,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "clear depth one",
+        "x": 152,
+        "y": 152,
+        "rgba": [
+          0,
+          0,
+          255,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          255,
+          255
+        ]
+      },
+      {
+        "name": "background",
+        "x": 128,
+        "y": 128,
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      }
+    ]
+  },
+  "capture_complete": true,
+  "device": {
+    "backend": "metal",
+    "debug": true,
+    "device": "Apple Paravirtual device",
+    "driver_version": "unknown",
+    "resource_checks": "passed"
+  },
+  "validation_enabled": true,
+  "reason": "Image, exact witnesses, resource lifetime and validation passed"
+}
+d5-metal: OK — 1.469 s — `/Users/runner/somnium-ci/runs/45794898319-1/logs/d5-metal.log`
+d5 metal: **validé** — `/Users/runner/somnium-ci/runs/45794898319-1/d5-metal`

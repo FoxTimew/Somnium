@@ -1,0 +1,502 @@
+{
+  "backend": "direct3d12",
+  "test": "scene",
+  "status": "valid\u00e9",
+  "binary_sha256": "61406526251447b3cfe74b50a3a25fd5fa758baec49d158cc8586f37ff515aab",
+  "source_commit": "740467076a4b3865ec1ac5a2eb42692a5f608628",
+  "ci_run": "45795328234",
+  "shader_manifests": {
+    "modelVertex.vsMain.vert.json": "a4c561b351dc9243d1c939bef5151664c79e04d07b4e4c0f7c4d227379d3b0cb",
+    "modelFragment.psMain.frag.json": "28212311aaef424fdbce9000610115cc9799170b8a098e51ece8c052e3fb0dbf"
+  },
+  "scene_sha256": "f735382640c4b95068f44107f9ec4350bec47e732998f9bfa273ad978791d185",
+  "fixture_sha256": "810aa5bd7ab00faed8480b52bb31e3bde81c54484e3bb361be621e941f1a2428",
+  "exit_code": 0,
+  "image_sha256": "2289aa8dca6d1b9a951993577e2bf5554ea4ea1ee553d28531457626f12e4975",
+  "probes": [
+    {
+      "name": "background",
+      "x": 10,
+      "y": 10,
+      "face": "background",
+      "rgba": [
+        0,
+        0,
+        0,
+        255
+      ],
+      "actual": [
+        0,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "name": "front",
+      "x": 100,
+      "y": 96,
+      "face": "front",
+      "rgba": [
+        0,
+        219,
+        219,
+        255
+      ],
+      "actual": [
+        0,
+        219,
+        219,
+        255
+      ]
+    },
+    {
+      "name": "top",
+      "x": 86,
+      "y": 96,
+      "face": "top",
+      "rgba": [
+        219,
+        219,
+        0,
+        255
+      ],
+      "actual": [
+        219,
+        219,
+        0,
+        255
+      ]
+    }
+  ],
+  "comparison": {
+    "passed": true,
+    "exact_probes": true,
+    "different_pixels": 0,
+    "different_fraction": 0.0,
+    "max_channel_error": 0,
+    "probes": [
+      {
+        "name": "background",
+        "x": 10,
+        "y": 10,
+        "face": "background",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "front",
+        "x": 100,
+        "y": 96,
+        "face": "front",
+        "rgba": [
+          0,
+          219,
+          219,
+          255
+        ],
+        "actual": [
+          0,
+          219,
+          219,
+          255
+        ]
+      },
+      {
+        "name": "top",
+        "x": 86,
+        "y": 96,
+        "face": "top",
+        "rgba": [
+          219,
+          219,
+          0,
+          255
+        ],
+        "actual": [
+          219,
+          219,
+          0,
+          255
+        ]
+      }
+    ],
+    "reference_probes": [
+      {
+        "name": "background",
+        "x": 10,
+        "y": 10,
+        "face": "background",
+        "rgba": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "actual": [
+          0,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "name": "front",
+        "x": 100,
+        "y": 96,
+        "face": "front",
+        "rgba": [
+          0,
+          219,
+          219,
+          255
+        ],
+        "actual": [
+          0,
+          219,
+          219,
+          255
+        ]
+      },
+      {
+        "name": "top",
+        "x": 86,
+        "y": 96,
+        "face": "top",
+        "rgba": [
+          219,
+          219,
+          0,
+          255
+        ],
+        "actual": [
+          219,
+          219,
+          0,
+          255
+        ]
+      }
+    ]
+  },
+  "poses": {
+    "previous": {
+      "alpha": 0,
+      "comparison": {
+        "passed": true,
+        "exact_probes": true,
+        "different_pixels": 0,
+        "different_fraction": 0.0,
+        "max_channel_error": 0,
+        "probes": [
+          {
+            "name": "background",
+            "x": 10,
+            "y": 10,
+            "face": "background",
+            "rgba": [
+              0,
+              0,
+              0,
+              255
+            ],
+            "actual": [
+              0,
+              0,
+              0,
+              255
+            ]
+          },
+          {
+            "name": "front",
+            "x": 105,
+            "y": 96,
+            "face": "front",
+            "rgba": [
+              0,
+              255,
+              255,
+              255
+            ],
+            "actual": [
+              0,
+              255,
+              255,
+              255
+            ]
+          }
+        ],
+        "reference_probes": [
+          {
+            "name": "background",
+            "x": 10,
+            "y": 10,
+            "face": "background",
+            "rgba": [
+              0,
+              0,
+              0,
+              255
+            ],
+            "actual": [
+              0,
+              0,
+              0,
+              255
+            ]
+          },
+          {
+            "name": "front",
+            "x": 105,
+            "y": 96,
+            "face": "front",
+            "rgba": [
+              0,
+              255,
+              255,
+              255
+            ],
+            "actual": [
+              0,
+              255,
+              255,
+              255
+            ]
+          }
+        ]
+      },
+      "image_sha256": "403d9f4b0f3ca769f4a3b9480083f1ced8d272e9ffa10afae659c1cac1f2eaf9"
+    },
+    "actual": {
+      "alpha": 0.5,
+      "comparison": {
+        "passed": true,
+        "exact_probes": true,
+        "different_pixels": 0,
+        "different_fraction": 0.0,
+        "max_channel_error": 0,
+        "probes": [
+          {
+            "name": "background",
+            "x": 10,
+            "y": 10,
+            "face": "background",
+            "rgba": [
+              0,
+              0,
+              0,
+              255
+            ],
+            "actual": [
+              0,
+              0,
+              0,
+              255
+            ]
+          },
+          {
+            "name": "front",
+            "x": 100,
+            "y": 96,
+            "face": "front",
+            "rgba": [
+              0,
+              219,
+              219,
+              255
+            ],
+            "actual": [
+              0,
+              219,
+              219,
+              255
+            ]
+          },
+          {
+            "name": "top",
+            "x": 86,
+            "y": 96,
+            "face": "top",
+            "rgba": [
+              219,
+              219,
+              0,
+              255
+            ],
+            "actual": [
+              219,
+              219,
+              0,
+              255
+            ]
+          }
+        ],
+        "reference_probes": [
+          {
+            "name": "background",
+            "x": 10,
+            "y": 10,
+            "face": "background",
+            "rgba": [
+              0,
+              0,
+              0,
+              255
+            ],
+            "actual": [
+              0,
+              0,
+              0,
+              255
+            ]
+          },
+          {
+            "name": "front",
+            "x": 100,
+            "y": 96,
+            "face": "front",
+            "rgba": [
+              0,
+              219,
+              219,
+              255
+            ],
+            "actual": [
+              0,
+              219,
+              219,
+              255
+            ]
+          },
+          {
+            "name": "top",
+            "x": 86,
+            "y": 96,
+            "face": "top",
+            "rgba": [
+              219,
+              219,
+              0,
+              255
+            ],
+            "actual": [
+              219,
+              219,
+              0,
+              255
+            ]
+          }
+        ]
+      },
+      "image_sha256": "2289aa8dca6d1b9a951993577e2bf5554ea4ea1ee553d28531457626f12e4975"
+    },
+    "current": {
+      "alpha": 1,
+      "comparison": {
+        "passed": true,
+        "exact_probes": true,
+        "different_pixels": 0,
+        "different_fraction": 0.0,
+        "max_channel_error": 0,
+        "probes": [
+          {
+            "name": "background",
+            "x": 10,
+            "y": 10,
+            "face": "background",
+            "rgba": [
+              0,
+              0,
+              0,
+              255
+            ],
+            "actual": [
+              0,
+              0,
+              0,
+              255
+            ]
+          },
+          {
+            "name": "top",
+            "x": 70,
+            "y": 96,
+            "face": "top",
+            "rgba": [
+              255,
+              255,
+              0,
+              255
+            ],
+            "actual": [
+              255,
+              255,
+              0,
+              255
+            ]
+          }
+        ],
+        "reference_probes": [
+          {
+            "name": "background",
+            "x": 10,
+            "y": 10,
+            "face": "background",
+            "rgba": [
+              0,
+              0,
+              0,
+              255
+            ],
+            "actual": [
+              0,
+              0,
+              0,
+              255
+            ]
+          },
+          {
+            "name": "top",
+            "x": 70,
+            "y": 96,
+            "face": "top",
+            "rgba": [
+              255,
+              255,
+              0,
+              255
+            ],
+            "actual": [
+              255,
+              255,
+              0,
+              255
+            ]
+          }
+        ]
+      },
+      "image_sha256": "214827bb532201a4468e1c9fd22f2637a86d2ba0e6e627219ad65a6f515437c3"
+    }
+  },
+  "capture_complete": true,
+  "device": {
+    "backend": "direct3d12",
+    "debug": true,
+    "device": "AMD Radeon RX 6600M",
+    "draw_calls": 21,
+    "driver_version": "32.0.21037.1004",
+    "output_encoding": "shader sRGB into RGBA8 UNORM",
+    "poses": 3
+  },
+  "validation_enabled": true,
+  "reason": "Image, exact witnesses, resource lifetime and validation passed"
+}

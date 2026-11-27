@@ -1,25 +1,26 @@
 <!--
-Décrit le moteur implémenté en phase 2 et les commandes de vérification reproductibles.
+Décrit la cible jouable de phase 3 et ses commandes de vérification reproductibles.
 Les résultats de rendu et les limites de l'environnement restent explicitement identifiés.
 -->
 # Somnium
 
-Moteur de jeu 3D C++20 pour Windows, Linux et macOS. La branche
-`phase/2-assets-renderer` charge un modèle glTF texturé et le présente en VSYNC
-avec profondeur, caméra orbitale et overlay ImGui. Les phases 0 et 1 sont fusionnées
-et taguées ; la fusion/tag de phase 2 attendent la validation finale.
+Moteur de jeu 3D C++20 pour Windows, Linux et macOS. La branche `phase/3-scene`
+charge une scène JSON : personnage non animé, sol, murs bloquants, deux portes
+sur pivot, caméra troisième personne et inspecteur ImGui. Déplacement clavier/
+souris et manette, mapping JSON, simulation fixe à 60 Hz et rendu interpolé.
 
-État au 25 novembre : phase 2 livrée, infrastructure auto-hébergée fusionnée dans
-la branche de phase. Windows/Radeon et Linux/WSL2 sont requis ; macOS est manuel
-best effort et WARP n'est plus couvert. Installation et commandes dans
-[CI_RUNNER.md](docs/CI_RUNNER.md). Captures, journaux, CI et limites dans le
-[bilan de phase 2](docs/validation/phase-2/FIN_DE_PHASE.md).
+Les phases 0 à 2 sont validées et taguées sur `main` ; la phase 3 attend sa
+validation finale, sans fusion ni tag. [Bilan et captures de phase 3](docs/validation/phase-3/FIN_DE_PHASE.md),
+[World et codecs](docs/SCENE.md), [preuve analytique de scène](docs/SCENE_VALIDATION.md).
+Windows/Radeon et Linux/WSL2 sont requis ; macOS reste manuel best effort,
+WARP hors couverture. [Installation des runners](docs/CI_RUNNER.md).
 
 - [Architecture](docs/ARCHITECTURE.md) et [conventions](docs/adr/0002-conventions.md)
 - [Dépendances et licences](docs/adr/0001-stack-dependances-licences.md)
 - [Chaîne de shaders](docs/adr/0003-chaine-shaders.md), [frame GPU](docs/adr/0004-frame-synchronisation-gpu.md)
 - [Plan et résultats CI](docs/PHASE_1_CI.md), [protocole D5](docs/GPU_VALIDATION.md)
 - [Pipeline d’assets](docs/adr/0005-pipeline-assets.md), [contrôles](docs/INPUT.md) et [preuves de phase 2](docs/validation/phase-2/README.md)
+- Contrats de phase 3 : [scène et sérialisation](docs/adr/0007-scene-entites-serialisation.md), [inputs configurables](docs/adr/0008-inputs-configurables.md)
 
 ## Prérequis et bootstrap
 
@@ -28,7 +29,7 @@ requis dès le configure**. Compilateur C++20 avec `std::format` : MSVC récent 
 Windows SDK depuis un terminal développeur, LLVM-MinGW UCRT, GCC 13/Clang récent
 sous Linux, ou Xcode récent sous macOS. Ajouter les outils au `PATH`.
 Les paquets de développement SDL/X11/Wayland/audio/udev nécessaires sous Linux
-figurent dans [ci.yml](.github/workflows/ci.yml) ; `xvfb` permet les tests sans écran.
+figurent dans [provision_wsl.sh](tools/ci/provision_wsl.sh) ; `xvfb` permet les tests sans écran.
 
 Construire d'abord les outils de shaders :
 
@@ -44,8 +45,8 @@ Le bootstrap construit, installe et teste le CLI sous
 `.cache/shader-toolchain/install/<provider>/bin`. Le configure moteur **ne le
 lance jamais** : `SOMNIUM_SHADERCROSS_EXECUTABLE` désigne ce CLI, avec DXC voisin
 pour les depfiles. Un outil manquant ou inexécutable provoque une erreur fatale
-avec la commande de bootstrap. Les détails et le blocage local Windows du CLI
-par la stratégie de contrôle d'application sont consignés dans [SHADERS.md](docs/SHADERS.md).
+avec la commande de bootstrap. [SHADERS.md](docs/SHADERS.md) conserve les mesures
+et incidents historiques ; le CLI fonctionne sur le runner Windows actuel.
 
 CPM acquiert les bibliothèques aux versions exactes de `cmake/Dependencies.cmake`.
 `CPM_SOURCE_CACHE` vaut `.cache/cpm` par défaut ; le premier configure nécessite
@@ -75,10 +76,37 @@ Redimensionnement et minimisation utilisent la taille réelle de la swapchain ;
 sans texture, le moteur attend les événements. La présentation VSYNC cadence
 la boucle, avec deux frames en vol et aucun délai artificiel.
 
-Le sandbox affiche le cube original CC0 sous `assets/models/orbit-cube.glb`
-([licence](assets/LICENSES.md)). Bouton droit + souris ou stick droit : orbite ;
-molette ou gâchettes : zoom ; R ou bouton sud de manette : reset. Pitch borné à
-±80°, distance 4–30 m. L’overlay est passif et ne capte pas les commandes.
+Le sandbox charge `assets/scenes/courtyard.json`, ses modèles originaux CC0
+([licences](assets/LICENSES.md)) et `assets/input/courtyard.json`.
+
+| Commande | Clavier/souris physiques | Manette |
+| --- | --- | --- |
+| Déplacement | W/A/S/D (positions Z/Q/S/D sur AZERTY) | Stick gauche |
+| Orbite | Bouton droit maintenu + souris | Stick droit |
+| Zoom | Molette | Gâchettes |
+| Interact | E, près d’une porte | Bouton sud |
+| Réinitialiser l’orbite | R | Bouton nord |
+
+Vitesse 3 m/s, diagonale normalisée, déplacement horizontal relatif au yaw de la
+caméra (orbite/reset pris en compte dans le même pas). Caméra à 4–30 m, pitch 5–75°. Une porte
+s’ouvre à 90° en 60 pas et reste bloquante jusqu’à ouverture complète. L’inspecteur
+à droite permet la sélection et l’édition des TRS locaux au prochain pas fixe ;
+les inputs affichés sont en lecture seule. Les champs pilotés par le jeu peuvent
+être réécrits par celui-ci. Pas de sauvegarde de scène depuis l’UI à cette phase.
+Les entrées captées par l’inspecteur ne commandent pas le personnage.
+
+Rejouer les mêmes événements sans injection dans le système :
+
+```sh
+build/debug/bin/sandbox --replay replays/courtyard.json
+build/debug/bin/sandbox --backend vulkan --replay replays/courtyard.json --capture-step 345
+build/debug/bin/sandbox --backend vulkan --replay replays/courtyard.json --capture-step 345 --capture-output /tmp/door
+```
+
+Le second mode fige la pose après 345 pas, la présente trois secondes puis ferme.
+Le troisième écrit `door.rgba` et `door.json` depuis la frame composée scène + UI,
+à la taille réelle de la swapchain, après présentation de la même texture.
+Le panneau reste visible, non interactif. Schémas et garanties : [INPUT.md](docs/INPUT.md).
 
 Les chemins sont **logiques et indépendants du répertoire courant**. En mode
 DEVELOPMENT (debug/release/profiling), platform cherche `<exécutable>/assets`
@@ -89,14 +117,16 @@ provoque un diagnostic, jamais un modèle factice.
 
 `cmake --install build/debug --prefix <dossier>` installe binaire et shaders ;
 il ne conditionne pas les modèles. Avant le cuiseur de phase 4, constituer
-explicitement un package de démonstration hors du build avec le GLB sous
-`bin/assets/models/orbit-cube.glb`. Le test shipping vérifie d’abord l’échec sans
-modèle, puis ce paquet temporaire depuis un répertoire courant sans rapport.
+explicitement un package de démonstration hors du build : les quatre
+`models/courtyard-*.glb`, `scenes/courtyard.json` et `input/courtyard.json` sous
+`bin/assets/` ; ajouter `replays/courtyard.json` pour le rejeu.
+Le test shipping vérifie l’échec sans scène puis sans modèle, et enfin le paquet
+complet depuis un répertoire courant sans rapport.
 Ce staging de test ne remplace pas le cuiseur, ni le `.metallib` requis pour shipping macOS.
 
 La chaîne actuelle est glTF/GLB + PNG/JPEG → loaders CPU cgltf/stb_image →
 AssetManager typé (Unloaded/Loading/Ready/Failed) → préparation renderer par runtime
-→ DrawList indexée. Les sources restent l’autorité ; KTX2/BC, mipmaps, formats cuits,
+→ World JSON → DrawList indexée interpolée. Les sources restent l’autorité ; KTX2/BC, mipmaps, formats cuits,
 jobs et hot-reload sont reportés. La lecture boucle sur les retours partiels,
 limite chaque fichier à 256 MiB et interdit les chemins natifs ou sortant des racines.
 
@@ -113,7 +143,8 @@ L'overlay affiche FPS, temps moyen de frame et compteurs de dessins, soumissions
 et uploads. `debug_ui` pilote les deux intégrations officielles séparées
 `somnium_platform_imgui` et `somnium_gpu_imgui`. Le preset shipping ne construit
 ni ces cibles, ni `somnium_imgui`, ni `somnium_debug_ui` ; la CI inspecte le graphe
-et les unités compilées. Les modules encore sans sources restent sans cible.
+et les unités compilées, y compris l’absence de l’inspecteur. Les modules encore
+sans sources restent sans cible.
 
 ## Shaders et preuve de rendu
 
@@ -154,10 +185,11 @@ ambiant de 0,15 dans une variante shader et utilise SDR_LINEAR : un seul encodag
 sRGB à la sortie. Les tests input/caméra sont entièrement CPU.
 
 La CI requise configure, construit et teste **debug, release, shipping et profiling
-sur Windows et Linux**, puis vérifie D5/cube et le test de fenêtre ; clang-tidy **18**
+sur Windows et Linux**, puis vérifie D5/cube/scène et le test de fenêtre ; clang-tidy **18**
 et ASan/UBSan tournent sous Linux. macOS est un workflow manuel best effort.
-Les captures Windows injectant souris/clavier sont réservées au job manuel
-workflow_dispatch ; [démarrer les runners et les captures](docs/DEMARRER_RUNNERS.md).
+Les captures utilisent le rejeu neutre et la relecture GPU de la frame scène + UI,
+sans injection système ni lecture du bureau. Elles sont requises sous Windows
+interactif et Linux/Xvfb ; Metal reste manuel. [Démarrer les runners](docs/DEMARRER_RUNNERS.md).
 Logs, binaires et images restent sur le disque du runner par run, pendant 14 jours ;
 le résumé GitHub indique leurs chemins. Les actions restantes sont épinglées par SHA.
 

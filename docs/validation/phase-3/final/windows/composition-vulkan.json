@@ -1,0 +1,8 @@
+{
+  "acquisition_submission": "passed",
+  "backend": "vulkan",
+  "composed_target_copy_readback_retirement": "passed",
+  "device": "AMD Radeon RX 6600M",
+  "sdr_linear": true,
+  "srgb_target": true
+}

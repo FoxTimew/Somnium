@@ -113,8 +113,8 @@ def run(args, scene, output, report):
         env["MTL_SHADER_VALIDATION"] = "0" if args.metal_api_only_diagnostic else "1"
         env["MTL_SHADER_VALIDATION_REPORT_TO_STDERR"] = "1"
     command = [str(executable), args.backend, str(SCENE), str(output), str(shaders)]
-    if args.test == "cube":
-        fixtures = ROOT / "engine/assets/tests/fixtures"
+    if args.test in {"cube", "scene"}:
+        fixtures = ROOT / ("engine/runtime/tests/fixtures" if args.test == "scene" else "engine/assets/tests/fixtures")
         command.append(str(fixtures))
         report["fixture_sha256"] = digest(fixtures / scene["fixture"])
         shutil.copyfile(REFERENCE.with_name("provenance.json"), output / "provenance.json")
@@ -137,6 +137,21 @@ def run(args, scene, output, report):
             comparison, diff = compare(scene, rgba, expected)
             report["comparison"] = comparison
             write_png(output / "diff.png", width, height, diff)
+    if args.test == "scene":
+        shutil.copyfile(SCENE.with_name(scene["scene"]), output / scene["scene"])
+    if args.test == "scene" and process.returncode == 0:
+        report["poses"] = {}
+        for pose in scene["poses"]:
+            name = pose["name"]
+            pixels = (output / (name + ".rgba")).read_bytes()
+            write_png(output / (name + ".png"), scene["width"], scene["height"], pixels)
+            _, _, expected = read_png(REFERENCE.with_name(name + ".png"))
+            comparison, diff = compare({**scene, "probes": pose["probes"]}, pixels, expected)
+            write_png(output / (name + "-diff.png"), scene["width"], scene["height"], diff)
+            report["poses"][name] = {"alpha": pose["alpha"], "comparison": comparison,
+                                     "image_sha256": digest(output / (name + ".png"))}
+            if not comparison["passed"]:
+                raise RuntimeError("Scene pose comparison failed: " + name)
     if args.test == "cube" and process.returncode == 0:
         mirrored = (output / "mirrored.rgba").read_bytes()
         write_png(output / "mirrored.png", scene["width"], scene["height"], mirrored)
@@ -180,7 +195,7 @@ def run(args, scene, output, report):
 def main():
     global SCENE, REFERENCE
     parser = argparse.ArgumentParser()
-    parser.add_argument("--test", choices=["d5", "cube"], default="d5")
+    parser.add_argument("--test", choices=["d5", "cube", "scene"], default="d5")
     parser.add_argument("--executable")
     parser.add_argument("--backend", choices=["vulkan", "direct3d12", "metal"])
     parser.add_argument("--output", type=Path)
@@ -192,7 +207,14 @@ def main():
     args = parser.parse_args()
     if args.metal_api_only_diagnostic and args.backend != "metal":
         parser.error("--metal-api-only-diagnostic requires --backend metal")
-    if args.test == "cube":
+    if args.test == "scene":
+        if args.accept_capture:
+            parser.error("Scene references are analytic; use scene_reference.py --confirm-regeneration")
+        import scene_reference
+        subprocess.run([sys.executable, str(ROOT / "tools/gpu/scene_reference.py"), "--verify"], check=True)
+        SCENE, REFERENCE = scene_reference.SCENE, scene_reference.REFERENCE
+        scene = json.loads(SCENE.read_text())
+    elif args.test == "cube":
         if args.accept_capture:
             parser.error("Cube reference is analytic; use cube_reference.py --confirm-regeneration")
         import cube_reference
@@ -208,6 +230,7 @@ def main():
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
     for name in ["actual.rgba", "actual.png", "expected.png", "diff.png", "device.json", "result.json", "validation.log",
+                 "previous.rgba", "previous.png", "current.rgba", "current.png", "previous-diff.png", "current-diff.png", "actual-diff.png",
                  "mirrored.rgba", "mirrored.png", "mirrored-diff.png"]:
         (output / name).unlink(missing_ok=True)
     report = dict(backend=args.backend, test=args.test, status="échec")

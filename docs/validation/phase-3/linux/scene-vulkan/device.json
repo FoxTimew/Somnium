@@ -1,0 +1,9 @@
+{
+  "backend": "vulkan",
+  "debug": true,
+  "device": "llvmpipe (LLVM 20.1.2, 256 bits)",
+  "draw_calls": 21,
+  "driver_version": "25.2.8",
+  "output_encoding": "shader sRGB into RGBA8 UNORM",
+  "poses": 3
+}

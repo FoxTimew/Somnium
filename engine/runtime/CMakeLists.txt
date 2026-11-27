@@ -1,9 +1,9 @@
 # Wires the active subsystems and owns the fixed-step loop.
-# The model adapter supplies draws; scene/ECS extraction remains in phase 3.
-add_library(somnium_runtime STATIC src/engine.cpp src/fixed_step.cpp src/model_rendering.cpp src/gameplay.cpp)
+# Scene extraction supplies interpolated draws and the active camera.
+add_library(somnium_runtime STATIC src/engine.cpp src/fixed_step.cpp src/model_rendering.cpp src/scene_rendering.cpp)
 add_library(somnium::runtime ALIAS somnium_runtime)
 target_include_directories(somnium_runtime PUBLIC include)
-target_link_libraries(somnium_runtime PUBLIC somnium::core somnium::input somnium::renderer PRIVATE somnium::platform somnium::gpu somnium::assets)
+target_link_libraries(somnium_runtime PUBLIC somnium::core somnium::input somnium::scene PRIVATE somnium::renderer somnium::platform somnium::gpu somnium::assets)
 target_compile_definitions(somnium_runtime PRIVATE SOMNIUM_GPU_DEBUG=$<IF:$<CONFIG:Debug>,1,0>)
 somnium_configure_target(somnium_runtime)
 if(SOMNIUM_ENABLE_DEBUG_UI)
@@ -12,6 +12,9 @@ if(SOMNIUM_ENABLE_DEBUG_UI)
 endif()
 if(BUILD_TESTING)
     somnium_add_test(somnium_runtime_tests tests/fixed_step_tests.cpp runtime)
+    somnium_add_test(somnium_scene_extraction_tests tests/scene_extraction_tests.cpp runtime)
+    target_include_directories(somnium_scene_extraction_tests PRIVATE src)
+    target_link_libraries(somnium_scene_extraction_tests PRIVATE somnium::renderer)
     add_executable(somnium_renderer_offscreen tests/cube.cpp)
     target_include_directories(somnium_renderer_offscreen PRIVATE src)
     target_link_libraries(somnium_renderer_offscreen PRIVATE somnium::runtime somnium::assets
@@ -20,4 +23,12 @@ if(BUILD_TESTING)
     somnium_configure_target(somnium_renderer_offscreen)
     add_test(NAME somnium_cube_reference_tests COMMAND "${Python3_EXECUTABLE}"
         "${PROJECT_SOURCE_DIR}/tools/gpu/cube_reference.py" --verify)
+    add_executable(somnium_scene_offscreen tests/scene.cpp)
+    target_include_directories(somnium_scene_offscreen PRIVATE src)
+    target_link_libraries(somnium_scene_offscreen PRIVATE somnium::runtime somnium::renderer
+        somnium::platform SDL3::SDL3)
+    target_compile_definitions(somnium_scene_offscreen PRIVATE SOMNIUM_GPU_DEBUG=$<IF:$<CONFIG:Debug>,1,0>)
+    somnium_configure_target(somnium_scene_offscreen)
+    add_test(NAME somnium_scene_reference_tests COMMAND "${Python3_EXECUTABLE}"
+        "${PROJECT_SOURCE_DIR}/tools/gpu/scene_reference.py" --verify)
 endif()

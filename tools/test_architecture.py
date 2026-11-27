@@ -39,6 +39,11 @@ class Boundaries(unittest.TestCase):
         self.check_source("debug_ui/integration/adapter.cpp", '#include <somnium/gpu/device.hpp>', False)
         self.check_source("platform/integration/include/api.hpp", 'SDL_Event event;', False)
 
+    def test_runtime_keeps_renderer_private(self):
+        for source in ['#include <somnium/renderer/camera.hpp>', 'renderer::Camera camera();']:
+            self.check_source("runtime/include/gameplay.hpp", source, False)
+        self.check_source("runtime/src/extraction.cpp", '#include <somnium/renderer/renderer.hpp>', True)
+
     def test_input_is_entirely_native_free(self):
         for source in ['SDL_Event event;', '#include <SDL3/SDL_keyboard.h>',
                        '#include <somnium/platform/platform.hpp>']:

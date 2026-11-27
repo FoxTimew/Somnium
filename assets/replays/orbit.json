@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "step": 30,
+      "kind": "mouseButton",
+      "control": "Right",
+      "down": true
+    },
+    {
+      "step": 31,
+      "kind": "mouseMotion",
+      "x": 140,
+      "y": -35
+    },
+    {
+      "step": 32,
+      "kind": "mouseButton",
+      "control": "Right",
+      "down": false
+    },
+    {
+      "step": 60,
+      "kind": "mouseWheel",
+      "x": 0,
+      "y": 2
+    },
+    {
+      "step": 90,
+      "kind": "key",
+      "control": "R",
+      "down": true
+    },
+    {
+      "step": 91,
+      "kind": "key",
+      "control": "R",
+      "down": false
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+[format] /Users/runner/somnium-ci/tools/python/bin/python3 /Users/runner/work/Somnium/Somnium/tools/format.py --check
+format: OK — 0.291 s — `/Users/runner/somnium-ci/runs/45794898319-1/logs/format.log`

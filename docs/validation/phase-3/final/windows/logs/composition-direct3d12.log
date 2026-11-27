@@ -1,0 +1,18 @@
+App name: somnium_gpu_capabilities.exe
+App version: <unspecified>
+App ID: <unspecified>
+SDL revision: SDL-3.4.18-HEAD-HASH-NOTFOUND
+SDL chose video backend 'windows'
+SDL chose gpu backend 'direct3d12'
+WARNING: WinPixEventRuntime.dll is not available. It is required for SDL_Push/PopGPUDebugGroup and SDL_InsertGPUDebugLabel to function correctly. See here for instructions on how to obtain it: https://devblogs.microsoft.com/pix/winpixeventruntime/
+SDL_GPU Driver: D3D12
+D3D12 Adapter: AMD Radeon RX 6600M
+D3D12 Driver: 32.0.21037.1004
+Validation layers enabled, expect debug level performance!
+SDL chose gpu backend 'direct3d12'
+WARNING: WinPixEventRuntime.dll is not available. It is required for SDL_Push/PopGPUDebugGroup and SDL_InsertGPUDebugLabel to function correctly. See here for instructions on how to obtain it: https://devblogs.microsoft.com/pix/winpixeventruntime/
+SDL_GPU Driver: D3D12
+D3D12 Adapter: AMD Radeon RX 6600M
+D3D12 Driver: 32.0.21037.1004
+Validation layers enabled, expect debug level performance!
+COMPOSITION_PROBE_COMPLETE: SDR_LINEAR=1

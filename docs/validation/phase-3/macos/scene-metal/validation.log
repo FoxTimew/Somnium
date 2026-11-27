@@ -1,0 +1,12 @@
+Scene hierarchy, three analytic poses, exact probes and provenance verified
+2026-11-25 19:30:15.304 somnium_scene_offscreen[59984:99093] App name: somnium_scene_offscreen
+2026-11-25 19:30:15.304 somnium_scene_offscreen[59984:99093] App version: <unspecified>
+2026-11-25 19:30:15.304 somnium_scene_offscreen[59984:99093] App ID: <unspecified>
+2026-11-25 19:30:15.304 somnium_scene_offscreen[59984:99093] SDL revision: SDL-3.4.18-HEAD-HASH-NOTFOUND
+2026-11-25 19:30:15.390 somnium_scene_offscreen[59984:99093] SDL chose video backend 'cocoa'
+2026-11-25 19:30:15.404 somnium_scene_offscreen[59984:99093] SDL chose gpu backend 'metal'
+2026-11-25 19:30:15.407 somnium_scene_offscreen[59984:99093] Metal API Validation Enabled
+2026-11-25 19:30:15.407 somnium_scene_offscreen[59984:99093] Metal GPU Validation Enabled
+2026-11-25 19:30:15.462 somnium_scene_offscreen[59984:99093] SDL_GPU Driver: Metal
+2026-11-25 19:30:15.462 somnium_scene_offscreen[59984:99093] Metal Device: Apple Paravirtual device
+D5_CAPTURE_COMPLETE

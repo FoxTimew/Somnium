@@ -77,6 +77,22 @@ bool validUniforms(std::span<const UniformData> data, std::uint32_t count) {
 bool sampled(TextureKind kind) {
     return kind == TextureKind::SampledRgba8 || kind == TextureKind::SampledRgba8Srgb;
 }
+bool colorTarget(TextureKind kind) {
+    return kind == TextureKind::ColorRgba8 || kind == TextureKind::ColorBgra8 ||
+           kind == TextureKind::ColorRgba8Srgb || kind == TextureKind::ColorBgra8Srgb;
+}
+ColorFormat targetFormat(TextureKind kind) {
+    switch (kind) {
+    case TextureKind::ColorBgra8:
+        return ColorFormat::Bgra8;
+    case TextureKind::ColorRgba8Srgb:
+        return ColorFormat::Rgba8Srgb;
+    case TextureKind::ColorBgra8Srgb:
+        return ColorFormat::Bgra8Srgb;
+    default:
+        return ColorFormat::Rgba8;
+    }
+}
 
 struct Transfer {
     SDL_GPUDevice* device;
@@ -144,6 +160,7 @@ struct Device::Impl {
     SDL_Window* window = nullptr;
     SDL_GPUCommandBuffer* recording = nullptr;
     SDL_GPUTexture* swapchain = nullptr;
+    Texture presentationTarget{};
     FrameSize extent;
     ColorFormat swapchainFormat{};
     bool acquisitionAttempted = false;
@@ -183,6 +200,7 @@ struct Device::Impl {
         if (submit)
             ++counters.submissions;
         swapchain = nullptr;
+        presentationTarget = {};
         acquisitionAttempted = false;
         extent = {};
         flushRetired();
@@ -232,7 +250,14 @@ Result<detail::NativeFrame> detail::Access::frame(Device& owner) {
     owner.m_impl->checkThread();
     if (!owner.m_impl->recording || !owner.m_impl->swapchain)
         return tl::unexpected(invalidState());
-    return NativeFrame{owner.m_impl->recording, owner.m_impl->swapchain, owner.m_impl->extent};
+    auto* color = owner.m_impl->swapchain;
+    if (owner.m_impl->presentationTarget) {
+        const auto* entry = owner.m_impl->textures.get(owner.m_impl->presentationTarget);
+        if (!entry)
+            return tl::unexpected(invalidHandle());
+        color = entry->native;
+    }
+    return NativeFrame{owner.m_impl->recording, color, owner.m_impl->extent};
 }
 void detail::Access::count(Device& owner, Activity activity) {
     owner.m_impl->checkThread();
@@ -338,7 +363,11 @@ Result<Texture> Device::createTexture(TextureDescription description) {
         nativeDescription.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM_SRGB;
         break;
     case TextureKind::ColorRgba8:
-        nativeDescription.usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET;
+    case TextureKind::ColorBgra8:
+    case TextureKind::ColorRgba8Srgb:
+    case TextureKind::ColorBgra8Srgb:
+        nativeDescription.usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER;
+        nativeDescription.format = nativeColor(targetFormat(description.kind));
         break;
     case TextureKind::Depth32:
         nativeDescription.usage = SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET;
@@ -785,22 +814,71 @@ Result<void> Device::renderOffscreen(const RenderPass& description, std::span<co
     return submitFrame();
 }
 
+Result<void> Device::setPresentationTarget(Texture texture) {
+    m_impl->checkThread();
+    if (!m_impl->recording || !m_impl->swapchain)
+        return tl::unexpected(invalidState());
+    const auto* entry = m_impl->textures.get(texture);
+    if (!entry)
+        return tl::unexpected(invalidHandle());
+    const auto& description = entry->metadata;
+    if (!colorTarget(description.kind) ||
+        targetFormat(description.kind) != m_impl->swapchainFormat ||
+        description.width != m_impl->extent.width || description.height != m_impl->extent.height)
+        return tl::unexpected(invalidArgument());
+    m_impl->presentationTarget = texture;
+    return {};
+}
+
+Result<void> Device::copyToSwapchain(Texture texture) {
+    // The same checks prevent copies with a stale handle, wrong format or extent.
+    auto selected = setPresentationTarget(texture);
+    if (!selected)
+        return selected;
+    if (m_impl->information.driver == "metal") {
+        // SDL 3.4.18 keeps CAMetalLayer's framebufferOnly default: the drawable
+        // cannot be a Metal blit-encoder destination. SDL's draw-based blit is legal.
+        // Equal sRGB formats and nearest 1:1 sampling preserve display encoding.
+        SDL_GPUBlitInfo info{};
+        info.source.texture = m_impl->textures.get(texture)->native;
+        info.source.w = info.destination.w = m_impl->extent.width;
+        info.source.h = info.destination.h = m_impl->extent.height;
+        info.destination.texture = m_impl->swapchain;
+        info.load_op = SDL_GPU_LOADOP_DONT_CARE;
+        info.filter = SDL_GPU_FILTER_NEAREST;
+        SDL_BlitGPUTexture(m_impl->recording, &info);
+        ++m_impl->counters.drawCalls;
+        return {};
+    }
+    auto* pass = SDL_BeginGPUCopyPass(m_impl->recording);
+    if (!pass)
+        return tl::unexpected(nativeError());
+    SDL_GPUTextureLocation source{}, destination{};
+    source.texture = m_impl->textures.get(texture)->native;
+    destination.texture = m_impl->swapchain;
+    SDL_CopyGPUTextureToTexture(pass, &source, &destination, m_impl->extent.width,
+                                m_impl->extent.height, 1, false);
+    SDL_EndGPUCopyPass(pass);
+    return {};
+}
+
 Result<void> Device::recordPass(const RenderPass& description, std::span<const Draw> draws) {
     m_impl->checkThread();
     SOMNIUM_PROFILE_SCOPE("gpu.pass");
     if (!m_impl->recording)
         return tl::unexpected(invalidState());
-    const auto* color = m_impl->textures.get(description.color);
+    const auto colorHandle = description.color ? description.color : m_impl->presentationTarget;
+    const auto* color = m_impl->textures.get(colorHandle);
     const auto* depth = m_impl->textures.get(description.depth);
-    if ((description.color && !color) || (description.depth && !depth))
+    if ((colorHandle && !color) || (description.depth && !depth))
         return tl::unexpected(invalidHandle());
     if (!color && !m_impl->swapchain)
         return tl::unexpected(invalidState());
     const auto width = color ? color->metadata.width : m_impl->extent.width;
     const auto height = color ? color->metadata.height : m_impl->extent.height;
-    const auto colorFormat = color ? ColorFormat::Rgba8 : m_impl->swapchainFormat;
+    const auto colorFormat = color ? targetFormat(color->metadata.kind) : m_impl->swapchainFormat;
     const auto depthFormat = depth ? DepthFormat::Depth32 : DepthFormat::None;
-    if ((color && color->metadata.kind != TextureKind::ColorRgba8) ||
+    if ((color && !colorTarget(color->metadata.kind)) ||
         (depth && (depth->metadata.kind != TextureKind::Depth32 || depth->metadata.width != width ||
                    depth->metadata.height != height)) ||
         !std::isfinite(description.clearDepth) || description.clearDepth < 0 ||
@@ -923,7 +1001,7 @@ Result<std::vector<std::byte>> Device::readback(Texture texture) {
         return tl::unexpected(invalidHandle());
     }
     const auto description = entry->metadata;
-    if (description.kind != TextureKind::ColorRgba8) {
+    if (!colorTarget(description.kind)) {
         return tl::unexpected(invalidArgument());
     }
     const auto pitch = rowPitch(description.width);
@@ -968,6 +1046,11 @@ Result<std::vector<std::byte>> Device::readback(Texture texture) {
                     mapped + std::size_t(y) * pitch, std::size_t(description.width) * 4);
     }
     SDL_UnmapGPUTransferBuffer(m_impl->device, transfer.native);
+    if (description.kind == TextureKind::ColorBgra8 ||
+        description.kind == TextureKind::ColorBgra8Srgb) {
+        for (std::size_t pixel = 0; pixel < result.size(); pixel += 4)
+            std::swap(result[pixel], result[pixel + 2]);
+    }
     return result;
 }
 

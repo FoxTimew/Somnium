@@ -1,0 +1,9 @@
+{
+  "backend": "metal",
+  "debug": true,
+  "device": "Apple Paravirtual device",
+  "draw_calls": 21,
+  "driver_version": "unknown",
+  "output_encoding": "shader sRGB into RGBA8 UNORM",
+  "poses": 3
+}

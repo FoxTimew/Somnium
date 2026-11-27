@@ -1,0 +1,65 @@
+Sanitizers: ICD=/usr/share/vulkan/icd.d/lvp_icd.json, retained driver=/usr/lib/x86_64-linux-gnu/libvulkan_lvp.so
+Internal ctest changing into directory: /home/foxti/somnium-ci/runs/45682666750-1/build/asan-ubsan
+Test project /home/foxti/somnium-ci/runs/45682666750-1/build/asan-ubsan
+      Start  1: somnium_core_tests
+ 1/22 Test  #1: somnium_core_tests ...............   Passed    0.01 sec
+      Start  2: somnium_log_output
+ 2/22 Test  #2: somnium_log_output ...............   Passed    0.03 sec
+      Start  3: somnium_platform_tests
+ 3/22 Test  #3: somnium_platform_tests ...........   Passed    0.02 sec
+      Start  4: somnium_gpu_tests
+ 4/22 Test  #4: somnium_gpu_tests ................   Passed    0.03 sec
+      Start  5: somnium_gpu_comparison_tests
+ 5/22 Test  #5: somnium_gpu_comparison_tests .....   Passed    0.08 sec
+      Start  6: somnium_renderer_tests
+ 6/22 Test  #6: somnium_renderer_tests ...........   Passed    0.01 sec
+      Start  7: somnium_assets_tests
+ 7/22 Test  #7: somnium_assets_tests .............   Passed    0.05 sec
+      Start  8: somnium_assets_warning
+ 8/22 Test  #8: somnium_assets_warning ...........   Passed    0.04 sec
+      Start  9: somnium_scene_tests
+ 9/22 Test  #9: somnium_scene_tests ..............   Passed    0.06 sec
+      Start 10: somnium_scene_structure_guard
+10/22 Test #10: somnium_scene_structure_guard ....   Passed    0.82 sec
+      Start 11: somnium_input_tests
+11/22 Test #11: somnium_input_tests ..............   Passed    0.01 sec
+      Start 12: somnium_debug_ui_tests
+12/22 Test #12: somnium_debug_ui_tests ...........   Passed    0.02 sec
+      Start 13: somnium_runtime_tests
+13/22 Test #13: somnium_runtime_tests ............   Passed    0.04 sec
+      Start 14: somnium_scene_extraction_tests
+14/22 Test #14: somnium_scene_extraction_tests ...   Passed    0.03 sec
+      Start 15: somnium_cube_reference_tests
+15/22 Test #15: somnium_cube_reference_tests .....   Passed    0.81 sec
+      Start 16: somnium_scene_reference_tests
+16/22 Test #16: somnium_scene_reference_tests ....   Passed    1.08 sec
+      Start 17: somnium_game_tests
+17/22 Test #17: somnium_game_tests ...............   Passed    0.02 sec
+      Start 18: somnium_game_scene_tests
+18/22 Test #18: somnium_game_scene_tests .........   Passed    0.03 sec
+      Start 20: somnium_shader_build_tests
+19/22 Test #20: somnium_shader_build_tests .......   Passed    3.31 sec
+      Start 21: somnium_dependency_tests
+20/22 Test #21: somnium_dependency_tests .........   Passed    0.02 sec
+      Start 22: somnium_architecture
+21/22 Test #22: somnium_architecture .............   Passed    0.05 sec
+      Start 23: somnium_architecture_rules
+22/22 Test #23: somnium_architecture_rules .......   Passed    1.01 sec
+
+100% tests passed, 0 tests failed out of 22
+
+Label Time Summary:
+shaders    =   3.31 sec*proc (1 test)
+
+Total Test time (real) =   7.60 sec
+Internal ctest changing into directory: /home/foxti/somnium-ci/runs/45682666750-1/build/asan-ubsan
+Test project /home/foxti/somnium-ci/runs/45682666750-1/build/asan-ubsan
+    Start 19: somnium_window_smoke
+1/1 Test #19: somnium_window_smoke .............   Passed    0.56 sec
+
+100% tests passed, 0 tests failed out of 1
+
+Label Time Summary:
+window    =   0.56 sec*proc (1 test)
+
+Total Test time (real) =   0.57 sec

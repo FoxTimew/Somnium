@@ -8,7 +8,8 @@ if(BUILD_TESTING)
     if(SOMNIUM_DATA_MODE STREQUAL "COOKED")
         add_test(NAME somnium_window_smoke COMMAND "${Python3_EXECUTABLE}"
             "${PROJECT_SOURCE_DIR}/tools/test_package.py" --executable $<TARGET_FILE:sandbox>
-            --model "${PROJECT_SOURCE_DIR}/assets/models/orbit-cube.glb")
+            --scene "${PROJECT_SOURCE_DIR}/assets/scenes/courtyard.json"
+            --input "${PROJECT_SOURCE_DIR}/assets/input/courtyard.json")
     else()
         add_test(NAME somnium_window_smoke COMMAND sandbox --frames 12)
     endif()

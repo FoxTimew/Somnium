@@ -1,0 +1,885 @@
+{
+  "version": 1,
+  "nextId": 1,
+  "settings": {
+    "ambient": 0.15,
+    "clearColor": [
+      0.025,
+      0.035,
+      0.065,
+      1
+    ]
+  },
+  "activeCamera": "camera",
+  "entities": [
+    {
+      "id": "character",
+      "components": {
+        "somnium.Name": {
+          "version": 1,
+          "data": {
+            "value": "Character"
+          }
+        },
+        "somnium.Transform": {
+          "version": 1,
+          "data": {
+            "position": [
+              0,
+              0,
+              4
+            ],
+            "rotationDegrees": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        "game.Character": {
+          "version": 1,
+          "data": {
+            "speed": 3,
+            "visual": "character-visual"
+          }
+        },
+        "game.AabbCollider": {
+          "version": 1,
+          "data": {
+            "center": [
+              0,
+              0.9,
+              0
+            ],
+            "halfExtent": [
+              0.5,
+              0.9,
+              0.35
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "character-visual",
+      "components": {
+        "somnium.Name": {
+          "version": 1,
+          "data": {
+            "value": "Original box character"
+          }
+        },
+        "somnium.Transform": {
+          "version": 1,
+          "data": {
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotationDegrees": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        "somnium.Hierarchy": {
+          "version": 1,
+          "data": {
+            "parent": "character"
+          }
+        }
+      }
+    },
+    {
+      "id": "ground",
+      "components": {
+        "somnium.Name": {
+          "version": 1,
+          "data": {
+            "value": "Checker ground"
+          }
+        },
+        "somnium.Transform": {
+          "version": 1,
+          "data": {
+            "position": [
+              0,
+              -0.1,
+              -2
+            ],
+            "rotationDegrees": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              24,
+              0.2,
+              20
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "camera",
+      "components": {
+        "somnium.Name": {
+          "version": 1,
+          "data": {
+            "value": "Follow camera (root)"
+          }
+        },
+        "somnium.Transform": {
+          "version": 1,
+          "data": {
+            "position": [
+              0,
+              5,
+              12
+            ],
+            "rotationDegrees": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        "somnium.Camera": {
+          "version": 1,
+          "data": {
+            "verticalFovDegrees": 60,
+            "near": 0.1,
+            "far": 100
+          }
+        },
+        "game.FollowCamera": {
+          "version": 1,
+          "data": {
+            "target": "character",
+            "offset": [
+              0,
+              1.1,
+              0
+            ],
+            "yawDegrees": 14.32394487827058,
+            "pitchDegrees": 25.783100780887047,
+            "distance": 10
+          }
+        }
+      }
+    },
+    {
+      "id": "light",
+      "components": {
+        "somnium.Name": {
+          "version": 1,
+          "data": {
+            "value": "Directional light"
+          }
+        },
+        "somnium.Transform": {
+          "version": 1,
+          "data": {
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotationDegrees": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        "somnium.DirectionalLight": {
+          "version": 1,
+          "data": {
+            "direction": [
+              0.4,
+              1,
+              0.6
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "west-wall",
+      "components": {
+        "somnium.Name": {
+          "version": 1,
+          "data": {
+            "value": "West Wall"
+          }
+        },
+        "somnium.Transform": {
+          "version": 1,
+          "data": {
+            "position": [
+              -5.5,
+              1.5,
+              -2
+            ],
+            "rotationDegrees": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        "game.AabbCollider": {
+          "version": 1,
+          "data": {
+            "center": [
+              0,
+              0,
+              0
+            ],
+            "halfExtent": [
+              4.5,
+              1.5,
+              0.2
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "west-wall-visual",
+      "components": {
+        "somnium.Name": {
+          "version": 1,
+          "data": {
+            "value": "west-wall-visual"
+          }
+        },
+        "somnium.Transform": {
+          "version": 1,
+          "data": {
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotationDegrees": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              9,
+              3,
+              0.4
+            ]
+          }
+        },
+        "somnium.Hierarchy": {
+          "version": 1,
+          "data": {
+            "parent": "west-wall"
+          }
+        }
+      }
+    },
+    {
+      "id": "middle-wall",
+      "components": {
+        "somnium.Name": {
+          "version": 1,
+          "data": {
+            "value": "Middle Wall"
+          }
+        },
+        "somnium.Transform": {
+          "version": 1,
+          "data": {
+            "position": [
+              2.5,
+              1.5,
+              -2
+            ],
+            "rotationDegrees": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        "game.AabbCollider": {
+          "version": 1,
+          "data": {
+            "center": [
+              0,
+              0,
+              0
+            ],
+            "halfExtent": [
+              1.5,
+              1.5,
+              0.2
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "middle-wall-visual",
+      "components": {
+        "somnium.Name": {
+          "version": 1,
+          "data": {
+            "value": "middle-wall-visual"
+          }
+        },
+        "somnium.Transform": {
+          "version": 1,
+          "data": {
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotationDegrees": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              3,
+              3,
+              0.4
+            ]
+          }
+        },
+        "somnium.Hierarchy": {
+          "version": 1,
+          "data": {
+            "parent": "middle-wall"
+          }
+        }
+      }
+    },
+    {
+      "id": "east-wall",
+      "components": {
+        "somnium.Name": {
+          "version": 1,
+          "data": {
+            "value": "East Wall"
+          }
+        },
+        "somnium.Transform": {
+          "version": 1,
+          "data": {
+            "position": [
+              8,
+              1.5,
+              -2
+            ],
+            "rotationDegrees": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        "game.AabbCollider": {
+          "version": 1,
+          "data": {
+            "center": [
+              0,
+              0,
+              0
+            ],
+            "halfExtent": [
+              2.0,
+              1.5,
+              0.2
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "east-wall-visual",
+      "components": {
+        "somnium.Name": {
+          "version": 1,
+          "data": {
+            "value": "east-wall-visual"
+          }
+        },
+        "somnium.Transform": {
+          "version": 1,
+          "data": {
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotationDegrees": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              4,
+              3,
+              0.4
+            ]
+          }
+        },
+        "somnium.Hierarchy": {
+          "version": 1,
+          "data": {
+            "parent": "east-wall"
+          }
+        }
+      }
+    },
+    {
+      "id": "back-wall",
+      "components": {
+        "somnium.Name": {
+          "version": 1,
+          "data": {
+            "value": "Back Wall"
+          }
+        },
+        "somnium.Transform": {
+          "version": 1,
+          "data": {
+            "position": [
+              0,
+              1.5,
+              -8
+            ],
+            "rotationDegrees": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        "game.AabbCollider": {
+          "version": 1,
+          "data": {
+            "center": [
+              0,
+              0,
+              0
+            ],
+            "halfExtent": [
+              10.0,
+              1.5,
+              0.2
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "back-wall-visual",
+      "components": {
+        "somnium.Name": {
+          "version": 1,
+          "data": {
+            "value": "back-wall-visual"
+          }
+        },
+        "somnium.Transform": {
+          "version": 1,
+          "data": {
+            "position": [
+              0,
+              0,
+              0
+            ],
+            "rotationDegrees": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              20,
+              3,
+              0.4
+            ]
+          }
+        },
+        "somnium.Hierarchy": {
+          "version": 1,
+          "data": {
+            "parent": "back-wall"
+          }
+        }
+      }
+    },
+    {
+      "id": "door-west",
+      "components": {
+        "somnium.Name": {
+          "version": 1,
+          "data": {
+            "value": "Door West"
+          }
+        },
+        "somnium.Transform": {
+          "version": 1,
+          "data": {
+            "position": [
+              0,
+              1.4,
+              -2
+            ],
+            "rotationDegrees": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        "game.AabbCollider": {
+          "version": 1,
+          "data": {
+            "center": [
+              0,
+              0,
+              0
+            ],
+            "halfExtent": [
+              1,
+              1.4,
+              0.15
+            ]
+          }
+        },
+        "game.Door": {
+          "version": 1,
+          "data": {
+            "pivot": "door-west-pivot",
+            "reach": 2.2,
+            "duration": 1,
+            "progress": 0,
+            "state": "closed"
+          }
+        }
+      }
+    },
+    {
+      "id": "door-west-pivot",
+      "components": {
+        "somnium.Name": {
+          "version": 1,
+          "data": {
+            "value": "Hinge pivot"
+          }
+        },
+        "somnium.Transform": {
+          "version": 1,
+          "data": {
+            "position": [
+              -1,
+              0,
+              0
+            ],
+            "rotationDegrees": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        "somnium.Hierarchy": {
+          "version": 1,
+          "data": {
+            "parent": "door-west"
+          }
+        }
+      }
+    },
+    {
+      "id": "door-west-leaf",
+      "components": {
+        "somnium.Name": {
+          "version": 1,
+          "data": {
+            "value": "Door leaf"
+          }
+        },
+        "somnium.Transform": {
+          "version": 1,
+          "data": {
+            "position": [
+              1,
+              0,
+              0
+            ],
+            "rotationDegrees": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              2,
+              2.8,
+              0.2
+            ]
+          }
+        },
+        "somnium.Hierarchy": {
+          "version": 1,
+          "data": {
+            "parent": "door-west-pivot"
+          }
+        }
+      }
+    },
+    {
+      "id": "door-west-lintel",
+      "components": {
+        "somnium.Name": {
+          "version": 1,
+          "data": {
+            "value": "Lintel"
+          }
+        },
+        "somnium.Transform": {
+          "version": 1,
+          "data": {
+            "position": [
+              0,
+              2.9,
+              -2
+            ],
+            "rotationDegrees": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              2,
+              0.2,
+              0.4
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "door-east",
+      "components": {
+        "somnium.Name": {
+          "version": 1,
+          "data": {
+            "value": "Door East"
+          }
+        },
+        "somnium.Transform": {
+          "version": 1,
+          "data": {
+            "position": [
+              5,
+              1.4,
+              -2
+            ],
+            "rotationDegrees": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        "game.AabbCollider": {
+          "version": 1,
+          "data": {
+            "center": [
+              0,
+              0,
+              0
+            ],
+            "halfExtent": [
+              1,
+              1.4,
+              0.15
+            ]
+          }
+        },
+        "game.Door": {
+          "version": 1,
+          "data": {
+            "pivot": "door-east-pivot",
+            "reach": 2.2,
+            "duration": 1,
+            "progress": 0,
+            "state": "closed"
+          }
+        }
+      }
+    },
+    {
+      "id": "door-east-pivot",
+      "components": {
+        "somnium.Name": {
+          "version": 1,
+          "data": {
+            "value": "Hinge pivot"
+          }
+        },
+        "somnium.Transform": {
+          "version": 1,
+          "data": {
+            "position": [
+              -1,
+              0,
+              0
+            ],
+            "rotationDegrees": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        "somnium.Hierarchy": {
+          "version": 1,
+          "data": {
+            "parent": "door-east"
+          }
+        }
+      }
+    },
+    {
+      "id": "door-east-leaf",
+      "components": {
+        "somnium.Name": {
+          "version": 1,
+          "data": {
+            "value": "Door leaf"
+          }
+        },
+        "somnium.Transform": {
+          "version": 1,
+          "data": {
+            "position": [
+              1,
+              0,
+              0
+            ],
+            "rotationDegrees": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              2,
+              2.8,
+              0.2
+            ]
+          }
+        },
+        "somnium.Hierarchy": {
+          "version": 1,
+          "data": {
+            "parent": "door-east-pivot"
+          }
+        }
+      }
+    },
+    {
+      "id": "door-east-lintel",
+      "components": {
+        "somnium.Name": {
+          "version": 1,
+          "data": {
+            "value": "Lintel"
+          }
+        },
+        "somnium.Transform": {
+          "version": 1,
+          "data": {
+            "position": [
+              5,
+              2.9,
+              -2
+            ],
+            "rotationDegrees": [
+              0,
+              0,
+              0
+            ],
+            "scale": [
+              2,
+              0.2,
+              0.4
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

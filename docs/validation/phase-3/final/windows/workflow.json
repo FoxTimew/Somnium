@@ -1,0 +1,8 @@
+{
+  "run": 45795328234,
+  "job": 139824409168,
+  "url": "https://github.com/FoxTimew/Somnium/actions/runs/45795328234/job/139824409168",
+  "head_sha": "a7c8ed202c253aac3bda250102ca283738adf95a",
+  "conclusion": "success",
+  "archive": "Selected evidence; each result records the tested GitHub PR merge SHA. PNGs copied byte for byte."
+}

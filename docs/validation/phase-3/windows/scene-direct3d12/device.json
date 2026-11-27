@@ -1,0 +1,9 @@
+{
+  "backend": "direct3d12",
+  "debug": true,
+  "device": "AMD Radeon RX 6600M",
+  "draw_calls": 21,
+  "driver_version": "32.0.21037.1004",
+  "output_encoding": "shader sRGB into RGBA8 UNORM",
+  "poses": 3
+}
