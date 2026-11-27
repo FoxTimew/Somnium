@@ -6,10 +6,10 @@ Document validé ; distingue les contrats du MVP des capacités déjà implémen
 
 Statut : **accepté**, 20 octobre 2026, avec les arbitrages D1 à D5 ci-dessous.
 
-Les phases 0 à 2 sont validées, fusionnées `--no-ff` et taguées sur `main`.
+Les phases 0 à 3 sont validées, fusionnées `--no-ff` et taguées sur `main`.
 La phase 2 se termine au tag `phase-2` (`bf0976a`, PR #4) ; `main` est la branche
 par défaut. Infrastructure auto-hébergée intégrée ; [bilan et preuves](validation/phase-2/FIN_DE_PHASE.md).
-`phase/3-scene` implémente les contrats acceptés des
+Le tag `phase-3` implémente les contrats acceptés des
 [ADR-0007](adr/0007-scene-entites-serialisation.md) et
 [ADR-0008](adr/0008-inputs-configurables.md). World et ses codecs sont décrits dans
 [SCENE.md](SCENE.md) ; extraction/interpolation et preuve hors écran sont raccordées.
@@ -44,7 +44,7 @@ dans l'ADR-0002. Leur traduction en constantes aura une seule autorité :
 | --- | --- |
 | D1 | Toute dépendance sans release est épinglée par SHA complet, jamais par branche ; cette règle inclut stb et shadercross. |
 | D2 | Les backends officiels sont compilés dans `somnium_platform_imgui` et `somnium_gpu_imgui`, cibles séparées activées uniquement par `SOMNIUM_ENABLE_DEBUG_UI=ON` et liées par `debug_ui`. Les sources de platform/gpu ne contiennent aucun include ImGui ni condition UI. SDL_Event reste dans platform (collecte, traduction neutre et intégration privée). Input ne contient aucun include SDL. Aucun type SDL public. |
-| D3 | Le MVP charge le MSL produit hors ligne par shadercross. Le travail du driver est autorisé ; aucun compilateur HLSL dans le moteur. Le `.metallib` est reporté au cuiseur de phase 4 ; l'ADR-0003 le consigne comme prérequis de shipping macOS. |
+| D3 | Le MVP charge le MSL produit hors ligne par shadercross. Le travail du driver est autorisé ; aucun compilateur HLSL dans le moteur. Le `.metallib` est reporté au futur cuiseur ; l'ADR-0003 le consigne comme prérequis de shipping macOS. |
 | D4 | Pas de zones de durée GPU Tracy. Zones CPU, hooks mémoire, compteurs de draw calls/soumissions/uploads et marqueurs SDL visibles dans RenderDoc/PIX/Xcode. Critère de phase 2 amendé. |
 | D5 | Test de rendu hors écran, relecture et comparaison à une référence avec tolérance. Depuis ADR-0006 : Vulkan/lavapipe Linux et D3D12/Vulkan Radeon Windows requis, Metal manuel best effort ; WARP n'est plus couvert. Sans device/couche sur un backend optionnel : résultat explicitement « non validé ». Une absence sur les deux runners requis fait échouer le job. Captures et journaux de validation joints à la PR. |
 
@@ -261,7 +261,7 @@ Le `FileReader` résout dans l’ordre `<exécutable>/assets` (shaders compilés
 la première racine existe, aucun repli vers le dépôt ni le répertoire courant.
 CMake ne copie aucun asset source dans le build. Un package shipping doit apporter
 la scène, le mapping et les modèles dans cette racine ; le test de conditionnement le prépare explicitement
-dans un dossier temporaire extérieur au build, avant le cuiseur de phase 4. Son implémentation boucle sur les lectures partielles
+dans un dossier temporaire extérieur au build, avant le futur cuiseur. Son implémentation boucle sur les lectures partielles
 jusqu'à complétion ; erreur, zéro progression prématuré ou taille supérieure à
 256 MiB échouent explicitement. Les tests injectent un flux SDL fragmenté privé.
 
@@ -536,3 +536,25 @@ précèdent le gameplay. Les phases suivantes attendent une nouvelle validation.
 
 Les trois derniers emplacements sont réservés dans ce plan uniquement. Aucun
 module vide audio/tilemap/network, système physique ni scripting n'est ajouté.
+
+## 10. Phase 4 — propositions en attente de validation
+
+Les phases 0 à 3 sont fusionnées et taguées. [AGENTS.md](../AGENTS.md) remplace
+l'ancien découpage de la phase 4 : l'itération précède le cuiseur d'assets.
+Le [spike](HOT_RELOAD_SPIKE.md) reste un projet autonome sous tools ; il ne change
+aucune source ni frontière moteur/game. Les [ADR-0009](adr/0009-instantanes-edition-enregistrement.md),
+[0010](adr/0010-rechargement-shaders.md) et [0011](adr/0011-module-gameplay.md)
+proposent instantanés/édition/sauvegarde, rechargement des shaders et module du jeu.
+Le [plan de tests](PHASE_4_TEST_PLAN.md) fixe les preuves avant chaque passage.
+
+Les lignes Éditeur et Hot-reload du tableau précédent décrivent donc encore le
+code livré en phase 3, tandis que leur périmètre limité entre dans le cadrage de
+phase 4. Gizmos, sélection dans la vue, prefabs, scènes multiples, navigateur
+d'assets, hot-reload modèles/textures ou modules moteur restent reportés. Le
+cuiseur, l'empaquetage shipping, KTX2/BC, mipmaps et metallib restent également
+reportés ; metallib demeure un prérequis de shipping macOS. Les contextes d'input
+génériques ne sont pas introduits par les modes exclusifs de l'outil.
+
+À ce jalon, aucune option `iteration`, aucun mode d'édition et aucun chargeur
+de production n'existe. Les changements proposés de format de Transform et de
+découpage partagé attendent l'accord explicite sur les ADR.

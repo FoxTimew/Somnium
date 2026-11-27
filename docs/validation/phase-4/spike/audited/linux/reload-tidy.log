@@ -1,0 +1,16 @@
+Ubuntu LLVM version 18.1.3
+  Optimized build.
+
+OK engine/core/src/assert.cpp
+OK engine/core/src/log.cpp
+OK engine/core/src/logical_path.cpp
+OK engine/input/src/input.cpp
+OK engine/input/src/configuration.cpp
+OK engine/platform/src/input_replay.cpp
+OK engine/scene/src/builtin_codecs.cpp
+OK engine/scene/src/rotation.cpp
+OK engine/scene/src/serialization.cpp
+OK engine/scene/src/world.cpp
+OK tools/hot_reload_spike/host.cpp
+OK tools/hot_reload_spike/rotation_audit.cpp
+OK tools/hot_reload_spike/module.cpp

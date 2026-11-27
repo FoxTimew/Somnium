@@ -4,13 +4,14 @@ Les résultats de rendu et les limites de l'environnement restent explicitement 
 -->
 # Somnium
 
-Moteur de jeu 3D C++20 pour Windows, Linux et macOS. La branche `phase/3-scene`
+Moteur de jeu 3D C++20 pour Windows, Linux et macOS. Le sandbox
 charge une scène JSON : personnage non animé, sol, murs bloquants, deux portes
 sur pivot, caméra troisième personne et inspecteur ImGui. Déplacement clavier/
 souris et manette, mapping JSON, simulation fixe à 60 Hz et rendu interpolé.
 
-Les phases 0 à 2 sont validées et taguées sur `main` ; la phase 3 attend sa
-validation finale, sans fusion ni tag. [Bilan et captures de phase 3](docs/validation/phase-3/FIN_DE_PHASE.md),
+Les phases 0 à 3 sont validées, fusionnées et taguées sur `main`. La phase 4
+« Itération » est au point de contrôle avant intégration ; ses ADR attendent validation.
+[Bilan et captures de phase 3](docs/validation/phase-3/FIN_DE_PHASE.md),
 [World et codecs](docs/SCENE.md), [preuve analytique de scène](docs/SCENE_VALIDATION.md).
 Windows/Radeon et Linux/WSL2 sont requis ; macOS reste manuel best effort,
 WARP hors couverture. [Installation des runners](docs/CI_RUNNER.md).
@@ -116,7 +117,7 @@ source n’est copié dans le build. Shipping utilise COOKED : **une seule racin
 provoque un diagnostic, jamais un modèle factice.
 
 `cmake --install build/debug --prefix <dossier>` installe binaire et shaders ;
-il ne conditionne pas les modèles. Avant le cuiseur de phase 4, constituer
+il ne conditionne pas les modèles. Avant le futur cuiseur, constituer
 explicitement un package de démonstration hors du build : les quatre
 `models/courtyard-*.glb`, `scenes/courtyard.json` et `input/courtyard.json` sous
 `bin/assets/` ; ajouter `replays/courtyard.json` pour le rejeu.
@@ -154,7 +155,7 @@ avec depfiles sur les includes HLSL transitifs. Entrées `vsMain`/`psMain`, jama
 un ancien cache doit être reconfiguré avec `-DCMAKE_OSX_DEPLOYMENT_TARGET=13.3`.
 MSL reste explicitement **2.3.0**, compatible avec cette cible. Aucun compilateur HLSL n'est lié
 ou livré au moteur ; le driver compile le MSL. Le `.metallib` reste un prérequis
-de shipping macOS à réaliser au cuiseur de phase 4.
+de shipping macOS à réaliser au futur cuiseur (hors phase 4 « Itération »).
 `SOMNIUM_VERIFY_SHADERCROSS_LIBRARY=OFF` désactive l'ancienne archive de vérification.
 
 D5 crée un device sans fenêtre, rend une scène RGBA8/D32, relit après une fence
@@ -222,3 +223,16 @@ ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 UBSAN_OPTIONS=halt_on_error=1 python
 Ce passage utilise X11/Xvfb, lie Xlib et conserve lavapipe chargé jusqu'au contrôle
 LSan pour que les racines de caches natifs restent visibles. La détection des
 fuites reste active, sans suppression. Wayland n'est pas couvert par ce job.
+
+## Phase 4 — point de contrôle
+
+Les phases 0 à 3 sont validées sur `main` et taguées. Le cadrage d'itération est dans
+[AGENTS.md](AGENTS.md). Le [spike autonome](docs/HOT_RELOAD_SPIKE.md), les
+[ADR-0009 à ADR-0011 et le plan de tests](docs/PHASE_4_TEST_PLAN.md) sont soumis à
+validation ; édition et rechargement ne sont pas encore intégrés au moteur.
+
+`tools/ci/windows.ps1 hot-reload-spike --jobs 2` et
+`bash tools/ci/linux.sh hot-reload-spike --jobs 2` exécutent les mêmes preuves
+localement et en CI. Le premier compile avec MSVC, le second avec clang 18 ; ils
+utilisent les prérequis et caches du [guide des runners](docs/CI_RUNNER.md).
+Le spike ne fait pas partie du graphe de build du sandbox, y compris shipping.

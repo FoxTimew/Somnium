@@ -12,8 +12,8 @@ les frontières CPU/GPU et les preuves D5 communes aux trois backends.
 
 - **Sources et identité.** Lecture directe au MVP : platform cherche
   `<exécutable>/assets` (shaders compilés), puis `<dépôt>/assets` en développement.
-  Shipping : seule première racine, conditionnée explicitement avant le cuiseur
-  de phase 4. Aucune copie automatique des assets sources dans le build ; aucun
+  Shipping : seule première racine, conditionnée explicitement avant le futur
+  cuiseur. Aucune copie automatique des assets sources dans le build ; aucun
   recours au répertoire courant. `core::ByteReader` injecté par runtime ; chemin
   logique canonique borné aux racines, repli uniquement sur NotFound.
 - **AssetManager.** Handles typés index/génération ; identité `(type, chemin)` ;
@@ -64,7 +64,7 @@ frontières rompues. Caméra dans runtime : couplage au gameplay.
 
 ## Conséquences
 
-Phase 4 change loaders/conditionnement sans changer identité/états. Ordre réalisé :
+Le futur cuiseur change loaders/conditionnement sans changer identité/états. Ordre réalisé :
 GPU → assets/tests CPU → renderer/cube (jalon validé) → input/caméra/sandbox.
 
 Preuves : CI Windows/Linux, D5/cube exacts Radeon/lavapipe et captures D3D12/Vulkan validés sur 36f1824 (run 45622048422, bilan de phase 2) ; Metal reste une preuve historique du jalon, best effort manuel depuis ADR-0006 ; WARP non couvert.
