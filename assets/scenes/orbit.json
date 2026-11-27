@@ -1,115 +1,154 @@
 {
-  "version": 1,
-  "nextId": 1,
-  "settings": {
-    "ambient": 0.15,
-    "clearColor": [
-      0.025,
-      0.035,
-      0.065,
-      1
-    ]
-  },
   "activeCamera": "camera",
   "entities": [
     {
-      "id": "model",
       "components": {
-        "somnium.Transform": {
-          "version": 1,
-          "data": {
-            "position": [
-              0,
-              0,
-              0
-            ],
-            "rotationDegrees": [
-              0,
-              0,
-              0
-            ],
-            "scale": [
-              1,
-              1,
-              1
-            ]
-          }
-        },
-        "somnium.MeshRenderer": {
-          "version": 1,
-          "data": {
-            "model": "models/orbit-cube.glb"
-          }
-        }
-      }
-    },
-    {
-      "id": "camera",
-      "components": {
-        "somnium.Transform": {
-          "version": 1,
-          "data": {
-            "position": [
-              0,
-              0,
-              10
-            ],
-            "rotationDegrees": [
-              0,
-              0,
-              0
-            ],
-            "scale": [
-              1,
-              1,
-              1
-            ]
-          }
-        },
         "somnium.Camera": {
-          "version": 1,
           "data": {
-            "verticalFovDegrees": 60,
-            "near": 0.1,
-            "far": 100
-          }
-        }
-      }
-    },
-    {
-      "id": "light",
-      "components": {
+            "far": 100.0,
+            "near": 0.10000000149011612,
+            "verticalFovRadians": 1.0471975803375244
+          },
+          "version": 2
+        },
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": null
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": ""
+          },
+          "version": 1
+        },
         "somnium.Transform": {
-          "version": 1,
           "data": {
             "position": [
-              0,
-              0,
-              0
+              0.0,
+              0.0,
+              10.0
             ],
-            "rotationDegrees": [
-              0,
-              0,
-              0
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
             ],
             "scale": [
-              1,
-              1,
-              1
+              1.0,
+              1.0,
+              1.0
             ]
-          }
-        },
+          },
+          "version": 2
+        }
+      },
+      "id": "camera"
+    },
+    {
+      "components": {
         "somnium.DirectionalLight": {
-          "version": 1,
           "data": {
             "direction": [
-              0,
-              0,
-              1
+              0.0,
+              0.0,
+              1.0
             ]
-          }
+          },
+          "version": 1
+        },
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": null
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": ""
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "version": 2
         }
-      }
+      },
+      "id": "light"
+    },
+    {
+      "components": {
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": null
+          },
+          "version": 1
+        },
+        "somnium.MeshRenderer": {
+          "data": {
+            "model": "models/orbit-cube.glb"
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": ""
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "model"
     }
-  ]
+  ],
+  "nextId": 1,
+  "settings": {
+    "ambient": 0.15000000596046448,
+    "clearColor": [
+      0.02500000037252903,
+      0.03500000014901161,
+      0.06499999761581421,
+      1.0
+    ]
+  },
+  "version": 2
 }
