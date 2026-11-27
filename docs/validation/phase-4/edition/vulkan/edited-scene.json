@@ -1,0 +1,1157 @@
+{
+  "activeCamera": "camera",
+  "entities": [
+    {
+      "components": {
+        "game.AabbCollider": {
+          "data": {
+            "center": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "halfExtent": [
+              10.0,
+              1.5,
+              0.20000000298023224
+            ]
+          },
+          "version": 1
+        },
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": null
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "Back Wall"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              0.0,
+              1.5,
+              -8.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "back-wall"
+    },
+    {
+      "components": {
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": "back-wall"
+          },
+          "version": 1
+        },
+        "somnium.MeshRenderer": {
+          "data": {
+            "model": "models/courtyard-wall.glb"
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "back-wall-visual"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              20.0,
+              3.0,
+              0.4000000059604645
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "back-wall-visual"
+    },
+    {
+      "components": {
+        "game.FollowCamera": {
+          "data": {
+            "offset": [
+              0.0,
+              1.100000023841858,
+              0.0
+            ],
+            "orbit": {
+              "distance": 10.0,
+              "pitchRadians": 0.44999998807907104,
+              "yawRadians": 0.25
+            },
+            "posed": false,
+            "resetOrbit": {
+              "distance": 10.0,
+              "pitchRadians": 0.44999998807907104,
+              "yawRadians": 0.25
+            },
+            "target": "character"
+          },
+          "version": 2
+        },
+        "somnium.Camera": {
+          "data": {
+            "far": 100.0,
+            "near": 0.10000000149011612,
+            "verticalFovRadians": 1.0471975803375244
+          },
+          "version": 2
+        },
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": null
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "Follow camera (root)"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              0.0,
+              5.0,
+              12.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "camera"
+    },
+    {
+      "components": {
+        "game.AabbCollider": {
+          "data": {
+            "center": [
+              0.0,
+              0.8999999761581421,
+              0.0
+            ],
+            "halfExtent": [
+              0.5,
+              0.8999999761581421,
+              0.3499999940395355
+            ]
+          },
+          "version": 1
+        },
+        "game.Character": {
+          "data": {
+            "speed": 3.0,
+            "visual": "character-visual"
+          },
+          "version": 1
+        },
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": null
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "Character"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              0.0,
+              0.0,
+              4.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "character"
+    },
+    {
+      "components": {
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": "character"
+          },
+          "version": 1
+        },
+        "somnium.MeshRenderer": {
+          "data": {
+            "model": "models/courtyard-character.glb"
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "Original box character"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "character-visual"
+    },
+    {
+      "components": {
+        "game.AabbCollider": {
+          "data": {
+            "center": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "halfExtent": [
+              1.0,
+              1.399999976158142,
+              0.15000000596046448
+            ]
+          },
+          "version": 1
+        },
+        "game.Door": {
+          "data": {
+            "closedRotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "duration": 1.0,
+            "pivot": "door-east-pivot",
+            "posed": false,
+            "progress": 0.0,
+            "reach": 2.200000047683716,
+            "state": "closed"
+          },
+          "version": 2
+        },
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": null
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "Door East"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              5.0,
+              1.399999976158142,
+              -2.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "door-east"
+    },
+    {
+      "components": {
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": "door-east-pivot"
+          },
+          "version": 1
+        },
+        "somnium.MeshRenderer": {
+          "data": {
+            "model": "models/courtyard-door.glb"
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "Door leaf"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              2.0,
+              2.799999952316284,
+              0.20000000298023224
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "door-east-leaf"
+    },
+    {
+      "components": {
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": null
+          },
+          "version": 1
+        },
+        "somnium.MeshRenderer": {
+          "data": {
+            "model": "models/courtyard-wall.glb"
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "Lintel"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              5.0,
+              2.9000000953674316,
+              -2.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              2.0,
+              0.20000000298023224,
+              0.4000000059604645
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "door-east-lintel"
+    },
+    {
+      "components": {
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": "door-east"
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "Hinge pivot"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              -1.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "door-east-pivot"
+    },
+    {
+      "components": {
+        "game.AabbCollider": {
+          "data": {
+            "center": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "halfExtent": [
+              1.0,
+              1.399999976158142,
+              0.15000000596046448
+            ]
+          },
+          "version": 1
+        },
+        "game.Door": {
+          "data": {
+            "closedRotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "duration": 1.0,
+            "pivot": "door-west-pivot",
+            "posed": false,
+            "progress": 0.0,
+            "reach": 2.200000047683716,
+            "state": "closed"
+          },
+          "version": 2
+        },
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": null
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "Door West"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              0.0,
+              1.399999976158142,
+              -2.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "door-west"
+    },
+    {
+      "components": {
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": "door-west-pivot"
+          },
+          "version": 1
+        },
+        "somnium.MeshRenderer": {
+          "data": {
+            "model": "models/courtyard-door.glb"
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "Door leaf"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              2.0,
+              2.799999952316284,
+              0.20000000298023224
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "door-west-leaf"
+    },
+    {
+      "components": {
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": null
+          },
+          "version": 1
+        },
+        "somnium.MeshRenderer": {
+          "data": {
+            "model": "models/courtyard-wall.glb"
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "Lintel"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              0.0,
+              2.9000000953674316,
+              -2.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              2.0,
+              0.20000000298023224,
+              0.4000000059604645
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "door-west-lintel"
+    },
+    {
+      "components": {
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": "door-west"
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "Hinge pivot"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              -1.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "door-west-pivot"
+    },
+    {
+      "components": {
+        "game.AabbCollider": {
+          "data": {
+            "center": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "halfExtent": [
+              2.0,
+              1.5,
+              0.20000000298023224
+            ]
+          },
+          "version": 1
+        },
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": null
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "East Wall"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              8.0,
+              1.5,
+              -2.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "east-wall"
+    },
+    {
+      "components": {
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": "east-wall"
+          },
+          "version": 1
+        },
+        "somnium.MeshRenderer": {
+          "data": {
+            "model": "models/courtyard-wall.glb"
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "east-wall-visual"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              4.0,
+              3.0,
+              0.4000000059604645
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "east-wall-visual"
+    },
+    {
+      "components": {
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": null
+          },
+          "version": 1
+        },
+        "somnium.MeshRenderer": {
+          "data": {
+            "model": "models/courtyard-ground.glb"
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "Checker ground"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              0.0,
+              -0.10000000149011612,
+              -2.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              24.0,
+              0.20000000298023224,
+              20.0
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "ground"
+    },
+    {
+      "components": {
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": "iteration-pivot"
+          },
+          "version": 1
+        },
+        "somnium.MeshRenderer": {
+          "data": {
+            "model": "models/courtyard-wall.glb"
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "Edited block"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              0.0,
+              1.0,
+              2.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              2.0,
+              1.0
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "iteration-box"
+    },
+    {
+      "components": {
+        "game.AabbCollider": {
+          "data": {
+            "center": [
+              0.0,
+              1.0,
+              2.0
+            ],
+            "halfExtent": [
+              0.6000000238418579,
+              1.2000000476837158,
+              0.6000000238418579
+            ]
+          },
+          "version": 1
+        },
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": null
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "Authored pivot"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              2.0,
+              0.0,
+              1.0
+            ],
+            "rotation": [
+              0.0,
+              0.3826834261417389,
+              0.0,
+              0.9238795042037964
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "iteration-pivot"
+    },
+    {
+      "components": {
+        "somnium.DirectionalLight": {
+          "data": {
+            "direction": [
+              0.4000000059604645,
+              1.0,
+              0.6000000238418579
+            ]
+          },
+          "version": 1
+        },
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": null
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "Directional light"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "light"
+    },
+    {
+      "components": {
+        "game.AabbCollider": {
+          "data": {
+            "center": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "halfExtent": [
+              1.5,
+              1.5,
+              0.20000000298023224
+            ]
+          },
+          "version": 1
+        },
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": null
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "Middle Wall"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              2.5,
+              1.5,
+              -2.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "middle-wall"
+    },
+    {
+      "components": {
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": "middle-wall"
+          },
+          "version": 1
+        },
+        "somnium.MeshRenderer": {
+          "data": {
+            "model": "models/courtyard-wall.glb"
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "middle-wall-visual"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              3.0,
+              3.0,
+              0.4000000059604645
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "middle-wall-visual"
+    },
+    {
+      "components": {
+        "game.AabbCollider": {
+          "data": {
+            "center": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "halfExtent": [
+              4.5,
+              1.5,
+              0.20000000298023224
+            ]
+          },
+          "version": 1
+        },
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": null
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "West Wall"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              -5.5,
+              1.5,
+              -2.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "west-wall"
+    },
+    {
+      "components": {
+        "somnium.Hierarchy": {
+          "data": {
+            "parent": "west-wall"
+          },
+          "version": 1
+        },
+        "somnium.MeshRenderer": {
+          "data": {
+            "model": "models/courtyard-wall.glb"
+          },
+          "version": 1
+        },
+        "somnium.Name": {
+          "data": {
+            "value": "west-wall-visual"
+          },
+          "version": 1
+        },
+        "somnium.Transform": {
+          "data": {
+            "position": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              9.0,
+              3.0,
+              0.4000000059604645
+            ]
+          },
+          "version": 2
+        }
+      },
+      "id": "west-wall-visual"
+    }
+  ],
+  "nextId": 1,
+  "settings": {
+    "ambient": 0.15000000596046448,
+    "clearColor": [
+      0.02500000037252903,
+      0.03500000014901161,
+      0.06499999761581421,
+      1.0
+    ]
+  },
+  "version": 2
+}

@@ -1,0 +1,16 @@
+{
+  "budget_p95_ms": 1,
+  "budget_retained_bytes": 16777216,
+  "canonical_bytes": 21637,
+  "configuration": "Debug",
+  "entities": 21,
+  "max_ms": 10.9804,
+  "p50_ms": 4.4521,
+  "p95_ms": 7.2041,
+  "retained_16_bytes": 552432,
+  "samples": 200,
+  "scene": "scenes/courtyard.json",
+  "undo_budget_met": false,
+  "version": 1,
+  "warmup": 20
+}

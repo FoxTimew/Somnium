@@ -1,0 +1,21 @@
+App name: sandbox.exe
+App version: <unspecified>
+App ID: <unspecified>
+SDL revision: SDL-3.4.18-HEAD-HASH-NOTFOUND
+SDL chose video backend 'windows'
+Validation layers enabled, expect debug level performance!
+SDL chose gpu backend 'vulkan'
+Validation layers enabled, expect debug level performance!
+SDL_GPU Driver: Vulkan
+Vulkan Device: AMD Radeon RX 6600M
+Vulkan Driver: AMD proprietary driver 25.12.1 (AMD proprietary shader compiler)
+Vulkan Conformance: 1.4.0.0
+[2026-11-27 20:15:09.967] [gpu] [info] vulkan: AMD Radeon RX 6600M
+[2026-11-27 20:15:10.049] [runtime] [info] Swapchain extent 1280x720
+[2026-11-27 20:15:10.089] [runtime] [info] First model frame presented
+[2026-11-27 20:15:10.906] [iteration] [warning] entity iteration-pivot/game.AabbCollider: halfExtent must be strictly positive
+[2026-11-27 20:15:10.928] [iteration] [warning] Reparent would create a cycle at iteration-pivot
+[2026-11-27 20:15:10.955] [iteration] [warning] entity iteration-box/somnium.MeshRenderer: models/missing.glb: Resource absent from all roots: models/missing.glb
+[2026-11-27 20:15:10.984] [runtime] [info] CAPTURE_READY steps=20
+[2026-11-27 20:15:11.006] [runtime] [info] Close during frame: acquired command buffer submitted
+frames=7 fixed_steps=20 alpha=0.963784 dropped_seconds=0.474131

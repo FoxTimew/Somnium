@@ -1,0 +1,17 @@
+App name: sandbox.exe
+App version: <unspecified>
+App ID: <unspecified>
+SDL revision: SDL-3.4.18-HEAD-HASH-NOTFOUND
+SDL chose video backend 'windows'
+SDL chose gpu backend 'direct3d12'
+WARNING: WinPixEventRuntime.dll is not available. It is required for SDL_Push/PopGPUDebugGroup and SDL_InsertGPUDebugLabel to function correctly. See here for instructions on how to obtain it: https://devblogs.microsoft.com/pix/winpixeventruntime/
+SDL_GPU Driver: D3D12
+D3D12 Adapter: AMD Radeon RX 6600M
+D3D12 Driver: 32.0.21037.1004
+Validation layers enabled, expect debug level performance!
+[2026-11-27 20:14:48.657] [gpu] [info] direct3d12: AMD Radeon RX 6600M
+[2026-11-27 20:14:48.763] [runtime] [info] Swapchain extent 1280x720
+[2026-11-27 20:14:48.789] [runtime] [info] First model frame presented
+[2026-11-27 20:14:48.819] [runtime] [info] CAPTURE_READY steps=2
+[2026-11-27 20:14:48.841] [runtime] [info] Close during frame: acquired command buffer submitted
+frames=5 fixed_steps=2 alpha=0.529332 dropped_seconds=0.000000

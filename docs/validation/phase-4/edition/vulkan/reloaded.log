@@ -1,0 +1,18 @@
+App name: sandbox.exe
+App version: <unspecified>
+App ID: <unspecified>
+SDL revision: SDL-3.4.18-HEAD-HASH-NOTFOUND
+SDL chose video backend 'windows'
+Validation layers enabled, expect debug level performance!
+SDL chose gpu backend 'vulkan'
+Validation layers enabled, expect debug level performance!
+SDL_GPU Driver: Vulkan
+Vulkan Device: AMD Radeon RX 6600M
+Vulkan Driver: AMD proprietary driver 25.12.1 (AMD proprietary shader compiler)
+Vulkan Conformance: 1.4.0.0
+[2026-11-27 20:15:19.897] [gpu] [info] vulkan: AMD Radeon RX 6600M
+[2026-11-27 20:15:19.985] [runtime] [info] Swapchain extent 1280x720
+[2026-11-27 20:15:20.021] [runtime] [info] First model frame presented
+[2026-11-27 20:15:20.058] [runtime] [info] CAPTURE_READY steps=2
+[2026-11-27 20:15:20.074] [runtime] [info] Close during frame: acquired command buffer submitted
+frames=4 fixed_steps=2 alpha=0.628412 dropped_seconds=0.000000
