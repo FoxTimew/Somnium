@@ -1,6 +1,7 @@
 # Publishes a complete shader program last, after immutable generation files exist.
 # A failed or concurrent stage build cannot replace the previous active manifest.
 import argparse
+import errno
 import hashlib
 import json
 import os
@@ -16,10 +17,33 @@ def sha(data):
     return hashlib.sha256(data).hexdigest()
 
 
+def sharing_violation(error):
+    # Python's CRT-backed open reports EACCES without winerror for the same race.
+    native = getattr(error, "winerror", None)
+    return os.name == "nt" and (native in {5, 32, 33} or
+                               (native is None and error.errno == errno.EACCES))
+
+
+def read_publication(path):
+    # Windows can briefly deny opening the old directory entry while another
+    # publisher replaces it. Retry opening, never reuse a partially read document.
+    deadline = time.monotonic() + 2
+    while True:
+        try:
+            return path.read_bytes()
+        except PermissionError as error:
+            if not sharing_violation(error) or time.monotonic() >= deadline:
+                raise
+            time.sleep(0.01)
+
+
 def atomic_write(path, data):
     path.parent.mkdir(parents=True, exist_ok=True)
-    if path.is_file() and path.read_bytes() == data:
-        return
+    try:
+        if read_publication(path) == data:
+            return
+    except FileNotFoundError:
+        pass
     with tempfile.NamedTemporaryFile(dir=path.parent, prefix=".publish-", delete=False) as stream:
         temporary = Path(stream.name)
         try:
@@ -39,7 +63,7 @@ def atomic_write(path, data):
             except PermissionError as error:
                 # Windows readers may briefly omit FILE_SHARE_DELETE. Never fall back
                 # to truncating the live file: retry its atomic replacement, bounded.
-                if os.name != "nt" or error.winerror not in {5, 32, 33} or time.monotonic() >= deadline:
+                if not sharing_violation(error) or time.monotonic() >= deadline:
                     raise
                 time.sleep(0.01)
     finally:

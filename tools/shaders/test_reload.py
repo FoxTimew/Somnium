@@ -1,6 +1,7 @@
 # Exercises structural signatures and atomic program publication without a GPU.
 # Real compiler and rendering proofs complement these malformed-publication checks.
 import copy
+import errno
 import json
 from pathlib import Path
 import tempfile
@@ -9,7 +10,7 @@ import unittest
 from concurrent.futures import ThreadPoolExecutor
 from unittest.mock import patch
 
-from publish import publish, sha
+from publish import atomic_write, publish, read_publication, sha, sharing_violation
 from reflection import canonical_bytes, digest, normalize
 from watch import build, dependencies, fingerprint
 
@@ -57,6 +58,40 @@ class ReflectionTests(unittest.TestCase):
 
 
 class PublicationTests(unittest.TestCase):
+    def test_windows_open_and_replace_report_different_permission_error_shapes(self):
+        crt = PermissionError(errno.EACCES, "CRT open")
+        native = PermissionError(errno.EACCES, "Win32 replace")
+        native.winerror = 32
+        with patch("publish.os.name", "nt"):
+            self.assertTrue(sharing_violation(crt))
+            self.assertTrue(sharing_violation(native))
+            self.assertFalse(sharing_violation(PermissionError(errno.EPERM, "unrelated")))
+        with patch("publish.os.name", "posix"):
+            self.assertFalse(sharing_violation(crt))
+
+    def test_transient_read_denial_retries_without_rewriting_identical_publication(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "program.json"
+            path.write_bytes(b"complete")
+            stamp = path.stat().st_mtime_ns
+            with patch("publish.sharing_violation", return_value=True), \
+                    patch("publish.time.sleep"), \
+                    patch.object(Path, "read_bytes", side_effect=[PermissionError(), b"complete"]):
+                atomic_write(path, b"complete")
+            self.assertEqual(path.read_bytes(), b"complete")
+            self.assertEqual(path.stat().st_mtime_ns, stamp)
+            with patch("publish.sharing_violation", return_value=True), \
+                    patch("publish.time.monotonic", side_effect=[0, 3]), \
+                    patch.object(Path, "read_bytes", side_effect=PermissionError()):
+                with self.assertRaises(PermissionError):
+                    atomic_write(path, b"replacement")
+            self.assertEqual(path.read_bytes(), b"complete")
+            self.assertEqual(list(path.parent.iterdir()), [path])
+            with patch("publish.sharing_violation", return_value=False), \
+                    patch.object(Path, "read_bytes", side_effect=PermissionError()):
+                with self.assertRaises(PermissionError):
+                    read_publication(path)
+
     def stage(self, directory, name, stage):
         files = {}
         for kind in ["spirv", "dxil", "msl", "reflection", "layout"]:
@@ -135,7 +170,7 @@ class PublicationTests(unittest.TestCase):
             def observe():
                 count = 0
                 while True:
-                    document = json.loads(destination.read_bytes())
+                    document = json.loads(read_publication(destination))
                     for path, descriptor in document["files"].items():
                         content = (destination.parent / path).read_bytes()
                         self.assertEqual(len(content), descriptor["bytes"])
