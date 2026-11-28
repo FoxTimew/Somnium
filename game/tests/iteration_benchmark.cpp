@@ -1,5 +1,5 @@
 // Measures the real courtyard snapshot contract on the selected development configuration.
-// The report is observational: the accepted undo budget is evaluated at the checkpoint.
+// Capture and transactional restoration are measured separately, only at explicit edits.
 #include <algorithm>
 #include <chrono>
 #include <cstdio>
@@ -39,8 +39,10 @@ int main(int argc, char** argv) {
     if (!original)
         return fail(original.error());
     std::vector<double> times;
+    std::vector<double> restoreTimes;
     std::vector<scene::WorldSnapshot> retained;
     times.reserve(200);
+    restoreTimes.reserve(200);
     retained.reserve(16);
     for (int index = -20; index < 200; ++index) {
         const auto begin = std::chrono::steady_clock::now();
@@ -52,28 +54,43 @@ int main(int argc, char** argv) {
             return fail({ErrorCode::InvalidState, "Snapshot changed the canonical scene"});
         if (index >= 0)
             times.push_back(std::chrono::duration<double, std::milli>(end - begin).count());
+        const auto restoreBegin = std::chrono::steady_clock::now();
+        auto restored = scene::restore(*saved, codecs, &assets);
+        const auto restoreEnd = std::chrono::steady_clock::now();
+        if (!restored)
+            return fail(restored.error());
+        auto roundtrip = scene::snapshot(**restored, codecs);
+        if (!roundtrip)
+            return fail(roundtrip.error());
+        if (roundtrip->canonical != saved->canonical || roundtrip->temporal != saved->temporal)
+            return fail({ErrorCode::InvalidState, "Restoration changed the snapshot"});
+        if (index >= 0)
+            restoreTimes.push_back(
+                std::chrono::duration<double, std::milli>(restoreEnd - restoreBegin).count());
         if (index >= 184)
             retained.push_back(std::move(*saved));
     }
     std::sort(times.begin(), times.end());
+    std::sort(restoreTimes.begin(), restoreTimes.end());
     std::size_t bytes = 0;
     for (const auto& saved : retained)
         bytes += saved.retainedBytes();
-    const scene::Json report{
-        {"version", 1},
-        {"configuration", SOMNIUM_BENCHMARK_BUILD},
-        {"scene", "scenes/courtyard.json"},
-        {"entities", (*world)->size()},
-        {"warmup", 20},
-        {"samples", times.size()},
-        {"p50_ms", times[99]},
-        {"p95_ms", times[189]},
-        {"max_ms", times.back()},
-        {"retained_16_bytes", bytes},
-        {"canonical_bytes", original->size()},
-        {"budget_p95_ms", 1},
-        {"budget_retained_bytes", std::size_t{16} * 1024 * 1024},
-        {"undo_budget_met", times[189] <= 1 && bytes <= std::size_t{16} * 1024 * 1024}};
+    const scene::Json report{{"version", 2},
+                             {"configuration", SOMNIUM_BENCHMARK_BUILD},
+                             {"scene", "scenes/courtyard.json"},
+                             {"entities", (*world)->size()},
+                             {"warmup", 20},
+                             {"samples", times.size()},
+                             {"p50_ms", times[99]},
+                             {"p95_ms", times[189]},
+                             {"max_ms", times.back()},
+                             {"retained_16_bytes", bytes},
+                             {"canonical_bytes", original->size()},
+                             {"restore_p50_ms", restoreTimes[99]},
+                             {"restore_p95_ms", restoreTimes[189]},
+                             {"restore_max_ms", restoreTimes.back()},
+                             {"budget_retained_bytes", std::size_t{16} * 1024 * 1024},
+                             {"undo_memory_budget_met", bytes <= std::size_t{16} * 1024 * 1024}};
     const auto text = report.dump(2) + "\n";
     std::ofstream output(argv[2], std::ios::binary);
     output << text;

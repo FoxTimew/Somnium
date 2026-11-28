@@ -114,8 +114,9 @@ et appliquer son brouillon validé. **Save** écrit la scène v2 canonique par
 remplacement atomique ; **Reload** demande un abandon explicite si elle est modifiée.
 Save est refusé en Jeu. Les modèles restent des chemins logiques, par exemple
 `models/courtyard-wall.glb` ; aucun asset source n’est copié dans le build.
-L’annulation est reportée : la capture p95 dépasse 1 ms dans le preset iteration
-Debug, malgré une mémoire retenue inférieure à 16 Mio.
+**Undo/Redo** parcourent une pile commune de 16 états/16 Mio, conservée par Save.
+Une nouvelle édition invalide Redo ; Reload réussi vide la pile. Le coût de capture
+et de restauration est mesuré par action explicite, jamais par frame.
 
 Rejouer les mêmes événements sans injection dans le système :
 

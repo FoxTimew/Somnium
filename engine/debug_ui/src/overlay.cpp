@@ -25,6 +25,7 @@ struct Overlay::Impl {
     detail::EditorCamera camera;
     bool playing = true;
     bool dirty = false, discard = false;
+    std::size_t undo = 0, redo = 0, historyBytes = 0;
     std::vector<std::string> commands;
     std::string iterationError;
 #endif
@@ -112,6 +113,17 @@ input::Capture Overlay::update(double frameSeconds, const scene::World& world,
             m_impl->commands.push_back(m_impl->discard ? R"({"op":"reload","discard":true})"
                                                        : R"({"op":"reload","discard":false})");
         ImGui::Checkbox("Discard unsaved changes on reload", &m_impl->discard);
+        ImGui::BeginDisabled(m_impl->undo == 0);
+        if (ImGui::Button("Undo"))
+            m_impl->commands.emplace_back(R"({"op":"undo"})");
+        ImGui::EndDisabled();
+        ImGui::SameLine();
+        ImGui::BeginDisabled(m_impl->redo == 0);
+        if (ImGui::Button("Redo"))
+            m_impl->commands.emplace_back(R"({"op":"redo"})");
+        ImGui::EndDisabled();
+        ImGui::Text("History: %zu undo / %zu redo / %.2f MiB", m_impl->undo, m_impl->redo,
+                    static_cast<double>(m_impl->historyBytes) / (1024 * 1024));
         ImGui::EndDisabled();
         if (!m_impl->playing)
             ImGui::TextUnformatted("Tool camera: RMB look, WASD + Q/E, wheel");
@@ -162,6 +174,11 @@ std::vector<std::string> Overlay::takeCommands() {
         commands.push_back(std::move(command));
     m_impl->commands.clear();
     return commands;
+}
+void Overlay::historyState(HistoryStats state) {
+    m_impl->undo = state.undoCount;
+    m_impl->redo = state.redoCount;
+    m_impl->historyBytes = state.bytes;
 }
 void Overlay::selectEntity(std::string_view id) {
     m_impl->inspector.selectEntity(id);

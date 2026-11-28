@@ -28,9 +28,19 @@ class EditSession final {
     [[nodiscard]] const std::string& error() const {
         return m_error;
     }
+    [[nodiscard]] std::size_t undoCount() const {
+        return m_cursor;
+    }
+    [[nodiscard]] std::size_t redoCount() const {
+        return m_history.size() - m_cursor;
+    }
+    [[nodiscard]] std::size_t historyBytes() const;
 
   private:
     [[nodiscard]] Result<EditEffect> apply(const scene::Json& command, std::uint64_t tick);
+    [[nodiscard]] Result<EditEffect> restoreHistory(bool forward);
+    void remember(scene::WorldSnapshot before);
+    void trimHistory();
     std::unique_ptr<scene::World>& m_world;
     IterationSession& m_modes;
     const scene::CodecRegistry& m_codecs;
@@ -40,6 +50,10 @@ class EditSession final {
     std::string m_source, m_saved, m_current, m_error;
     std::uint64_t m_revision = 0;
     bool m_dirty = false;
+    // Entries before the cursor are undo states, entries after it are redo states.
+    // Current World is not retained here; exchanges happen only after a valid restoration.
+    std::vector<scene::WorldSnapshot> m_history;
+    std::size_t m_cursor = 0, m_historyBytes = 0;
 };
 struct EditorReplayEntry {
     std::uint64_t step;

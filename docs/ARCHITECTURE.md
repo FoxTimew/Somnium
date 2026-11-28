@@ -603,8 +603,11 @@ mêmes octets. Les sources ne sont pas copiées dans le build.
 L’éditeur n’effectue ni sérialisation, ni accès disque, ni allocation de commandes
 dans la boucle lorsque ses outils sont inactifs. Les transactions explicites et
 le dessin de brouillons en Édition allouent ; la préparation des nouveaux modèles
-peut agrandir les réserves hors enregistrement GPU. L’annulation par instantanés
-est reportée : p95 mesuré au-dessus de 1 ms dans iteration Debug ; la mémoire de
-16 états reste sous 16 Mio. Le benchmark CPU est exécuté en CI, y compris dans
-les jobs manuels iteration-profiling requis aux jalons. Les rechargements des
-shaders et du gameplay attendent la validation de ce point de contrôle.
+peut agrandir les réserves hors enregistrement GPU. Annuler/Rétablir échangent
+des instantanés sur une pile commune bornée à 16 états/16 Mio, après validation
+du World candidat ; un échec conserve curseur, monde et demandes d’assets. Une
+nouvelle édition coupe la branche redo ; Save conserve la pile et actualise la
+base canonique dirty, Reload réussi la vide. Les états les plus éloignés du
+curseur sont évincés ; une opération dépassant seule 16 Mio est refusée.
+Le benchmark CPU mesure capture et restauration par action, en CI et dans
+les jobs manuels iteration-profiling requis aux jalons.

@@ -6,6 +6,7 @@ namespace somnium::runtime {
 struct EditedWorld {
     std::unique_ptr<scene::World> world;
     std::string selected;
+    scene::WorldSnapshot before;
 };
 [[nodiscard]] Result<EditedWorld> editWorld(const scene::World& source,
                                             const scene::CodecRegistry& codecs,

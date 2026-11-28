@@ -263,6 +263,8 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
 #if defined(SOMNIUM_ENABLE_ITERATION)
         m_impl->overlay->iterationState(session.playing(), editor.dirty(), editor.revision(),
                                         editor.error());
+        m_impl->overlay->historyState(
+            {editor.undoCount(), editor.redoCount(), editor.historyBytes()});
 #endif
         const auto captureInput =
             m_impl->overlay->update(frameSeconds, *m_impl->world, input.configuration(),

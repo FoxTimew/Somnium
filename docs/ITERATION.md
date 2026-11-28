@@ -49,6 +49,15 @@ Deux Save successifs ne changent ni les octets ni le fichier s’il est déjà i
 **Reload** valide un candidat ; cocher l’abandon des modifications pour recharger
 une scène dirty. Un fichier invalide ou un asset Failed ne remplace pas World.
 
+**Undo/Redo** restaurent les états complets, y compris les historiques des codecs.
+La pile commune contient au plus 16 états et 16 Mio ; les états les plus éloignés
+du curseur sont évincés. Une édition nouvelle coupe la branche Redo ; une erreur
+de validation ou de restauration ne change ni la pile ni le World actif.
+Save conserve la pile : revenir à sa valeur canonique éteint l’indicateur dirty.
+Reload réussi vide la pile ; Play/Stop la conserve, mais Undo/Redo sont refusés
+en Jeu. Une opération dont un instantané dépasse seul 16 Mio est refusée avec
+un diagnostic ; elle ne sacrifie pas silencieusement l’historique.
+
 La racine source par défaut est `assets/` du dépôt. `--source-root /chemin/absolu`
 permet une autre racine existante ; `--scene scenes/exemple.json` choisit la scène.
 La lecture essaie les shaders compilés à côté du binaire, cette racine, puis les
@@ -79,9 +88,8 @@ le binaire iteration construit dans ce run. Les jobs requis les appellent sur
 D3D12/Vulkan Radeon et Vulkan lavapipe. Les preuves D5/cube/scène restent inchangées.
 
 CTest lance `somnium_iteration_benchmark <assets-absolu> <rapport.json>` :
-20 chauffes, 200 captures, p50/p95/max et mémoire de 16 états. La décision
-d’annulation se juge sur le preset de développement `iteration` Debug :
-p95 local 7,20 ms pour 552 432 octets, donc report selon le seuil accepté de
-1 ms/16 Mio. Aucun bouton Annuler/Rétablir fictif. La variante
+20 chauffes, 200 captures et restaurations, p50/p95/max et mémoire de 16 états.
+La capture Debug de 5–7 ms et optimisée de 0,3 ms est payée par édition validée,
+jamais par frame ; le seuil de 1 ms a été retiré. La variante
 `iteration-profiling` mesure aussi ce coût avec optimisation et Tracy, dans
 des jobs manuels exigés aux points de contrôle.

@@ -5,10 +5,68 @@
 
 namespace somnium::runtime {
 namespace {
+constexpr std::size_t kHistoryStates = 16;
+constexpr std::size_t kHistoryBytes = std::size_t{16} * 1024 * 1024;
+bool fitsHistory(const scene::WorldSnapshot& snapshot) {
+    // Reserve one transient insertion slot; include unused vector slots in the budget.
+    return snapshot.retainedBytes() <=
+           kHistoryBytes - kHistoryStates * sizeof(scene::WorldSnapshot);
+}
 auto invalid(std::string message) {
     return tl::unexpected(Error{ErrorCode::InvalidArgument, std::move(message)});
 }
 } // namespace
+std::size_t EditSession::historyBytes() const {
+    return m_historyBytes;
+}
+void EditSession::trimHistory() {
+    m_historyBytes = m_history.capacity() * sizeof(scene::WorldSnapshot);
+    for (const auto& state : m_history)
+        m_historyBytes += state.retainedBytes() - sizeof(scene::WorldSnapshot);
+    while (m_history.size() > kHistoryStates || historyBytes() > kHistoryBytes) {
+        // Evict the state furthest from the current cursor, preserving nearest navigation.
+        if (m_cursor >= redoCount() && m_cursor != 0) {
+            m_historyBytes -= m_history.front().retainedBytes() - sizeof(scene::WorldSnapshot);
+            m_history.erase(m_history.begin());
+            --m_cursor;
+        } else {
+            m_historyBytes -= m_history.back().retainedBytes() - sizeof(scene::WorldSnapshot);
+            m_history.pop_back();
+        }
+    }
+}
+void EditSession::remember(scene::WorldSnapshot before) {
+    m_history.reserve(kHistoryStates + 1);
+    m_history.erase(m_history.begin() + static_cast<std::ptrdiff_t>(m_cursor), m_history.end());
+    m_history.push_back(std::move(before));
+    m_cursor = m_history.size();
+    trimHistory();
+}
+Result<EditEffect> EditSession::restoreHistory(bool forward) {
+    if ((forward ? redoCount() : undoCount()) == 0)
+        return invalid(forward ? "Nothing to redo" : "Nothing to undo");
+    auto current = scene::snapshot(*m_world, m_codecs);
+    if (!current)
+        return tl::unexpected(current.error());
+    if (!fitsHistory(*current))
+        return invalid("Snapshot exceeds the 16 MiB history budget");
+    const auto index = forward ? m_cursor : m_cursor - 1;
+    auto candidate = scene::restore(m_history[index], m_codecs, m_assets);
+    if (!candidate)
+        return tl::unexpected(candidate.error());
+    auto canonical = m_history[index].canonical;
+    std::swap(m_history[index], *current);
+    if (forward)
+        ++m_cursor;
+    else
+        --m_cursor;
+    trimHistory();
+    m_world = std::move(*candidate);
+    m_current = std::move(canonical);
+    m_dirty = m_current != m_saved;
+    ++m_revision;
+    return EditEffect{};
+}
 Result<void> EditSession::initialize() {
     auto source = m_files.read(m_path);
     if (!source)
@@ -70,6 +128,12 @@ Result<EditEffect> EditSession::apply(const scene::Json& command, std::uint64_t 
     if (m_modes.playing())
         return tl::unexpected(
             Error{ErrorCode::InvalidState, "Editing and saving are refused in Play; Stop first"});
+    if (*operation == "undo" || *operation == "redo") {
+        auto fields = requireFields(command, {"op"});
+        if (!fields)
+            return tl::unexpected(fields.error());
+        return restoreHistory(*operation == "redo");
+    }
     if (*operation == "save") {
         auto fields = requireFields(command, {"op"});
         if (!fields)
@@ -102,6 +166,9 @@ Result<EditEffect> EditSession::apply(const scene::Json& command, std::uint64_t 
         m_world = std::move(*candidate);
         m_source = std::move(*source);
         m_current = m_saved = std::move(*canonical);
+        std::vector<scene::WorldSnapshot>{}.swap(m_history);
+        m_cursor = 0;
+        m_historyBytes = 0;
         m_dirty = false;
         ++m_revision;
         return EditEffect{};
@@ -109,11 +176,14 @@ Result<EditEffect> EditSession::apply(const scene::Json& command, std::uint64_t 
     auto edited = editWorld(*m_world, m_codecs, command, m_assets);
     if (!edited)
         return tl::unexpected(edited.error());
-    auto canonical = serialize(*edited->world, m_codecs);
-    if (!canonical)
-        return tl::unexpected(canonical.error());
+    auto after = snapshot(*edited->world, m_codecs);
+    if (!after)
+        return tl::unexpected(after.error());
+    if (!fitsHistory(edited->before) || !fitsHistory(*after))
+        return invalid("Edit snapshot exceeds the 16 MiB history budget");
+    remember(std::move(edited->before));
     m_world = std::move(edited->world);
-    m_current = std::move(*canonical);
+    m_current = std::move(after->canonical);
     m_dirty = m_current != m_saved;
     ++m_revision;
     std::string component;

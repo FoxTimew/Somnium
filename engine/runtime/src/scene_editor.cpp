@@ -114,7 +114,7 @@ Result<EditedWorld> editWorld(const scene::World& source, const scene::CodecRegi
         auto final = restore(*saved, codecs, assets);
         if (!final)
             return tl::unexpected(final.error());
-        return EditedWorld{std::move(*final), std::move(selected)};
+        return EditedWorld{std::move(*final), std::move(selected), std::move(*before)};
     }
     auto document = Json::parse(before->canonical);
     if (*operation == "settings") {
@@ -164,6 +164,6 @@ Result<EditedWorld> editWorld(const scene::World& source, const scene::CodecRegi
     auto final = preserveHistory(*before, **candidate, codecs, assets);
     if (!final)
         return tl::unexpected(final.error());
-    return EditedWorld{std::move(*final), std::move(selected)};
+    return EditedWorld{std::move(*final), std::move(selected), std::move(*before)};
 }
 } // namespace somnium::runtime

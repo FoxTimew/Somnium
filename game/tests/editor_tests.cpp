@@ -16,7 +16,7 @@ struct Widget {
     float value = 1, previous = 1;
     std::string label = "fixture";
 };
-ComponentCodec widgetCodec() {
+ComponentCodec widgetCodec(const bool* rejectRestore = nullptr) {
     ComponentCodec codec{"consumer.Widget", 1,
                          [](const World& world, entt::entity entity) {
                              return world.registry().all_of<Widget>(entity);
@@ -45,8 +45,10 @@ ComponentCodec widgetCodec() {
     codec.captureTemporal = [](const World& world, entt::entity entity) -> Result<Json> {
         return Json{{"previous", world.registry().get<Widget>(entity).previous}};
     };
-    codec.restoreTemporal = [](World& world, entt::entity entity,
-                               const Json& data) -> Result<void> {
+    codec.restoreTemporal = [rejectRestore](World& world, entt::entity entity,
+                                            const Json& data) -> Result<void> {
+        if (rejectRestore && *rejectRestore)
+            return tl::unexpected(Error{ErrorCode::InvalidArgument, "Injected restore failure"});
         auto previous = readNumber(data, "previous");
         if (!previous)
             return tl::unexpected(previous.error());
@@ -74,6 +76,7 @@ struct ModelLoader final : assets::Loader<assets::Model> {
     }
 };
 struct Editing {
+    bool rejectRestore = false;
     EmptyReader reader;
     ModelLoader loader;
     assets::AssetManager<assets::Model> models{reader, loader};
@@ -83,7 +86,7 @@ struct Editing {
     Editing() {
         REQUIRE(registerBuiltinCodecs(codecs));
         REQUIRE(game::registerCodecs(codecs));
-        REQUIRE(codecs.add(widgetCodec()));
+        REQUIRE(codecs.add(widgetCodec(&rejectRestore)));
         REQUIRE(world->create("root"));
         REQUIRE(world->create("child"));
         REQUIRE(world->create("other"));
@@ -109,7 +112,163 @@ Json set(std::string id, std::string component, Json data, std::string op = "set
 Json transform(float x, float scale = 1) {
     return {{"position", {x, 0, 0}}, {"rotation", {0, 0, 0, 1}}, {"scale", {scale, scale, scale}}};
 }
+template <typename Check> void withEditor(Editing& f, Check check) {
+    namespace fs = std::filesystem;
+    const auto directory =
+        fs::temp_directory_path() /
+        ("somnium-history-" +
+         std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    REQUIRE(fs::create_directory(directory));
+    struct Cleanup {
+        fs::path path;
+        ~Cleanup() {
+            std::error_code ignored;
+            fs::remove_all(path, ignored);
+        }
+    } cleanup{directory};
+    {
+        std::ofstream source(directory / "scene.json", std::ios::binary);
+        source << canonical(*f.world, f.codecs);
+        source.close();
+        REQUIRE(source.good());
+    }
+    auto files = platform::SourceFiles::create(directory.generic_string());
+    REQUIRE(files);
+    input::Configuration mapping;
+    game::SandboxGame game;
+    runtime::IterationSession modes(f.world, game, f.codecs, mapping, &f.assets);
+    runtime::EditSession editor(f.world, modes, f.codecs, *files, "scene.json", &f.assets);
+    REQUIRE(editor.initialize());
+    check(editor);
+}
 } // namespace
+TEST_CASE("Undo and redo preserve exact snapshots and follow the saved baseline") {
+    Editing f;
+    REQUIRE(f.apply(set("child", "consumer.Widget", {{"value", 2}, {"label", "initial"}}, "add")));
+    f.get<Widget>("child").previous = 0.25F;
+    const auto initial = snapshot(*f.world, f.codecs);
+    REQUIRE(initial);
+    withEditor(f, [&](runtime::EditSession& editor) {
+        CHECK_FALSE(editor.execute({{"op", "undo"}}, 0));
+        REQUIRE(editor.execute(set("child", "consumer.Widget", {{"value", 7}, {"label", "edited"}}),
+                               0));
+        const auto edited = snapshot(*f.world, f.codecs);
+        REQUIRE(edited);
+        REQUIRE(editor.execute({{"op", "undo"}}, 0));
+        auto restored = snapshot(*f.world, f.codecs);
+        REQUIRE(restored);
+        CHECK(restored->canonical == initial->canonical);
+        CHECK(restored->temporal == initial->temporal);
+        CHECK_FALSE(editor.dirty());
+        CHECK(editor.undoCount() == 0);
+        CHECK(editor.redoCount() == 1);
+        REQUIRE(editor.execute({{"op", "redo"}}, 0));
+        restored = snapshot(*f.world, f.codecs);
+        REQUIRE(restored);
+        CHECK(restored->canonical == edited->canonical);
+        CHECK(restored->temporal == edited->temporal);
+        REQUIRE(editor.execute({{"op", "save"}}, 0));
+        CHECK_FALSE(editor.dirty());
+        REQUIRE(editor.execute({{"op", "undo"}}, 0));
+        CHECK(editor.dirty());
+        REQUIRE(editor.execute({{"op", "save"}}, 0));
+        CHECK_FALSE(editor.dirty());
+        CHECK(editor.redoCount() == 1);
+        REQUIRE(editor.execute({{"op", "redo"}}, 0));
+        CHECK(editor.dirty());
+        REQUIRE(editor.execute({{"op", "undo"}}, 0));
+        CHECK_FALSE(editor.execute(
+            set("child", "consumer.Widget", {{"value", -1}, {"label", "invalid"}}), 0));
+        CHECK(editor.redoCount() == 1);
+        REQUIRE(editor.execute(set("child", "somnium.Name", {{"value", "new branch"}}), 0));
+        CHECK(editor.redoCount() == 0);
+        CHECK(editor.undoCount() == 1);
+        CHECK_FALSE(editor.execute({{"op", "redo"}}, 0));
+        REQUIRE(editor.execute({{"op", "undo"}}, 0));
+        CHECK_FALSE(editor.dirty());
+    });
+}
+TEST_CASE("A failed history restoration changes neither cursor nor active asset requests") {
+    Editing f;
+    REQUIRE(f.apply(set("child", "somnium.MeshRenderer", {{"model", "models/valid.glb"}}, "add")));
+    REQUIRE(f.apply(set("child", "consumer.Widget", {{"value", 2}, {"label", "initial"}}, "add")));
+    const auto model = f.get<MeshRenderer>("child").model;
+    withEditor(f, [&](runtime::EditSession& editor) {
+        REQUIRE(editor.execute(set("child", "somnium.Name", {{"value", "edited"}}), 0));
+        for (auto operation : {"undo", "redo"}) {
+            const auto before = snapshot(*f.world, f.codecs);
+            REQUIRE(before);
+            const auto undo = editor.undoCount(), redo = editor.redoCount();
+            const auto bytes = editor.historyBytes(), revision = editor.revision();
+            const auto dirty = editor.dirty();
+            f.rejectRestore = true;
+            auto failed = editor.execute({{"op", operation}}, 0);
+            REQUIRE_FALSE(failed);
+            CHECK(failed.error().message.find("Injected restore failure") != std::string::npos);
+            const auto after = snapshot(*f.world, f.codecs);
+            REQUIRE(after);
+            CHECK(after->canonical == before->canonical);
+            CHECK(after->temporal == before->temporal);
+            CHECK(editor.undoCount() == undo);
+            CHECK(editor.redoCount() == redo);
+            CHECK(editor.historyBytes() == bytes);
+            CHECK(editor.revision() == revision);
+            CHECK(editor.dirty() == dirty);
+            CHECK(f.models.get(model));
+            f.rejectRestore = false;
+            REQUIRE(editor.execute({{"op", operation}}, 0));
+        }
+        f.world.reset();
+        // History retains paths only; neither successful nor failed candidates leak requests.
+        CHECK_FALSE(f.models.state(model));
+    });
+}
+TEST_CASE("History bounds combine undo and redo and evict the oldest reachable states") {
+    Editing f;
+    withEditor(f, [&](runtime::EditSession& editor) {
+        for (int index = 1; index <= 20; ++index)
+            REQUIRE(
+                editor.execute(set("root", "somnium.Name", {{"value", std::to_string(index)}}), 0));
+        CHECK(editor.undoCount() == 16);
+        for (int index = 19; index >= 4; --index) {
+            REQUIRE(editor.execute({{"op", "undo"}}, 0));
+            CHECK(f.get<Name>("root").value == std::to_string(index));
+            CHECK(editor.undoCount() + editor.redoCount() == 16);
+        }
+        CHECK_FALSE(editor.execute({{"op", "undo"}}, 0));
+        for (int index = 5; index <= 20; ++index) {
+            REQUIRE(editor.execute({{"op", "redo"}}, 0));
+            CHECK(f.get<Name>("root").value == std::to_string(index));
+        }
+        CHECK_FALSE(editor.execute({{"op", "redo"}}, 0));
+        REQUIRE(editor.execute({{"op", "reload"}, {"discard", true}}, 0));
+        CHECK(editor.undoCount() == 0);
+        CHECK(editor.redoCount() == 0);
+        CHECK(editor.historyBytes() == 0);
+        constexpr auto budget = std::size_t{16} * 1024 * 1024;
+        const std::string large(std::size_t{4} * 1024 * 1024, 'x');
+        for (int index = 0; index < 6; ++index) {
+            REQUIRE(editor.execute(
+                set("root", "somnium.Name", {{"value", large + std::to_string(index)}}), 0));
+            CHECK(editor.historyBytes() <= budget);
+        }
+        CHECK(editor.undoCount() < 6);
+        const auto retained = editor.undoCount();
+        for (std::size_t index = 0; index != retained; ++index) {
+            REQUIRE(editor.execute({{"op", "undo"}}, 0));
+            CHECK(editor.historyBytes() <= budget);
+        }
+        REQUIRE(editor.redoCount() != 0);
+        const auto before = canonical(*f.world, f.codecs);
+        const auto redo = editor.redoCount();
+        CHECK_FALSE(editor.execute(
+            set("root", "somnium.Name", {{"value", std::string(budget + 1, 'x')}}), 0));
+        CHECK(editor.error().find("16 MiB") != std::string::npos);
+        CHECK(canonical(*f.world, f.codecs) == before);
+        CHECK(editor.redoCount() == redo);
+        REQUIRE(editor.execute({{"op", "redo"}}, 0));
+    });
+}
 TEST_CASE("Generic editor creates, assigns, reparents and deletes through ordinary codecs") {
     Editing f;
     REQUIRE(f.apply(
@@ -241,9 +400,12 @@ TEST_CASE("Save, Play Stop and explicit reload preserve the editor baseline tran
     CHECK(canonical(*f.world, f.codecs) != editing);
     CHECK_FALSE(editor.execute({{"op", "save"}}, 30));
     CHECK(editor.error().find("Play") != std::string::npos);
+    CHECK_FALSE(editor.execute({{"op", "undo"}}, 30));
+    CHECK_FALSE(editor.execute({{"op", "redo"}}, 30));
     REQUIRE(editor.execute({{"op", "stop"}}, 30));
     CHECK(canonical(*f.world, f.codecs) == editing);
     CHECK(editor.dirty());
+    CHECK(editor.undoCount() == 1);
     REQUIRE(editor.execute({{"op", "save"}}, 31));
     CHECK_FALSE(editor.dirty());
     REQUIRE(files->read("scene.json"));
@@ -255,6 +417,7 @@ TEST_CASE("Save, Play Stop and explicit reload preserve the editor baseline tran
     CHECK_FALSE(editor.execute({{"op", "reload"}, {"discard", false}}, 34));
     write("{invalid");
     CHECK_FALSE(editor.execute({{"op", "reload"}, {"discard", true}}, 34));
+    CHECK(editor.undoCount() == 2);
     CHECK(canonical(*f.world, f.codecs) == unsaved);
     CHECK(editor.dirty());
     CHECK_FALSE(editor.execute({{"op", "save"}}, 35));

@@ -40,8 +40,13 @@ L'aller-retour Euler n'est pas exact ([mesure](../HOT_RELOAD_SPIKE.md#rotations)
   dernier enregistrement réussi ; Recharger exige abandon explicite si dirty.
   Réenregistrement de `assets/scenes/` dans un commit dédié ; fixtures analytiques
   et provenances inchangées.
-- **Annulation** : reportée après mesure sur la cour en iteration Debug :
-  p95 7,20 ms (> 1 ms), 16 états/552 432 octets (< 16 Mio). Modes, commandes, écriture source, surveillance et
+- **Annuler/Rétablir** : pile commune de 16 états/16 Mio ; coût par édition validée,
+  jamais par frame (capture Debug 5–7 ms, optimisée 0,3 ms ; 16 états ≈ 0,55 Mio).
+  Nouvel edit invalide redo ; restauration candidate avant tout échange de curseur,
+  échec sans effet sur World/demandes/pile. Save garde la pile et actualise la base
+  dirty ; Reload réussi la vide. Éviction des états les plus éloignés du curseur ;
+  instantané individuel > 16 Mio : opération refusée, jamais d'historique perdu.
+  Modes, commandes, écriture source, surveillance et
   chargeur exclus du shipping. Lots 1 à 3 avec jeu/moteur statiques ; partagé
   seulement au lot 4. Profilage d'iteration manuel, exigé aux jalons.
 

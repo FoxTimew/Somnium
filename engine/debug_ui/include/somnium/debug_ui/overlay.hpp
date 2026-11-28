@@ -1,6 +1,7 @@
 // Owns the optional diagnostic overlay and sequences its integration facades.
 // Public interfaces contain neither SDL nor ImGui types.
 #pragma once
+#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <optional>
@@ -28,6 +29,11 @@ struct State;
 struct Capture;
 } // namespace somnium::input
 namespace somnium::debug_ui {
+#if defined(SOMNIUM_ENABLE_ITERATION)
+struct HistoryStats {
+    std::size_t undoCount, redoCount, bytes;
+};
+#endif
 class Overlay final {
   public:
     static Result<std::unique_ptr<Overlay>> create(platform::Platform& platform,
@@ -47,6 +53,7 @@ class Overlay final {
     [[nodiscard]] const Camera& toolLens() const;
     void configureEditor(const scene::CodecRegistry& codecs);
     void iterationState(bool playing, bool dirty, std::uint64_t revision, std::string_view error);
+    void historyState(HistoryStats state);
     [[nodiscard]] std::vector<std::string> takeCommands();
     void selectEntity(std::string_view id);
     void selectComponent(std::string_view component);

@@ -274,8 +274,9 @@ class Runner:
         if preset in ["iteration", "iteration-profiling"]:
             measurement = json.loads((self.build_dir(preset) / "iteration-benchmark.json").read_text(encoding="utf-8"))
             self.summary(f"Snapshot {preset}: 200 samples, p95 {measurement['p95_ms']:.3f} ms, "
+                         f"restore p95 {measurement['restore_p95_ms']:.3f} ms, "
                          f"16 retained states {measurement['retained_16_bytes']} bytes; "
-                         f"undo budget met: {measurement['undo_budget_met']}")
+                         f"undo memory budget met: {measurement['undo_memory_budget_met']}")
 
     def tidy(self):
         self.py("tidy", "tools/run_clang_tidy.py", "--build", self.build_dir("iteration"), "--tool", self.tidy_tool, "--jobs", self.args.jobs)

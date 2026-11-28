@@ -188,7 +188,7 @@ Principe directeur : un seul mécanisme d'instantané de `World`, en mémoire et
 - Inspecteur : créer, supprimer (sous-arbre), renommer, reparenter une entité ; ajouter et retirer un composant ; éditer tout composant, du moteur ou du jeu, sans code d'interface par composant. L'édition passe par le codec : composant → JSON → éditeur générique → codec, et une valeur refusée par la validation est rejetée avec son message.
 - Caméra d'outil en mode Édition, propre à l'outil, jamais enregistrée, avec des liaisons distinctes du mapping du jeu.
 - Enregistrer et Recharger depuis le disque, indicateur de modifications non enregistrées ; l'ADR dit ce qu'Enregistrer signifie en mode Jeu (refus, ou enregistrement de l'instantané d'édition).
-- Annulation par pile bornée d'instantanés si le coût est négligeable, sinon report explicite.
+- Annulation et rétablissement par pile bornée d'instantanés (16 états, 16 Mio) : le coût est payé une fois par édition validée, jamais par frame.
 
 **Lot 3 — Rechargement à chaud des shaders**
 

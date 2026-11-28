@@ -229,6 +229,14 @@
     },
     {
       "step": 17,
+      "command": { "op": "undo" }
+    },
+    {
+      "step": 17,
+      "command": { "op": "redo" }
+    },
+    {
+      "step": 17,
       "command": {
         "op": "select",
         "id": "iteration-pivot",

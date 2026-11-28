@@ -66,12 +66,14 @@ les modes et outils seulement dans iteration. Lots 1 à 3 : jeu et moteur statiq
 - Enregistrer en Jeu est refusé. Recharger une édition dirty ne détruit rien sans
   abandon explicite. Échec de sauvegarde conserve dirty ; succès met à jour la base
   de comparaison seulement après publication.
-- Mesurer 200 captures sur la cour après chauffe : p50/p95/max, taille JSON et
-  mémoire retenue. Si p95 ≤ 1 ms et 16 états tiennent dans 16 Mio, implémenter une
-  pile Annuler/Rétablir bornée ; sinon consigner son report au bilan intermédiaire.
-  Mesure locale iteration Debug : p95 7,20 ms, 16 états/552 432 octets ; annulation
-  reportée. Si activée ultérieurement : nouvel edit invalide la branche redo ; échec de restauration ne
-  dépile pas l'état et ne change pas les demandes d'assets.
+- Mesurer 200 captures et restaurations sur la cour après chauffe : p50/p95/max,
+  taille JSON et mémoire retenue. Le seuil de 1 ms est retiré : coût par édition,
+  jamais par frame. Pile commune Annuler/Rétablir bornée à 16 états/16 Mio.
+  Tester exactitude canonique/transitoire, éviction par nombre et mémoire, refus
+  d’un état individuel > 16 Mio ; nouvel edit coupe redo, edit refusé le conserve.
+  Échec de restauration ne dépile rien et ne change pas les demandes d’assets.
+  Save conserve la pile avec une nouvelle base dirty ; Play/Stop la préserve,
+  Undo/Redo sont refusés en Jeu ; seul Reload réussi la vide.
 
 Le réenregistrement des seuls `assets/scenes/*.json` est isolé dans un commit dédié,
 après les tests de migration. Les fixtures des preuves analytiques restent en v1
