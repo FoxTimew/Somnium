@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from tools.presentation.capture import convert_frame
 from tools.gpu.run import native_validation_error
+from tools.gameplay.publish import replace
 
 
 def stage(source: Path, publication: Path, target: Path) -> bytes:
@@ -58,6 +59,7 @@ def main() -> None:
     command = [str(executable), "--backend", arguments.backend, "--watch-gameplay", "on",
                "--module-root", str(modules), "--replay", "replays/courtyard.json",
                "--capture-step", "540", "--capture-output", str(prefix)]
+    writable = []
     with log.open("w", encoding="utf-8") as stream:
         process = subprocess.Popen(command, stdout=stream, stderr=subprocess.STDOUT,
                                    env=dict(os.environ, SDL_ASSERT="abort"))
@@ -67,12 +69,26 @@ def main() -> None:
                 if process.poll() is not None or time.monotonic() >= deadline:
                     raise RuntimeError("Sandbox did not present its first frame")
                 time.sleep(.05)
+            # Exercise write access to linker outputs while their shadow copy is loaded.
+            # Rewriting the same byte preserves the published build and its checksums.
+            for role in ("binary", "symbols"):
+                entry = json.loads(initial).get(role)
+                if entry:
+                    linker_output = executable.parent / Path(entry["path"]).name
+                    with linker_output.open("r+b") as binary:
+                        first = binary.read(1)
+                        if not first:
+                            raise RuntimeError("Empty linker output")
+                        binary.seek(0)
+                        binary.write(first)
+                        binary.flush()
+                    writable.append(role)
             # Let the reference replay open the door before changing movement speed.
             # The exact exchange tick is recorded by runtime; the CPU proof asserts tick 300.
             time.sleep(6)
             temporary = modules / "game.next.json"
             temporary.write_bytes(replacement)
-            os.replace(temporary, modules / "game.json")
+            replace(temporary, modules / "game.json")
             if process.wait(timeout=60):
                 raise RuntimeError("Sandbox failed after module publication")
         finally:
@@ -86,6 +102,7 @@ def main() -> None:
     metadata = convert_frame(prefix, 540)
     result = {"version": 1, "status": "validated", "backend": arguments.backend,
               "single_process": True, "exchange_tick": int(exchanges[0]),
+              "linker_outputs_writable": writable,
               "image": "reloaded.png", "metadata": metadata,
               "sha256": hashlib.sha256(prefix.with_suffix(".png").read_bytes()).hexdigest()}
     (output / "result.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")

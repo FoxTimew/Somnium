@@ -153,6 +153,7 @@ int main(int argc, char** argv) {
         failures.push_back({{"publication", manifest}, {"diagnostic", result.error().message}});
     };
     reject("bad_abi.json", ErrorCode::RestartRequired);
+    reject("missing.json", ErrorCode::NotFound);
     reject("missing_symbol.json", ErrorCode::Io);
     reject("bad_start.json", ErrorCode::InvalidState);
     reject("bad_codec.json", ErrorCode::InvalidArgument);

@@ -1,5 +1,6 @@
 // Publishes a checked local ABI and generation-owned factories, never engine objects.
 // Storage declarations let runtime retire every game pool before replacing its codecs.
+#include "module_export.hpp"
 #if defined(SOMNIUM_PROOF_ABI_MISMATCH)
 #undef SOMNIUM_ENABLE_ITERATION
 #endif
@@ -37,11 +38,6 @@ void destroy(somnium::runtime::Gameplay* game) {
     delete game;
 }
 } // namespace
-#if defined(_WIN32)
-#define SOMNIUM_GAME_EXPORT __declspec(dllexport)
-#else
-#define SOMNIUM_GAME_EXPORT __attribute__((visibility("default")))
-#endif
 extern "C" SOMNIUM_GAME_EXPORT bool somniumGameQuery(std::uint32_t version, std::size_t apiSize,
                                                      const char* fingerprint,
                                                      somnium::runtime::GameModuleApi* output) {
