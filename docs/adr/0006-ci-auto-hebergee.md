@@ -1,7 +1,7 @@
 <!-- Infrastructure et compromis de sécurité du poste personnel ; exploitation dans CI_RUNNER.md. -->
 # ADR-0006 — CI auto-hébergée
 
-Date : 5 novembre 2026, amendé le 26 novembre 2026. Statut : **accepté**.
+Date : 5 novembre 2026, amendé le 28 novembre 2026. Statut : **accepté**.
 
 ## Contexte
 
@@ -40,6 +40,15 @@ caches CPM/shaders/sccache sur disque par hash, preuves par run, rétention 14 j
 résumé dans le journal et GITHUB_STEP_SUMMARY. Aucun cache/artefact GitHub ni
 transfert de chaîne entre jobs. WSL construit sur ext4 ; le test shader utilise
 CMake/Ninja natifs et garde son timeout de 120 s.
+
+**Stockage** : autorisation permanente de purger les builds jetables sous la
+racine CI, sans demande. Nettoyage des `runs/*/{build,hot-reload-spike}` inactifs :
+quota commun 24 Gio, ancienneté deux jours, plus anciens d’abord ; run courant
+et verrous actifs exclus. Rapports internes archivés avant suppression ; preuves
+et journaux gardent leurs 14 jours. Doctor et chaque opération de compilation
+exigent 12 Gio libres ; sous ce seuil, purge puis erreur nommant le répertoire
+et la commande cleanup. Arbre de travail, preuves dans leur rétention et chemins
+hors racine CI restent soumis à accord ; caches/installations ne sont pas purgés.
 
 ## Alternatives
 

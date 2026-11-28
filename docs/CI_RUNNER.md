@@ -137,6 +137,49 @@ des runs ; elle ne suit aucun lien/jonction et ne supprime jamais les caches.
 Les pièces de phase retenues sont copiées explicitement dans `docs/validation/`
 (PNG sous LFS) avant expiration.
 
+### Builds jetables et espace libre
+
+Autorisation permanente du propriétaire : les répertoires de build sous la racine
+CI sont jetables et peuvent être purgés sans demande. Le nettoyage automatique
+vise les arbres gérés `runs/<id>/build` et `runs/<id>/hot-reload-spike` portant le
+marqueur `somnium-ci`. Il conserve au plus **24 Gio de builds inactifs** et supprime
+ceux dont la dernière opération date de plus de **deux jours**, les plus anciens
+en premier. Le run courant et tout run verrouillé restent exclus ; leur taille
+peut donc s’ajouter au quota. Les annulations libèrent les verrous OS, ce qui rend
+leurs builds récupérables au passage suivant. Une racine ou un build redirigé
+par lien/jonction n’est jamais suivi. Le contrôle compare les chemins physiques,
+y compris les alias de répertoires temporaires.
+
+Le nettoyage garde **14 jours** les preuves/journaux voisins des builds. Avant
+suppression, il archive aussi les rapports internes (CTest, clang-tidy, benchmark,
+JSON, images et logs) sous `runs/<id>/logs/retired-builds/<build>-<horodatage>/`.
+Un échec d’archivage interdit la purge. Les binaires sont reconstruisibles ; garder
+une preuve durable dans `docs/validation/`. Aucun arbre de travail, checkout,
+cache CPM/shaders/sccache, installation ni chemin hors racine CI n’est purgé.
+L’arbre de travail, les preuves/journaux encore dans leur rétention et tout chemin
+hors racine CI nécessitent toujours l’accord du propriétaire.
+
+Doctor vérifie **12 Gio libres** ; chaque opération configure/build, sonde de
+cache ou construction de chaîne/spike refait ce contrôle avant de compiler.
+Un manque de place déclenche une purge supplémentaire des plus anciens builds
+inactifs, même récents, puis refuse la compilation si le seuil reste impossible.
+Le diagnostic nomme le répertoire et la commande à exécuter :
+
+```powershell
+./tools/ci/windows.ps1 cleanup --root C:/SomniumCI
+./tools/ci/windows.ps1 doctor --root C:/SomniumCI
+```
+
+```sh
+bash tools/ci/linux.sh cleanup --root /home/foxti/somnium-ci
+bash tools/ci/linux.sh doctor --root /home/foxti/somnium-ci
+```
+
+Le quota, l’âge et le seuil sont centralisés dans `tools/ci/storage.py`, sans
+modifier les clefs des caches d’outils. Ce seuil est une marge de départ, pas une
+réservation de disque ; l’espace Windows doit aussi absorber la croissance du
+disque virtuel WSL. Prévoir toujours 100 Gio pour les deux OS et leurs caches.
+
 ## Sécurité et couverture
 
 Configurer Settings → Actions → General → approbation des workflows de fork pour

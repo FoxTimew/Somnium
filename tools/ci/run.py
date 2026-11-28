@@ -4,7 +4,6 @@ Only summaries use GitHub environment variables; no operation requires GitHub.
 """
 import argparse
 import base64
-import contextlib
 import ctypes
 from datetime import datetime, timezone
 import hashlib
@@ -18,6 +17,7 @@ import subprocess
 import sys
 import time
 import uuid
+from storage import clean_builds, exclusive, files, require_space, WorktreePresent, MIN_FREE_BYTES
 
 ROOT = Path(__file__).resolve().parents[2]
 PINS = json.loads((ROOT / "tools/ci/toolchain.json").read_text(encoding="utf-8"))
@@ -34,31 +34,11 @@ def key(*files, context=""):
     return digest.hexdigest()[:24]
 
 
-@contextlib.contextmanager
-def exclusive(path):
-    """An OS lock is released even when concurrency cancellation kills the process."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("a+b") as stream:
-        stream.write(b"0")
-        stream.flush()
-        stream.seek(0)
-        if SYSTEM == "Windows":
-            import msvcrt
-            try:
-                msvcrt.locking(stream.fileno(), msvcrt.LK_NBLCK, 1)
-            except OSError as error:
-                raise RuntimeError(f"Another local/CI operation holds {path}") from error
-        else:
-            import fcntl
-            fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-        yield
-
-
 def clean_runs(root, current, days):
-    runs = (root / "runs").resolve()
+    runs = root.resolve() / "runs"
     # Compare physical paths on both sides, including macOS temporary aliases.
     current = current.resolve()
-    if not runs.is_dir():
+    if runs.is_symlink() or runs.is_junction() or not runs.is_dir():
         return
     cutoff = time.time() - days * 86400
     for path in runs.iterdir():
@@ -67,12 +47,21 @@ def clean_runs(root, current, days):
             continue
         resolved = path.resolve()
         marker = resolved / "run.json"
-        if resolved == current or resolved.parent != runs or not marker.is_file():
+        if (resolved == current or resolved.parent != runs or marker.is_symlink()
+                or not marker.is_file()):
             continue
-        data = json.loads(marker.read_text(encoding="utf-8"))
+        try:
+            data = json.loads(marker.read_text(encoding="utf-8"))
+        except (ValueError, OSError):
+            continue
         if data.get("owner") != "somnium-ci" or marker.stat().st_mtime >= cutoff:
             continue
         with exclusive(resolved / "active.lock"):
+            try:
+                for _ in files(resolved):
+                    pass
+            except WorktreePresent:
+                continue
             # Validate again immediately before the recursive removal on Windows.
             if resolved.parent != runs or resolved.is_symlink() or resolved.is_junction():
                 raise RuntimeError("Unsafe retention path")
@@ -152,7 +141,17 @@ class Runner:
     def build_dir(self, preset):
         return self.run / "build" / preset
 
+    def check_space(self, directory):
+        # Cheap at every configure/build; scan again only under disk pressure.
+        if shutil.disk_usage(self.root).free < MIN_FREE_BYTES:
+            clean_builds(self.root, self.run, minimum_free=MIN_FREE_BYTES, summary=self.summary)
+        wrapper = "./tools/ci/windows.ps1" if SYSTEM == "Windows" else "bash tools/ci/linux.sh"
+        command = f'{wrapper} cleanup --root "{self.root}"'
+        free = require_space(directory, command)
+        self.summary(f"Free space before build in `{directory}`: {free / 1024**3:.2f} GiB (minimum 12 GiB)")
+
     def doctor(self):
+        self.check_space(self.run / "build")
         if platform.python_version() != PINS["python"]:
             raise RuntimeError(f"Python {PINS['python']} required, got {platform.python_version()}")
         checks = [("cmake", [self.cmake, "--version"], PINS["cmake"]),
@@ -204,9 +203,11 @@ class Runner:
         self.py("capture-replay-contract", "tools/presentation/test_capture.py")
 
     def compiler_cache(self):
+        self.check_space(self.run)
         self.py("compiler-cache-dependencies", "tools/ci/test_compiler_cache.py", "--cmake", self.cmake, "--work", self.run)
 
     def shader_toolchain(self):
+        self.check_space(self.shader_cache)
         self.py("shader-toolchain", "tools/shader_toolchain/build.py", "--provider", self.provider,
                 "--jobs", self.args.jobs, "--cache-root", self.shader_cache,
                 "--report-dir", self.run / "shader-toolchain")
@@ -217,6 +218,7 @@ class Runner:
         variants = ["plain", "profiling"] + (["sanitizers"] if SYSTEM == "Linux" else [])
         for variant in variants:
             build = self.run / "hot-reload-spike" / variant
+            self.check_space(build)
             command = [self.cmake, "-S", ROOT / "tools/hot_reload_spike", "-B", build,
                        "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Debug",
                        f"-DSPIKE_PROFILING={'ON' if variant == 'profiling' else 'OFF'}",
@@ -236,6 +238,7 @@ class Runner:
                         "--tool", self.tidy_tool, "--jobs", self.args.jobs)
 
     def configure(self, preset):
+        self.check_space(self.build_dir(preset))
         if not self.compiler.is_file():
             raise RuntimeError("Shader CLI missing; run the shader-toolchain command first")
         command = [self.cmake, "--preset", preset, "-B", self.build_dir(preset),
@@ -254,6 +257,7 @@ class Runner:
             self.py("shipping-graph", "tools/check_shipping.py", self.build_dir(preset))
 
     def build(self, preset):
+        self.check_space(self.build_dir(preset))
         self.call("build-" + preset, [self.cmake, "--build", self.build_dir(preset), "--parallel", self.args.jobs])
         if SYSTEM == "Windows":
             dependencies = subprocess.check_output(["ninja", "-C", self.build_dir(preset), "-t", "deps"],
@@ -442,6 +446,9 @@ def main():
     with exclusive(runner.root / "operation.lock"), exclusive(runner.run / "active.lock"):
         try:
             clean_runs(runner.root, runner.run, PINS["retention_days"])
+            clean_builds(runner.root, runner.run,
+                         minimum_free=MIN_FREE_BYTES if args.operation == "cleanup" else 0,
+                         summary=runner.summary)
             (runner.run / "run.json").write_text(json.dumps({"owner": "somnium-ci", "status": "running", "operation": args.operation}), encoding="utf-8")
             if args.operation in ["build", "sanitizers", "compiler-cache", "hot-reload-spike"]:
                 runner.cache_server()
