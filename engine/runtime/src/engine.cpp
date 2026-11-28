@@ -3,6 +3,7 @@
 #include "scene_rendering.hpp"
 #if defined(SOMNIUM_ENABLE_ITERATION)
 #include "edit_session.hpp"
+#include "shader_reload.hpp"
 #endif
 #include <somnium/runtime/engine.hpp>
 
@@ -170,6 +171,10 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
     IterationSession session(m_impl->world, game, codecs, input.configuration(), &m_impl->assets);
     EditSession editor(m_impl->world, session, codecs, *m_impl->sourceFiles, m_impl->scenePath,
                        &m_impl->assets);
+    std::unique_ptr<ShaderReload> shaderReload;
+    double watchSeconds = 0;
+    if (options.watchShaders)
+        shaderReload = std::make_unique<ShaderReload>(m_impl->resources, *m_impl->renderer);
     auto baseline = editor.initialize();
     if (!baseline)
         return tl::unexpected(baseline.error());
@@ -259,6 +264,10 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
             accumulator.reset();
         }
         const auto frameSeconds = clock.sampleSeconds();
+#if defined(SOMNIUM_ENABLE_ITERATION)
+        if (shaderReload)
+            watchSeconds += frameSeconds;
+#endif
 #if defined(SOMNIUM_ENABLE_DEBUG_UI)
 #if defined(SOMNIUM_ENABLE_ITERATION)
         m_impl->overlay->iterationState(session.playing(), editor.dirty(), editor.revision(),
@@ -290,6 +299,12 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
             if (options.captureSteps != 0 && stats.fixedSteps >= options.captureSteps)
                 break;
             SOMNIUM_PROFILE_SCOPE("runtime.fixed_update");
+#if defined(SOMNIUM_ENABLE_ITERATION)
+            if (shaderReload) {
+                shaderReload->poll(watchSeconds);
+                m_impl->overlay->shaderDiagnostic(shaderReload->diagnostic());
+            }
+#endif
             auto replay = m_impl->platform->replayEvents(stats.fixedSteps);
             if (!replay)
                 return tl::unexpected(replay.error());

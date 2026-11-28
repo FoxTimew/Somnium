@@ -51,6 +51,13 @@ class Renderer final {
     [[nodiscard]] Result<void> destroy(Texture handle);
     // Allocate scratch capacity while loading, never implicitly during record().
     void reserveDraws(std::size_t count);
+#if defined(SOMNIUM_ENABLE_ITERATION)
+    // Called at a fixed-step boundary, before recording. False means already active.
+    [[nodiscard]] Result<bool> reloadShaders(const core::ByteReader& reader,
+                                             std::string_view manifest,
+                                             std::span<const std::byte> document);
+    [[nodiscard]] std::string_view shaderGeneration() const;
+#endif
     [[nodiscard]] Result<void> record(const gpu::RenderPass& pass, const FrameData& frame,
                                       std::span<const Draw> draws);
 

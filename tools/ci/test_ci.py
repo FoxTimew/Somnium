@@ -262,6 +262,8 @@ class InfrastructureTests(unittest.TestCase):
         runner.captures = captures.append
         iteration = []
         runner.iteration_proof = iteration.append
+        shaders = []
+        runner.shader_reload_proof = shaders.append
         presets = []
         runner.configure = presets.append
         runner.iteration_profiling = lambda: self.fail("Profiling iteration must be manual")
@@ -269,6 +271,7 @@ class InfrastructureTests(unittest.TestCase):
             runner.pipeline()
         self.assertEqual(captures, ["direct3d12", "vulkan"])
         self.assertEqual(iteration, ["direct3d12", "vulkan"])
+        self.assertEqual(shaders, ["direct3d12", "vulkan"])
         self.assertIn("iteration", presets)
         self.assertNotIn("iteration-profiling", presets)
         workflow = (run.ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")

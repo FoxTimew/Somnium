@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 import subprocess
 import tempfile
+from reflection import canonical_bytes, normalize
 
 
 def normalize_depfile(depfile, target):
@@ -67,23 +68,34 @@ def compile_shader(args):
         limits = {"samplers": 16, "storage_textures": 8, "storage_buffers": 8, "uniform_buffers": 4}
         if any(type(value) is not int or value < 0 or value > limits[name] for name, value in counts.items()):
             raise ValueError(f"Invalid reflected resource counts: {counts}")
+        structural = temp / (output.name + ".reflect.json")
+        run([args.spirv_cross, temp / (output.name + ".spv"), "--reflect", "--output", structural])
+        layout = temp / (output.name + ".layout.json")
+        layout.write_bytes(canonical_bytes(normalize(json.loads(structural.read_text(encoding="utf-8")),
+                           stage=args.stage, entrypoint=args.entrypoint, counts=counts)))
+
+        def descriptor(path):
+            data = path.read_bytes()
+            return {"file": path.name, "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
+
         manifest = {"version": 1, "stage": args.stage, "entrypoint": args.entrypoint,
                     "counts": counts, "formats": formats, "msl_version": args.msl_version,
-                    "macos_deployment_target": args.deployment_target}
+                    "macos_deployment_target": args.deployment_target,
+                    "reflection": descriptor(structural), "layout": descriptor(layout)}
         (temp / (output.name + ".json")).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         depfile = temp / "includes.d"
         profile = "vs_6_0" if args.stage == "vertex" else "ps_6_0"
         run([args.dxc, args.source, "-T", profile, "-E", args.entrypoint, "-I", args.include,
              *defines, "-M", "-MF", depfile, "-Fo", str(output) + ".spv"])
         normalize_depfile(depfile, str(output) + ".spv")
-        for extension in ["spv", "dxil", "msl", "json"]:
+        for extension in ["spv", "dxil", "msl", "reflect.json", "layout.json", "json"]:
             os.replace(temp / (output.name + "." + extension), str(output) + "." + extension)
         os.replace(depfile, str(output) + ".d")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    for name in ["shadercross", "dxc", "source", "include", "output", "entrypoint", "msl-version", "deployment-target"]:
+    for name in ["shadercross", "dxc", "spirv-cross", "source", "include", "output", "entrypoint", "msl-version", "deployment-target"]:
         parser.add_argument("--" + name, required=True)
     parser.add_argument("--stage", choices=["vertex", "fragment"], required=True)
     parser.add_argument("--define", action="append", default=[])

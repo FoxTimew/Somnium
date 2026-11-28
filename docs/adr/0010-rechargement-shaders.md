@@ -21,13 +21,14 @@ layout incompatible doit préserver les garanties de l'ADR-0004.
   diagnostic atomique séparé pour debug_ui. Aucun artefact commité.
 - **Contrat de layout** : les compteurs shadercross sont conservés, complétés hors
   ligne par `spirv-cross --reflect` de la version déjà épinglée. Le bootstrap
-  devra construire ce CLI aujourd'hui désactivé. Signature structurelle : étages,
+  construit et vérifie ce CLI. Signature structurelle : étages,
   interfaces vertex/fragment, sets/bindings, catégories/nombres de ressources,
   tailles, offsets, types et strides des uniformes. Une modification de cette
   signature produit le diagnostic dédié « redémarrage requis », distinct d'un
   artefact invalide. Les seuls compteurs ne valident pas le layout.
 - **Consommateur** : service neutre platform de détection, limité à 4 Hz, actif
-  seulement dans `iteration`. Il surveille manifeste/statut, pas les sources.
+  seulement dans `iteration`, sur option `--watch-shaders on`.
+  Il surveille manifeste/statut, pas les sources.
   Contrôle du schéma, des chemins logiques et des empreintes avant chargement.
   Un changement est mis en attente ; runtime le traite à la frontière de pas,
   et publie les ressources avant l'enregistrement de la prochaine frame.
@@ -56,4 +57,4 @@ Manifeste et CLI de réflexion étendent la chaîne hors ligne. L'échange peut
 temporairement doubler les ressources du programme.
 Pas d'I/O, de parsing ni d'allocation de surveillance quand les outils sont inactifs.
 
-Preuves : publication concurrente/incomplète, layout incompatible à compteurs égaux, couleur analytique après remplacement, shader invalide conservant l'image et reprise valide sur D3D12/Vulkan requis.
+Preuves : CI Windows/Radeon et Linux/lavapipe du lot 3 ; rechargement Metal en best effort.

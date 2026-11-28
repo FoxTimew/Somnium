@@ -530,7 +530,7 @@ précèdent le gameplay. Les phases suivantes attendent une nouvelle validation.
 | Render graph, ombres, PBR | Passe forward isolée, données de matériau et pipeline |
 | Cuiseur, formats binaires, textures compressées, asynchrone | Lecture injectée, loaders par type, handles et états |
 | Éditeur complet : gizmos, prefabs, navigateur | Édition de base par codecs et inspecteur séparé dans iteration |
-| Hot-reload gameplay/shaders | Cible game distincte et chargement de shader centralisé ; aucune DLL ni surveillance de fichiers |
+| Rechargement des modèles/textures et modules moteur | Identité d'asset stable ; shaders et module game seulement au périmètre de la phase 4 |
 | Contextes d'input et modes partageant une source | IDs résolus à la configuration ; une source physique, une destination au MVP, condition limitée aux deltas pendant une action maintenue (ADR-0008) |
 | Audio | Emplacement futur `engine/audio`, sous-système possédé par Engine |
 | Tilemaps 2D | Emplacement futur `engine/tilemap`, données sans dépendance GPU |
@@ -550,7 +550,7 @@ aucune source ni frontière moteur/game. Les [ADR-0009](adr/0009-instantanes-edi
 fixent instantanés/édition/sauvegarde, rechargement des shaders et module du jeu.
 Le [plan de tests](PHASE_4_TEST_PLAN.md) fixe les preuves avant chaque passage.
 
-L’édition de base entre dans le lot 2 ; le rechargement reste dans les lots 3 et 4.
+L’édition de base est validée ; les rechargements sont intégrés aux lots 3 et 4.
 Gizmos, sélection dans la vue, prefabs, scènes multiples, navigateur
 d'assets, hot-reload modèles/textures ou modules moteur restent reportés. Le
 cuiseur, l'empaquetage shipping, KTX2/BC, mipmaps et metallib restent également
@@ -611,3 +611,17 @@ base canonique dirty, Reload réussi la vide. Les états les plus éloignés du
 curseur sont évincés ; une opération dépassant seule 16 Mio est refusée.
 Le benchmark CPU mesure capture et restauration par action, en CI et dans
 les jobs manuels iteration-profiling requis aux jalons.
+
+Le lot 3 ajoute une publication hors ligne par programme : le CLI SPIRV-Cross
+épinglé décrit les types et dispositions, en complément des compteurs
+shadercross. Les trois étages du modèle sont regroupés avec leurs formats et
+réflexions dans une génération immuable ; le manifeste atomique est publié en
+dernier. Le watcher Python relance la cible CMake après modification des sources
+ou includes ; il ne fait pas partie du moteur. Sur `--watch-shaders on` seulement,
+`platform::FileWatch` sonde manifeste et statut à 4 Hz. Runtime traite les nouveaux
+octets avant le pas fixe et toute frame GPU. Renderer vérifie chemins, empreintes
+et signature structurelle, conserve les octets vérifiés puis recrée les quatre
+pipelines dépendants dans leur format courant. L’échange est global au programme ;
+un refus conserve le rendu et alimente le diagnostic de debug_ui. Un layout changé
+demande explicitement un redémarrage. L’ancien programme reprend après une
+publication valide ; aucune surveillance ni source de rechargement dans shipping.

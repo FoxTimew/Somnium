@@ -35,6 +35,10 @@ int main(int argc, char** argv) {
             if (value != "edit" && value != "play")
                 return 2;
             options.startEditing = value == "edit";
+        } else if (key == "--watch-shaders") {
+            if (value != "on" && value != "off")
+                return 2;
+            options.watchShaders = value == "on";
         } else if (key == "--source-root")
             config.sourceRoot = value;
         else if (key == "--editor-replay")

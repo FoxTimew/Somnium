@@ -54,6 +54,7 @@ class Overlay final {
     void configureEditor(const scene::CodecRegistry& codecs);
     void iterationState(bool playing, bool dirty, std::uint64_t revision, std::string_view error);
     void historyState(HistoryStats state);
+    void shaderDiagnostic(std::string_view message);
     [[nodiscard]] std::vector<std::string> takeCommands();
     void selectEntity(std::string_view id);
     void selectComponent(std::string_view component);

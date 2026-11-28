@@ -27,12 +27,16 @@ def main():
         (source / "nested.hlsli").write_text("#define TEST_DEPTH 0.5\n")
         (source / "common.hlsli").write_text('#include "nested.hlsli"\n')
         (source / "probe.hlsl").write_text('#include "common.hlsli"\nfloat4 vsMain(uint id : SV_VertexID) : SV_Position { return float4(float(id) * SCALE, 0, TEST_DEPTH, 1); }\n')
+        (source / "fragment.hlsl").write_text('float4 psMain() : SV_Target0 { return float4(1, 1, 1, 1); }\n')
         script = f'''cmake_minimum_required(VERSION 3.28)
 project(ShaderContract NONE)
-set(CMAKE_OSX_DEPLOYMENT_TARGET 11.0)
+set(CMAKE_OSX_DEPLOYMENT_TARGET 13.3)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${{CMAKE_BINARY_DIR}}/bin")
 include("{(args.root / 'cmake/Shaders.cmake').as_posix()}")
 add_custom_target(consumer ALL)
 somnium_add_shaders(TARGET consumer NAME probe SOURCE probe.hlsl STAGE vertex ENTRYPOINT ${{ENTRY}} INCLUDE_DIRECTORY "${{CMAKE_CURRENT_SOURCE_DIR}}" DEFINES SCALE=${{SCALE}})
+somnium_add_shaders(TARGET consumer NAME fragment SOURCE fragment.hlsl STAGE fragment ENTRYPOINT psMain INCLUDE_DIRECTORY "${{CMAKE_CURRENT_SOURCE_DIR}}")
+somnium_add_shader_program(TARGET consumer NAME probe STAGES vertex=probe fragment=fragment)
 '''
         (source / "CMakeLists.txt").write_text(script)
         build = root / "build"
@@ -91,8 +95,16 @@ somnium_add_shaders(TARGET consumer NAME probe SOURCE probe.hlsl STAGE vertex EN
         missing_tool = configure(compiler=str(root / "absent"))
         assert "Bootstrap explicitly" in " ".join(missing_tool.split()), missing_tool
         configure()
+        program = build / "bin/assets/shaders/probe.program.json"
+        from watch import build as watch_build
+        config = json.loads((build / "shader-watch/Debug/probe.json").read_text())
+        assert watch_build(config, build, "Debug")
+        previous_program = program.read_bytes()
         (source / "probe.hlsl").write_text("deliberate invalid HLSL\n")
-        run([args.cmake, "--build", build], fail=True)
+        assert not watch_build(config, build, "Debug")
+        assert program.read_bytes() == previous_program, "Failed HLSL replaced the live publication"
+        status = json.loads((program.parent / "probe.status.json").read_text())
+        assert not status["ok"] and status["message"], "Failed compiler diagnostic was not published"
         print("Shader build contract: no-op, transitive/add/remove includes, defines, products, install, names and failures OK")
 
 

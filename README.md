@@ -109,6 +109,13 @@ de la scène : bouton droit + souris, W/A/S/D, Q/E vertical et molette.
 `iteration-profiling` ajoute Tracy ; sa CI est manuelle et requise aux jalons.
 Les instantanés et la sérialisation canonique v2 restent disponibles en shipping.
 
+Le rechargement des shaders s’active avec `--watch-shaders on`. Dans un autre
+terminal, `python tools/shaders/watch.py --build build/iteration --config Debug`
+surveille HLSL/includes et publie le programme après compilation hors ligne.
+Le bootstrap installe aussi le CLI SPIRV-Cross épinglé ; le relancer après une
+mise à jour de la recette. Un layout changé demande un redémarrage ; une erreur
+conserve le rendu actif et apparaît dans le panneau d’itération.
+
 En Édition, créer/supprimer/reparenter depuis l’inspecteur, choisir un composant
 et appliquer son brouillon validé. **Save** écrit la scène v2 canonique par
 remplacement atomique ; **Reload** demande un abandon explicite si elle est modifiée.
@@ -251,8 +258,8 @@ fuites reste active, sans suppression. Wayland n'est pas couvert par ce job.
 Les phases 0 à 3 sont validées sur `main` et taguées. Le cadrage d'itération est dans
 [AGENTS.md](AGENTS.md). Le [spike autonome](docs/HOT_RELOAD_SPIKE.md), les
 [ADR-0009 à ADR-0011 et le plan de tests](docs/PHASE_4_TEST_PLAN.md) sont acceptés ;
-les lots 1 et 2 sont intégrés, avec arrêt au jalon édition/enregistrement avant
-les shaders et le module rechargeables.
+les lots 1 et 2 sont validés. Annuler/Rétablir et le rechargement des shaders
+sont implémentés ; le module rechargeable est l’étape suivante.
 
 `tools/ci/windows.ps1 hot-reload-spike --jobs 2` et
 `bash tools/ci/linux.sh hot-reload-spike --jobs 2` exécutent les mêmes preuves

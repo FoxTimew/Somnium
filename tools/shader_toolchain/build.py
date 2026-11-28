@@ -136,6 +136,8 @@ def verify(prefix):
     if not status or "SOMNIUM_SHADERCROSS_EXECUTABLE is required" not in message:
         raise RuntimeError("Consumer did not fail explicitly for a missing offline compiler")
     run("dxc-version", [prefix / "bin" / ("dxc" + EXT), "--version"], env=env)
+    reflector = prefix / "bin" / ("spirv-cross" + EXT)
+    run("spirv-cross-revision", [reflector, "--revision"], env=env)
     for stage, short in [("vertex", "vert"), ("fragment", "frag")]:
         entry = "vsMain" if stage == "vertex" else "psMain"
         source = HERE / "fixtures" / f"probe.{short}.hlsl"
@@ -156,6 +158,11 @@ def verify(prefix):
                     "storage_textures": 0, "uniform_buffers": 1}
         if any(counts.get(key) != value for key, value in expected.items()):
             raise RuntimeError(f"Unexpected reflection for {stage}: {counts}")
+        layout = REPORTS / f"probe.{short}.layout.json"
+        run(f"layout-{short}", [reflector, REPORTS / f"probe.{short}.spirv", "--reflect", "--output", layout], env=env)
+        reflected = json.loads(layout.read_text(encoding="utf-8"))
+        if len(reflected.get("ubos", [])) != 1 or not reflected.get("types"):
+            raise RuntimeError(f"Missing structural reflection for {stage}")
     invalid = REPORTS / "invalid.hlsl"
     invalid.write_text("This is deliberately invalid HLSL.\n", encoding="utf-8")
     status, _ = run("invalid-hlsl", [compiler, invalid, "-s", "HLSL", "-d", "SPIRV", "-t", "vertex", "-e", "vsMain",
@@ -167,17 +174,21 @@ def verify(prefix):
 def build(provider, jobs):
     prefix = CACHE / "install" / provider
     marker = prefix / "verified-lock.json"
-    RESULT["cache_hit"] = marker.exists()
+    recipe = hashlib.sha256(b"\0".join((HERE / name).read_bytes().replace(b"\r\n", b"\n")
+                            for name in ["build.py", "CMakeLists.txt"])).hexdigest()
+    stamp = {"version": 2, "lock": LOCK, "recipe_sha256": recipe}
+    cached = json.loads(marker.read_text(encoding="utf-8")) if marker.exists() else None
     if marker.exists():
-        if json.loads(marker.read_text()) != LOCK:
+        if cached != LOCK and cached.get("lock") != LOCK:
             raise RuntimeError("Installed toolchain cache does not match lock.json")
-    else:
+    RESULT["cache_hit"] = cached == stamp and (prefix / "bin" / ("spirv-cross" + EXT)).is_file()
+    if not RESULT["cache_hit"]:
         dxc = obtain_dxc(provider, jobs)
         sources = {name: obtain_source(name) for name in ["sdl", "spirv_cross", "shadercross"]}
         arguments = [f"-DSOMNIUM_{name.upper()}_SOURCE={path}" for name, path in sources.items()]
         run("shadercross-configure", ["cmake", "-S", HERE, "-B", CACHE / "cli-build", "-G", "Ninja",
             "-DCMAKE_BUILD_TYPE=Release", f"-DCMAKE_INSTALL_PREFIX={prefix}", f"-DSOMNIUM_DXC_ROOT={dxc}", *arguments])
-        run("shadercross-build", ["cmake", "--build", CACHE / "cli-build", "--target", "shadercross", "--parallel", str(jobs)])
+        run("shadercross-build", ["cmake", "--build", CACHE / "cli-build", "--target", "shadercross", "spirv-cross", "--parallel", str(jobs)])
         run("shadercross-install", ["cmake", "--install", CACHE / "cli-build"])
         candidates = list((dxc / "bin").rglob("dxc" + EXT))
         executable = next((p for p in candidates if SYSTEM != "Windows" or p.parent.name == "x64"), None)
@@ -185,7 +196,7 @@ def build(provider, jobs):
             raise RuntimeError("Pinned DXC CLI missing from package")
         shutil.copy2(executable, prefix / "bin" / executable.name)
     verify(prefix)
-    marker.write_text(json.dumps(LOCK, indent=2) + "\n", encoding="utf-8")
+    marker.write_text(json.dumps(stamp, indent=2) + "\n", encoding="utf-8")
     RESULT["prefix"] = str(prefix)
 
 

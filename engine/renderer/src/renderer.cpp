@@ -7,6 +7,9 @@
 #include <limits>
 #include <somnium/core/profile.hpp>
 #include <somnium/renderer/renderer.hpp>
+#if defined(SOMNIUM_ENABLE_ITERATION)
+#include "shader_reload.hpp"
+#endif
 
 namespace somnium::renderer {
 namespace {
@@ -103,42 +106,17 @@ bool finite(const glm::mat4& matrix) {
 Error invalid(std::string message) {
     return {ErrorCode::InvalidArgument, std::move(message)};
 }
-} // namespace
-
-struct Renderer::Impl {
-    gpu::Device& device;
-    // Normal/mirrored winding, first Lambert then Lambert + ambient.
-    std::array<gpu::Pipeline, 4> pipelines{};
-    bool encode;
-    Store<RenderTextureTag, TextureResource> textures;
-    Store<MaterialTag, MaterialResource> materials;
-    Store<MeshTag, MeshResource> meshes;
-    std::vector<Scratch> scratch;
-    std::vector<gpu::Draw> draws;
-    explicit Impl(gpu::Device& value, bool encodeOutput) : device(value), encode(encodeOutput) {}
-    ~Impl() {
-        for (auto pipeline : pipelines)
-            if (pipeline)
-                (void)device.destroy(pipeline);
-    }
-};
-Renderer::Renderer(std::unique_ptr<Impl> impl) : m_impl(std::move(impl)) {}
-Renderer::~Renderer() = default;
-
-Result<std::unique_ptr<Renderer>>
-Renderer::create(gpu::Device& device, const core::ByteReader& reader, gpu::ColorFormat color) {
-    auto impl = std::make_unique<Impl>(device, color == gpu::ColorFormat::Rgba8 ||
-                                                   color == gpu::ColorFormat::Bgra8);
-    auto vertex = device.loadShader(reader, "shaders/modelVertex.vsMain.vert.json");
+Result<void> createPipelines(gpu::Device& device, const core::ByteReader& reader,
+                             const std::array<std::string_view, 3>& stages, gpu::ColorFormat color,
+                             std::array<gpu::Pipeline, 4>& pipelines) {
+    auto vertex = device.loadShader(reader, stages[0]);
     if (!vertex)
         return tl::unexpected(vertex.error());
     constexpr std::array attributes = {gpu::VertexAttribute{0, gpu::VertexFormat::Float3, 0},
                                        gpu::VertexAttribute{1, gpu::VertexFormat::Float3, 12},
                                        gpu::VertexAttribute{2, gpu::VertexFormat::Float2, 24}};
-    constexpr std::array shaders = {"shaders/modelFragment.psMain.frag.json",
-                                    "shaders/modelAmbient.psMain.frag.json"};
-    for (std::size_t lighting = 0; lighting < shaders.size(); ++lighting) {
-        auto fragment = device.loadShader(reader, shaders[lighting]);
+    for (std::size_t lighting = 0; lighting < 2; ++lighting) {
+        auto fragment = device.loadShader(reader, stages[lighting + 1]);
         if (!fragment) {
             (void)device.destroy(*vertex);
             return tl::unexpected(fragment.error());
@@ -156,13 +134,95 @@ Renderer::create(gpu::Device& device, const core::ByteReader& reader, gpu::Color
                 (void)device.destroy(*vertex);
                 return tl::unexpected(pipeline.error());
             }
-            impl->pipelines[lighting * 2 + winding] = *pipeline;
+            pipelines[lighting * 2 + winding] = *pipeline;
         }
         (void)device.destroy(*fragment);
     }
     (void)device.destroy(*vertex);
+    return {};
+}
+} // namespace
+
+struct Renderer::Impl {
+    gpu::Device& device;
+    // Normal/mirrored winding, first Lambert then Lambert + ambient.
+    std::array<gpu::Pipeline, 4> pipelines{};
+    bool encode;
+    gpu::ColorFormat color;
+#if defined(SOMNIUM_ENABLE_ITERATION)
+    std::string generation, layout;
+#endif
+    Store<RenderTextureTag, TextureResource> textures;
+    Store<MaterialTag, MaterialResource> materials;
+    Store<MeshTag, MeshResource> meshes;
+    std::vector<Scratch> scratch;
+    std::vector<gpu::Draw> draws;
+    explicit Impl(gpu::Device& value, gpu::ColorFormat format)
+        : device(value),
+          encode(format == gpu::ColorFormat::Rgba8 || format == gpu::ColorFormat::Bgra8),
+          color(format) {}
+    ~Impl() {
+        for (auto pipeline : pipelines)
+            if (pipeline)
+                (void)device.destroy(pipeline);
+    }
+};
+Renderer::Renderer(std::unique_ptr<Impl> impl) : m_impl(std::move(impl)) {}
+Renderer::~Renderer() = default;
+
+Result<std::unique_ptr<Renderer>>
+Renderer::create(gpu::Device& device, const core::ByteReader& reader, gpu::ColorFormat color) {
+    auto impl = std::make_unique<Impl>(device, color);
+#if defined(SOMNIUM_ENABLE_ITERATION)
+    auto document = reader.read("shaders/model.program.json");
+    if (!document)
+        return tl::unexpected(document.error());
+    auto program = detail::readProgram(reader, "shaders/model.program.json", *document);
+    if (!program)
+        return tl::unexpected(program.error());
+    const core::ByteReader& source = *program;
+    const std::array<std::string_view, 3> stages = {program->stages[0], program->stages[1],
+                                                    program->stages[2]};
+    impl->generation = program->generation;
+    impl->layout = program->layout;
+#else
+    const core::ByteReader& source = reader;
+    constexpr std::array<std::string_view, 3> stages = {"shaders/modelVertex.vsMain.vert.json",
+                                                        "shaders/modelFragment.psMain.frag.json",
+                                                        "shaders/modelAmbient.psMain.frag.json"};
+#endif
+    auto created = createPipelines(device, source, stages, color, impl->pipelines);
+    if (!created)
+        return tl::unexpected(created.error());
     return std::unique_ptr<Renderer>(new Renderer(std::move(impl)));
 }
+#if defined(SOMNIUM_ENABLE_ITERATION)
+Result<bool> Renderer::reloadShaders(const core::ByteReader& reader, std::string_view manifest,
+                                     std::span<const std::byte> document) {
+    auto candidate = detail::readProgram(reader, manifest, document);
+    if (!candidate)
+        return tl::unexpected(candidate.error());
+    if (candidate->layout != m_impl->layout)
+        return tl::unexpected(
+            Error{ErrorCode::RestartRequired, "Shader layout changed: redémarrage requis"});
+    if (candidate->generation == m_impl->generation)
+        return false;
+    // This temporary owns all candidates, then all retired pipelines after the swap.
+    Impl resources(m_impl->device, m_impl->color);
+    const std::array<std::string_view, 3> stages = {candidate->stages[0], candidate->stages[1],
+                                                    candidate->stages[2]};
+    auto created =
+        createPipelines(m_impl->device, *candidate, stages, m_impl->color, resources.pipelines);
+    if (!created)
+        return tl::unexpected(created.error());
+    m_impl->pipelines.swap(resources.pipelines);
+    m_impl->generation = std::move(candidate->generation);
+    return true;
+}
+std::string_view Renderer::shaderGeneration() const {
+    return m_impl->generation;
+}
+#endif
 Result<Mesh> Renderer::createMesh(const MeshData& data) {
     const std::size_t indexBytes = data.indexFormat == gpu::IndexFormat::Uint16 ? 2U : 4U;
     if (data.vertices.empty() || data.vertices.size() % 32 || data.indices.empty() ||

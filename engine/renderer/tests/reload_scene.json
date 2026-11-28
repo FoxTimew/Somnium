@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "width": 64, "height": 64,
+  "channel_tolerance": 0, "max_different_fraction": 0,
+  "rectangle_pixels": [16, 16, 48, 48],
+  "clear_rgba": [0, 0, 0, 255],
+  "initial_rgba": [255, 255, 255, 255],
+  "replacement_rgba": [255, 0, 0, 255],
+  "vertices": [
+    [-0.5, -0.5, 0.5, 0, 0, 1, 0, 0],
+    [0.5, -0.5, 0.5, 0, 0, 1, 1, 0],
+    [0.5, 0.5, 0.5, 0, 0, 1, 1, 1],
+    [-0.5, 0.5, 0.5, 0, 0, 1, 0, 1]
+  ],
+  "indices": [0, 1, 2, 0, 2, 3],
+  "light": [0, 0, 1],
+  "ambient": [0, 0.15],
+  "probes": [
+    {"name": "center", "x": 32, "y": 32},
+    {"name": "background", "x": 8, "y": 8}
+  ]
+}

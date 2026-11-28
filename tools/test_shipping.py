@@ -22,7 +22,8 @@ class ShippingTests(unittest.TestCase):
 
     def test_sources_are_rejected_on_both_path_styles(self):
         for source in ["engine/platform/src/file_watch.cpp", "engine/platform/src/module_loader.cpp",
-                       "engine/renderer/src/shader_reload.cpp", "engine/runtime/src/edit_session.cpp",
+                       "engine/renderer/src/shader_reload.cpp", "engine/runtime/src/shader_reload.cpp",
+                       "engine/runtime/tests/shader_reload_offscreen.cpp", "engine/runtime/src/edit_session.cpp",
                        "engine/runtime/src/iteration_session.cpp", "engine/platform/src/source_files.cpp",
                        "engine/platform/src/source_files_atomic.cpp", "engine/runtime/src/scene_editor.cpp",
                        "game/tests/iteration_benchmark.cpp",

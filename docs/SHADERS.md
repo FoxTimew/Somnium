@@ -68,18 +68,19 @@ le build source annonce 1.9.0.1 avec suffixe `01b62ad4`, car les métadonnées d
 packaging Microsoft ne sont pas injectées. Le commit complet vérifié, pas cette
 chaîne marketing, identifie la version source utilisée.
 
-Chaque artefact `shader-toolchain-<OS>-<provider>` contient `result.json`, les
+Chaque répertoire de preuve `shader-toolchain` du run contient `result.json`, les
 logs par commande, les versions, les sorties des deux shaders, leurs JSON et
 l'inventaire des couches du runner. Les essais vérifient signatures SPIR-V/DXIL,
 déclarations MSL, quatre compteurs de réflexion, échec sur HLSL invalide et échec
 explicite au configure si le CLI manque. `--help` seul ne compte pas comme preuve.
 
-Le cache CI conserve uniquement `.cache/shader-toolchain/install`, indexé par
-OS/architecture, empreinte d'image/compilateur et hash de toute la recette.
-Aucune restauration approximative. `verified-lock.json` doit correspondre au
-verrou ; il n'est écrit qu'après réussite. Un cache restauré repasse **tous**
-les essais. Le source/objet DXC volumineux n'est pas conservé. Un changement de
-recette ou de runner provoque donc un build complet.
+Le cache auto-hébergé conserve sources, téléchargements, build de la chaîne et
+installation sous `<racine-CI>/cache/shaders/<hash-recette-verrou-outils>`.
+`verified-lock.json` version 2 couvre le verrou et la recette normalisée LF ;
+il n'est écrit qu'après réussite. Une installation réutilisée repasse **tous**
+les essais. Une ancienne marque sans recette provoque une reconstruction,
+notamment pour ajouter le CLI de réflexion. La politique actuelle de stockage
+et de nettoyage est décrite dans [CI_RUNNER.md](CI_RUNNER.md).
 
 La [relance des fournisseurs retenus](https://github.com/FoxTimew/Somnium/actions/runs/39577126359)
 est verte sur les trois OS : cache restauré et essais rejoués en **1,141 s sur
@@ -206,5 +207,57 @@ compilateur et les tests ; la réflexion ne justifie aucun placement arbitraire.
 Le test CTest `somnium_shader_build_tests` utilise le vrai CLI et couvre les
 chemins avec espaces, no-op, includes transitifs/ajoutés/retirés, defines, produit
 supprimé, installation et erreurs de source/entrée/outil. Le configure ne lance
-aucun bootstrap. Le workflow réutilisable de chaîne d'outils est requis par
-`needs` et publie l'installation en archive pour les jobs moteur.
+aucun bootstrap. Le pipeline auto-hébergé appelle le bootstrap avant les builds
+et réutilise son installation sur disque, indexée par verrou et recette ; aucun
+cache ni artefact GitHub ne transmet les outils entre jobs.
+
+## Rechargement en iteration
+
+Le bootstrap construit également `spirv-cross --revision` / `--reflect`, depuis
+la même source épinglée. Chaque étage conserve les compteurs shadercross et une
+réflexion structurelle normalisée (`.layout.json`) : types développés, offsets,
+strides, tailles, bindings et interfaces. Noms de debug et identifiants internes
+SPIR-V sont exclus ; ordre des membres conservé. Les outils de réflexion restent
+hors du moteur.
+
+`somnium_add_shader_program(TARGET somnium_renderer NAME model STAGES
+vertex=modelVertex lambert=modelFragment ambient=modelAmbient)` publie les trois
+étages ensemble. `<bin>/assets/shaders/model.generations/<SHA256>/` contient leurs
+18 fichiers immuables. `model.program.json`, remplacé atomiquement en dernier,
+référence tous les formats, réflexions et empreintes. Une génération incomplète
+ne remplace jamais la précédente. Les anciennes générations restent présentes
+pendant la session ; leur suppression appartient au nettoyage du build.
+
+```sh
+python tools/shaders/watch.py --build build/iteration --config Debug
+build/iteration/bin/sandbox --watch-shaders on
+```
+
+Le watcher externe suit les depfiles et les racines d’include, regroupe les
+écritures pendant 250 ms, puis invoque la cible CMake du programme. Ne pas lancer
+deux builds Ninja simultanés dans le même répertoire. Une erreur conserve le
+manifeste et publie un diagnostic borné dans `model.status.json`. `--once` exécute
+exactement une génération et rend son code de succès/échec.
+Sous Windows, un lecteur peut bloquer brièvement le renommage : le producteur
+réessaie pendant deux secondes au plus, sans jamais tronquer le manifeste actif.
+
+Le service platform lit au plus quatre fois par seconde chaque publication.
+À la frontière de pas, runtime demande au renderer de vérifier schéma, chemins,
+tailles, SHA-256 et signature avant toute allocation GPU. Les octets vérifiés
+sont conservés en mémoire pendant la création pour éviter une seconde lecture
+mutable. Les quatre pipelines (Lambert/ambiant, winding normal/miroir) sont
+échangés ensemble ; leur format est celui du renderer. En cas d’échec du dernier
+candidat, tous les anciens pipelines restent actifs. Layout incompatible :
+« redémarrage requis ». Aucune surveillance sans l’option, ni dans shipping.
+
+`tools/ci/{windows.ps1,linux.sh} shader-reload-proof --backend <backend> --run-id
+<run>` utilise le binaire iteration du run. La preuve garde le processus ouvert
+pendant les publications : blanc → rouge → artefact invalide → layout différent
+à compteurs égaux → blanc. Quarante images exactes couvrent les quatre pipelines
+et les formats UNORM/sRGB. Géométrie, couleurs et sondes sont dans
+`engine/renderer/tests/reload_scene.json` ; l’oracle calcule un rectangle sur
+frontières de pixels. Les deux références dédiées et leur provenance sont
+versionnées sous `engine/renderer/tests/reference/shader_reload_*` (PNG sous LFS).
+Régénération explicite : `python tools/shaders/reload_reference.py --regenerate`,
+interdite en CI ; CTest emploie `--verify`. Images, générations et journaux restent
+dans le run CI.

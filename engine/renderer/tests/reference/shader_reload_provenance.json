@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "generator": "analytic pixel-aligned rectangle, axis-aligned Lambert = 1",
+  "scene_sha256": "ab8d9f72423ae012f749929003bc690903cb5b2d54fdcfd7657045605517ca1b",
+  "images": {
+    "shader_reload_white.png": "4f97d685fe487794867b589a2cea77afc2e2eb8823ca922a133ce6690489e5f5",
+    "shader_reload_red.png": "a6d011d1ccaf0dbddf5dad6d188267c50c71fcfc4319210279335bd0999c03b3"
+  }
+}

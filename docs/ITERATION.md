@@ -1,5 +1,5 @@
-<!-- Usage des outils des lots 1 et 2 ; les preuves partagent les commandes de l’UI.
-     Les services de rechargement des lots 3 et 4 ne sont pas encore intégrés. -->
+<!-- Usage des outils d’édition et de rechargement de shaders.
+     Les preuves partagent les commandes de l’UI et la publication hors ligne. -->
 # Modifier et enregistrer une scène
 
 Configurer/compiler/tester avec le preset `iteration`, puis lancer
@@ -7,6 +7,10 @@ Configurer/compiler/tester avec le preset `iteration`, puis lancer
 Le moteur et le jeu restent statiques. Les presets sans iteration démarrent en Jeu et
 n’incluent aucun outil d’édition ; shipping conserve les capacités de snapshot/v2
 de scene, sans interface, mode d’édition ni écriture de sources.
+
+Pour recharger les shaders, ajouter `--watch-shaders on` et lancer en parallèle
+`python tools/shaders/watch.py --build build/iteration --config Debug`.
+Voir le [protocole de publication et ses preuves](SHADERS.md#rechargement-en-iteration).
 
 ## Édition
 

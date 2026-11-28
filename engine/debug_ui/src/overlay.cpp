@@ -27,7 +27,7 @@ struct Overlay::Impl {
     bool dirty = false, discard = false;
     std::size_t undo = 0, redo = 0, historyBytes = 0;
     std::vector<std::string> commands;
-    std::string iterationError;
+    std::string iterationError, shaderError;
 #endif
     ~Impl() {
         if (context) {
@@ -129,6 +129,8 @@ input::Capture Overlay::update(double frameSeconds, const scene::World& world,
             ImGui::TextUnformatted("Tool camera: RMB look, WASD + Q/E, wheel");
         if (!m_impl->iterationError.empty())
             ImGui::TextWrapped("Rejected: %s", m_impl->iterationError.c_str());
+        if (!m_impl->shaderError.empty())
+            ImGui::TextWrapped("Shader reload: %s", m_impl->shaderError.c_str());
     }
     ImGui::End();
 #endif
@@ -142,6 +144,10 @@ input::Capture Overlay::update(double frameSeconds, const scene::World& world,
     return replay ? input::Capture{} : input::Capture{io.WantCaptureKeyboard, io.WantCaptureMouse};
 }
 #if defined(SOMNIUM_ENABLE_ITERATION)
+void Overlay::shaderDiagnostic(std::string_view message) {
+    if (m_impl->shaderError != message)
+        m_impl->shaderError = message;
+}
 Result<input::Configuration> Overlay::iterationMapping() {
     return detail::EditorCamera::configuration();
 }

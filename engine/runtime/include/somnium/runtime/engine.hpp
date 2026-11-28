@@ -33,6 +33,7 @@ struct RunOptions {
 #if defined(SOMNIUM_ENABLE_ITERATION)
     bool startEditing = false;
     bool iterationReport = false;
+    bool watchShaders = false;
 #endif
     // Freeze the replay at this tick. Without captureFrame, present for three seconds.
     std::uint64_t captureSteps = 0;
