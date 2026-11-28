@@ -3,6 +3,7 @@
 #pragma once
 #include "iteration_session.hpp"
 #include <optional>
+#include <somnium/core/export.hpp>
 #include <somnium/platform/source_files.hpp>
 
 namespace somnium::runtime {
@@ -17,8 +18,9 @@ class EditSession final {
                 scene::AssetContext* assets = nullptr)
         : m_world(world), m_modes(modes), m_codecs(codecs), m_files(files), m_path(std::move(path)),
           m_assets(assets) {}
-    [[nodiscard]] Result<void> initialize();
-    [[nodiscard]] Result<EditEffect> execute(const scene::Json& command, std::uint64_t tick);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> initialize();
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<EditEffect> execute(const scene::Json& command,
+                                                                std::uint64_t tick);
     [[nodiscard]] bool dirty() const {
         return m_dirty;
     }
@@ -34,13 +36,20 @@ class EditSession final {
     [[nodiscard]] std::size_t redoCount() const {
         return m_history.size() - m_cursor;
     }
-    [[nodiscard]] std::size_t historyBytes() const;
+    [[nodiscard]] SOMNIUM_ENGINE_API std::size_t historyBytes() const;
+    [[nodiscard]] std::span<const scene::WorldSnapshot> history() const {
+        return m_history;
+    }
+    void exchangedWorld() {
+        ++m_revision;
+    }
 
   private:
-    [[nodiscard]] Result<EditEffect> apply(const scene::Json& command, std::uint64_t tick);
-    [[nodiscard]] Result<EditEffect> restoreHistory(bool forward);
-    void remember(scene::WorldSnapshot before);
-    void trimHistory();
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<EditEffect> apply(const scene::Json& command,
+                                                              std::uint64_t tick);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<EditEffect> restoreHistory(bool forward);
+    SOMNIUM_ENGINE_API void remember(scene::WorldSnapshot before);
+    SOMNIUM_ENGINE_API void trimHistory();
     std::unique_ptr<scene::World>& m_world;
     IterationSession& m_modes;
     const scene::CodecRegistry& m_codecs;
@@ -60,5 +69,6 @@ struct EditorReplayEntry {
     scene::Json command;
     std::string errorContains;
 };
-[[nodiscard]] Result<std::vector<EditorReplayEntry>> parseEditorReplay(std::string_view text);
+[[nodiscard]] SOMNIUM_ENGINE_API Result<std::vector<EditorReplayEntry>>
+parseEditorReplay(std::string_view text);
 } // namespace somnium::runtime

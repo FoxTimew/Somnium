@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <memory>
 #include <optional>
+#include <somnium/core/export.hpp>
 #include <somnium/core/result.hpp>
 #include <string>
 #include <string_view>
@@ -33,38 +34,44 @@ namespace somnium::debug_ui {
 struct HistoryStats {
     std::size_t undoCount, redoCount, bytes;
 };
+struct ModuleStats {
+    std::size_t images, fileBytes;
+};
 #endif
 class Overlay final {
   public:
-    static Result<std::unique_ptr<Overlay>> create(platform::Platform& platform,
-                                                   gpu::Device& device);
-    ~Overlay();
+    SOMNIUM_ENGINE_API static Result<std::unique_ptr<Overlay>> create(platform::Platform& platform,
+                                                                      gpu::Device& device);
+    SOMNIUM_ENGINE_API ~Overlay();
     Overlay(const Overlay&) = delete;
     Overlay& operator=(const Overlay&) = delete;
-    [[nodiscard]] input::Capture update(double frameSeconds, const scene::World& world,
-                                        const input::Configuration& mapping,
-                                        const input::State& inputs, bool replay);
+    [[nodiscard]] SOMNIUM_ENGINE_API input::Capture update(double frameSeconds,
+                                                           const scene::World& world,
+                                                           const input::Configuration& mapping,
+                                                           const input::State& inputs, bool replay);
 #if defined(SOMNIUM_ENABLE_ITERATION)
-    [[nodiscard]] static Result<input::Configuration> iterationMapping();
-    [[nodiscard]] Result<void> initializeToolCamera(const scene::World& world,
-                                                    const input::Configuration& mapping);
-    void updateToolCamera(const input::State& state, double seconds);
-    [[nodiscard]] const Trs& toolPose() const;
-    [[nodiscard]] const Camera& toolLens() const;
-    void configureEditor(const scene::CodecRegistry& codecs);
-    void iterationState(bool playing, bool dirty, std::uint64_t revision, std::string_view error);
-    void historyState(HistoryStats state);
-    void shaderDiagnostic(std::string_view message);
-    [[nodiscard]] std::vector<std::string> takeCommands();
-    void selectEntity(std::string_view id);
-    void selectComponent(std::string_view component);
+    [[nodiscard]] SOMNIUM_ENGINE_API static Result<input::Configuration> iterationMapping();
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void>
+    initializeToolCamera(const scene::World& world, const input::Configuration& mapping);
+    SOMNIUM_ENGINE_API void updateToolCamera(const input::State& state, double seconds);
+    [[nodiscard]] SOMNIUM_ENGINE_API const Trs& toolPose() const;
+    [[nodiscard]] SOMNIUM_ENGINE_API const Camera& toolLens() const;
+    SOMNIUM_ENGINE_API void configureEditor(const scene::CodecRegistry& codecs);
+    SOMNIUM_ENGINE_API void iterationState(bool playing, bool dirty, std::uint64_t revision,
+                                           std::string_view error);
+    SOMNIUM_ENGINE_API void historyState(HistoryStats state);
+    SOMNIUM_ENGINE_API void shaderDiagnostic(std::string_view message);
+    SOMNIUM_ENGINE_API void moduleDiagnostic(std::string_view message, ModuleStats stats);
+    [[nodiscard]] SOMNIUM_ENGINE_API std::vector<std::string> takeCommands();
+    SOMNIUM_ENGINE_API void selectEntity(std::string_view id);
+    SOMNIUM_ENGINE_API void selectComponent(std::string_view component);
 #endif
-    [[nodiscard]] Result<void> prepare();
-    [[nodiscard]] Result<void> render();
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> prepare();
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> render();
 
   private:
     struct Impl;
-    explicit Overlay(std::unique_ptr<Impl> impl);
+    SOMNIUM_ENGINE_API explicit Overlay(std::unique_ptr<Impl> impl);
     std::unique_ptr<Impl> m_impl;
 };
 } // namespace somnium::debug_ui

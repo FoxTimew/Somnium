@@ -3,7 +3,8 @@
 #pragma once
 #include <memory_resource>
 #include <somnium/game/components.hpp>
-namespace somnium::game {
+#include <somnium/game/generation.hpp>
+namespace somnium::game::SOMNIUM_GAME_GENERATION {
 class SandboxGame final : public runtime::Gameplay {
   public:
     [[nodiscard]] Result<void> start(scene::World& world,
@@ -28,4 +29,4 @@ class SandboxGame final : public runtime::Gameplay {
     std::uint64_t m_tick = 0;
     bool m_running = false;
 };
-} // namespace somnium::game
+} // namespace somnium::game::SOMNIUM_GAME_GENERATION

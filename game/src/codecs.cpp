@@ -4,7 +4,7 @@
 #include <numbers>
 #include <somnium/game/codecs.hpp>
 #include <somnium/game/components.hpp>
-namespace somnium::game {
+namespace somnium::game::SOMNIUM_GAME_GENERATION {
 namespace {
 using namespace scene;
 template <typename T> bool contains(const World& world, entt::entity entity) {
@@ -55,7 +55,9 @@ Result<void> readCharacter(World& world, entt::entity entity, const Json& data,
         return tl::unexpected(visual.error());
     if (*speed <= 0)
         return invalid("speed must be positive");
-    world.registry().emplace<Character>(entity, *speed, entt::null);
+    auto& character = world.registry().emplace<Character>(entity);
+    character.speed = *speed;
+    character.visual = entt::null;
     context.deferEntity(
         entity, "game.Character/visual", std::move(*visual),
         [](World& target, entt::entity owner, entt::entity resolved) -> Result<void> {
@@ -263,4 +265,4 @@ Result<void> registerCodecs(scene::CodecRegistry& table) {
     }
     return {};
 }
-} // namespace somnium::game
+} // namespace somnium::game::SOMNIUM_GAME_GENERATION

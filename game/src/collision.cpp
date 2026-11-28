@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
-namespace somnium::game::detail {
+namespace somnium::game::SOMNIUM_GAME_GENERATION::detail {
 namespace {
 bool overlap(float amin, float amax, float bmin, float bmax) {
     return amin < bmax && amax > bmin;
@@ -99,4 +99,4 @@ Result<glm::vec3> move(Bounds character, glm::vec3 displacement,
     }
     return movement;
 }
-} // namespace somnium::game::detail
+} // namespace somnium::game::SOMNIUM_GAME_GENERATION::detail

@@ -4,6 +4,7 @@
 #if defined(SOMNIUM_ENABLE_ITERATION)
 #include "edit_session.hpp"
 #include "shader_reload.hpp"
+#include <somnium/runtime/reloadable_game.hpp>
 #endif
 #include <somnium/runtime/engine.hpp>
 
@@ -55,6 +56,7 @@ struct Engine::Impl {
 #if defined(SOMNIUM_ENABLE_ITERATION)
     std::optional<platform::SourceFiles> sourceFiles;
     std::string editorReplayPath;
+    ReloadableGame* module = nullptr;
 #endif
 };
 
@@ -147,6 +149,12 @@ Result<std::unique_ptr<Engine>> Engine::create(const EngineConfig& config) {
     return std::unique_ptr<Engine>(new Engine(std::move(impl)));
 }
 
+#if defined(SOMNIUM_ENABLE_ITERATION)
+Result<RunStats> Engine::run(ReloadableGame& game, RunOptions options) {
+    m_impl->module = &game;
+    return run(game, game.codecs(), options);
+}
+#endif
 Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
                              RunOptions options) {
     if (m_impl->hasRun) {
@@ -172,6 +180,7 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
     EditSession editor(m_impl->world, session, codecs, *m_impl->sourceFiles, m_impl->scenePath,
                        &m_impl->assets);
     std::unique_ptr<ShaderReload> shaderReload;
+    std::string moduleDiagnostic;
     double watchSeconds = 0;
     if (options.watchShaders)
         shaderReload = std::make_unique<ShaderReload>(m_impl->resources, *m_impl->renderer);
@@ -179,6 +188,9 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
     if (!baseline)
         return tl::unexpected(baseline.error());
     m_impl->overlay->configureEditor(codecs);
+    if (m_impl->module)
+        m_impl->overlay->moduleDiagnostic(
+            {}, {m_impl->module->imageCount(), m_impl->module->retainedBytes()});
     std::vector<EditorReplayEntry> editorReplay;
     std::size_t editorCursor = 0;
     if (!m_impl->editorReplayPath.empty()) {
@@ -265,7 +277,7 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
         }
         const auto frameSeconds = clock.sampleSeconds();
 #if defined(SOMNIUM_ENABLE_ITERATION)
-        if (shaderReload)
+        if (shaderReload || options.watchGameplay)
             watchSeconds += frameSeconds;
 #endif
 #if defined(SOMNIUM_ENABLE_DEBUG_UI)
@@ -303,6 +315,37 @@ Result<RunStats> Engine::run(Gameplay& game, const scene::CodecRegistry& codecs,
             if (shaderReload) {
                 shaderReload->poll(watchSeconds);
                 m_impl->overlay->shaderDiagnostic(shaderReload->diagnostic());
+            }
+            if (options.watchGameplay && m_impl->module) {
+                auto& module = *m_impl->module;
+                auto changed = module.changed(watchSeconds);
+                if (!changed) {
+                    moduleDiagnostic = changed.error().message;
+                    Log::write("iteration", Log::Level::Warning, moduleDiagnostic);
+                } else if (*changed) {
+                    std::vector<const scene::WorldSnapshot*> preserved;
+                    preserved.reserve(editor.history().size() + 1);
+                    for (const auto& snapshot : editor.history())
+                        preserved.push_back(&snapshot);
+                    if (session.playing())
+                        preserved.push_back(&session.editingSnapshot());
+                    auto replaced =
+                        module.replace(m_impl->world, {input.configuration(), stats.fixedSteps},
+                                       session.playing(), &m_impl->assets, preserved);
+                    if (!module.usable()) {
+                        session.abandon();
+                        return tl::unexpected(replaced.error());
+                    }
+                    editor.exchangedWorld();
+                    moduleDiagnostic = replaced ? std::string{} : replaced.error().message;
+                    if (!replaced)
+                        Log::write("iteration", Log::Level::Warning, moduleDiagnostic);
+                    else
+                        Log::write("iteration", Log::Level::Info, "Gameplay reloaded at tick {}",
+                                   stats.fixedSteps);
+                }
+                m_impl->overlay->moduleDiagnostic(moduleDiagnostic,
+                                                  {module.imageCount(), module.retainedBytes()});
             }
 #endif
             auto replay = m_impl->platform->replayEvents(stats.fixedSteps);

@@ -9,7 +9,7 @@
 #include <somnium/core/log.hpp>
 #include <somnium/core/profile.hpp>
 #include <somnium/game/sandbox_game.hpp>
-namespace somnium::game {
+namespace somnium::game::SOMNIUM_GAME_GENERATION {
 namespace {
 auto invalid(std::string message) {
     return tl::unexpected(Error{ErrorCode::InvalidArgument, std::move(message)});
@@ -194,8 +194,12 @@ Result<void> SandboxGame::moveCharacter(scene::World& world, const runtime::Fixe
     auto box = detail::bounds(world, resolve(world, m_character));
     if (!box)
         return tl::unexpected(box.error());
-    auto movement = detail::move(
-        *box, direction * (character.speed * static_cast<float>(update.seconds)), m_blocks);
+    float speed = character.speed;
+#if defined(SOMNIUM_GAME_LAYOUT_V2)
+    speed *= 2.F;
+#endif
+    auto movement =
+        detail::move(*box, direction * (speed * static_cast<float>(update.seconds)), m_blocks);
     if (!movement)
         return tl::unexpected(movement.error());
     auto pose = registry.get<Transform>(resolve(world, m_character)).current;
@@ -240,7 +244,11 @@ Result<void> SandboxGame::fixedUpdate(scene::World& world, const runtime::FixedU
         return invalid("Invalid gameplay lifecycle, tick or duration");
     if (!world.find(m_character) || !world.find(m_camera))
         return invalid("Gameplay character or camera was destroyed");
+#if defined(SOMNIUM_GAME_LAYOUT_V2)
+    SOMNIUM_PROFILE_SCOPE("game.v2.fixed_update");
+#else
     SOMNIUM_PROFILE_SCOPE("game.fixed_update");
+#endif
     auto doors = updateDoors(world, update);
     if (!doors)
         return doors;
@@ -278,4 +286,4 @@ void SandboxGame::stop(scene::World& world) {
                    camera.orbit.pitch, camera.orbit.distance);
     }
 }
-} // namespace somnium::game
+} // namespace somnium::game::SOMNIUM_GAME_GENERATION

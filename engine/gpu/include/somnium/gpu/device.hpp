@@ -1,6 +1,7 @@
 // Owns one graphics device and generation-checked resources on its creating thread.
 // The platform video session must outlive the device. No native graphics type escapes.
 #pragma once
+#include <somnium/core/export.hpp>
 
 #include <somnium/core/byte_reader.hpp>
 #include <somnium/core/handle.hpp>
@@ -155,52 +156,62 @@ struct RenderPass {
 
 class Device final {
   public:
-    [[nodiscard]] static Result<std::unique_ptr<Device>> create(DeviceConfig config);
-    ~Device();
+    [[nodiscard]] SOMNIUM_ENGINE_API static Result<std::unique_ptr<Device>>
+    create(DeviceConfig config);
+    SOMNIUM_ENGINE_API ~Device();
     Device(const Device&) = delete;
     Device& operator=(const Device&) = delete;
-    [[nodiscard]] const DeviceInfo& info() const;
-    [[nodiscard]] Result<Buffer> createVertexBuffer(std::uint32_t bytes);
-    [[nodiscard]] Result<Buffer> createIndexBuffer(std::uint32_t bytes, IndexFormat format);
-    [[nodiscard]] Result<Texture> createTexture(TextureDescription description);
-    [[nodiscard]] Result<Sampler> createSampler(SamplerDescription description = {});
-    [[nodiscard]] Result<Shader> createShader(const ShaderDescription& description);
-    [[nodiscard]] Result<Shader> loadShader(const core::ByteReader& reader,
-                                            std::string_view manifest);
+    [[nodiscard]] SOMNIUM_ENGINE_API const DeviceInfo& info() const;
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<Buffer> createVertexBuffer(std::uint32_t bytes);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<Buffer> createIndexBuffer(std::uint32_t bytes,
+                                                                      IndexFormat format);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<Texture> createTexture(TextureDescription description);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<Sampler>
+    createSampler(SamplerDescription description = {});
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<Shader>
+    createShader(const ShaderDescription& description);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<Shader> loadShader(const core::ByteReader& reader,
+                                                               std::string_view manifest);
     // Triangle lists, one color target, explicit vertex/depth/rasterizer state.
-    [[nodiscard]] Result<Pipeline> createPipeline(const PipelineDescription& description);
-    [[nodiscard]] Result<ColorFormat> attachWindow(platform::Platform& window,
-                                                   Composition composition = Composition::Sdr);
-    [[nodiscard]] Result<bool> supportsComposition(Composition composition) const;
-    [[nodiscard]] Result<void> beginFrame();
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<Pipeline>
+    createPipeline(const PipelineDescription& description);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<ColorFormat>
+    attachWindow(platform::Platform& window, Composition composition = Composition::Sdr);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<bool>
+    supportsComposition(Composition composition) const;
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> beginFrame();
     // Blocking VSYNC acquisition. A zero extent means no drawable (e.g. minimized).
-    [[nodiscard]] Result<FrameSize> acquireSwapchain();
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<FrameSize> acquireSwapchain();
     // Tools may compose into an owned texture matching the acquired swapchain's extent/format.
     // Selection lasts for this frame and also applies to private cooperation render passes.
-    [[nodiscard]] Result<void> setPresentationTarget(Texture texture);
-    [[nodiscard]] Result<void> copyToSwapchain(Texture texture);
-    [[nodiscard]] Result<void> recordPass(const RenderPass& pass, std::span<const Draw> draws);
-    [[nodiscard]] Result<void> submitFrame();
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> setPresentationTarget(Texture texture);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> copyToSwapchain(Texture texture);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> recordPass(const RenderPass& pass,
+                                                             std::span<const Draw> draws);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> submitFrame();
     // Cancels offscreen recording; an acquired swapchain always forces submission.
-    [[nodiscard]] Result<void> finishFrame();
-    [[nodiscard]] Statistics statistics() const;
-    [[nodiscard]] Result<void> upload(Buffer buffer, std::span<const std::byte> bytes);
-    [[nodiscard]] Result<void> upload(Texture texture, std::span<const std::byte> rgba);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> finishFrame();
+    [[nodiscard]] SOMNIUM_ENGINE_API Statistics statistics() const;
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> upload(Buffer buffer,
+                                                         std::span<const std::byte> bytes);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> upload(Texture texture,
+                                                         std::span<const std::byte> rgba);
     // Convenience wrapper over beginFrame/recordPass/submitFrame, without presentation.
-    [[nodiscard]] Result<void> renderOffscreen(const RenderPass& pass, std::span<const Draw> draws);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> renderOffscreen(const RenderPass& pass,
+                                                                  std::span<const Draw> draws);
     // Explicit blocking readback, tightly packed RGBA8 (sRGB bytes remain encoded).
     // Tests/tools only, never an implicit per-frame wait.
-    [[nodiscard]] Result<std::vector<std::byte>> readback(Texture texture);
-    [[nodiscard]] Result<void> destroy(Buffer handle);
-    [[nodiscard]] Result<void> destroy(Texture handle);
-    [[nodiscard]] Result<void> destroy(Shader handle);
-    [[nodiscard]] Result<void> destroy(Sampler handle);
-    [[nodiscard]] Result<void> destroy(Pipeline handle);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<std::vector<std::byte>> readback(Texture texture);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> destroy(Buffer handle);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> destroy(Texture handle);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> destroy(Shader handle);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> destroy(Sampler handle);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> destroy(Pipeline handle);
 
   private:
     friend struct detail::Access;
     struct Impl;
-    explicit Device(std::unique_ptr<Impl> impl);
+    SOMNIUM_ENGINE_API explicit Device(std::unique_ptr<Impl> impl);
     std::unique_ptr<Impl> m_impl;
 };
 } // namespace somnium::gpu

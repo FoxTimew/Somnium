@@ -27,7 +27,8 @@ struct Overlay::Impl {
     bool dirty = false, discard = false;
     std::size_t undo = 0, redo = 0, historyBytes = 0;
     std::vector<std::string> commands;
-    std::string iterationError, shaderError;
+    std::string iterationError, shaderError, moduleError;
+    std::size_t moduleImages = 0, moduleBytes = 0;
 #endif
     ~Impl() {
         if (context) {
@@ -131,6 +132,11 @@ input::Capture Overlay::update(double frameSeconds, const scene::World& world,
             ImGui::TextWrapped("Rejected: %s", m_impl->iterationError.c_str());
         if (!m_impl->shaderError.empty())
             ImGui::TextWrapped("Shader reload: %s", m_impl->shaderError.c_str());
+        if (m_impl->moduleImages != 0)
+            ImGui::Text("Game images: %zu / 64, %.2f MiB of files", m_impl->moduleImages,
+                        static_cast<double>(m_impl->moduleBytes) / (1024 * 1024));
+        if (!m_impl->moduleError.empty())
+            ImGui::TextWrapped("Gameplay reload: %s", m_impl->moduleError.c_str());
     }
     ImGui::End();
 #endif
@@ -147,6 +153,12 @@ input::Capture Overlay::update(double frameSeconds, const scene::World& world,
 void Overlay::shaderDiagnostic(std::string_view message) {
     if (m_impl->shaderError != message)
         m_impl->shaderError = message;
+}
+void Overlay::moduleDiagnostic(std::string_view message, ModuleStats stats) {
+    if (m_impl->moduleError != message)
+        m_impl->moduleError = message;
+    m_impl->moduleImages = stats.images;
+    m_impl->moduleBytes = stats.fileBytes;
 }
 Result<input::Configuration> Overlay::iterationMapping() {
     return detail::EditorCamera::configuration();

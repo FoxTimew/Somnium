@@ -1,6 +1,7 @@
 // Exposes engine startup and execution through SDL-free value contracts.
 // The implementation owns subsystem lifetimes and calls borrowed gameplay.
 #pragma once
+#include <somnium/core/export.hpp>
 
 #include <somnium/core/result.hpp>
 #include <somnium/runtime/gameplay.hpp>
@@ -14,6 +15,9 @@
 #include <vector>
 
 namespace somnium::runtime {
+#if defined(SOMNIUM_ENABLE_ITERATION)
+class ReloadableGame;
+#endif
 struct EngineConfig {
     std::string_view title = "Somnium";
     int width = 1280;
@@ -34,6 +38,7 @@ struct RunOptions {
     bool startEditing = false;
     bool iterationReport = false;
     bool watchShaders = false;
+    bool watchGameplay = false;
 #endif
     // Freeze the replay at this tick. Without captureFrame, present for three seconds.
     std::uint64_t captureSteps = 0;
@@ -60,16 +65,21 @@ struct RunStats {
 
 class Engine final {
   public:
-    [[nodiscard]] static Result<std::unique_ptr<Engine>> create(const EngineConfig& config = {});
-    ~Engine();
+    [[nodiscard]] SOMNIUM_ENGINE_API static Result<std::unique_ptr<Engine>>
+    create(const EngineConfig& config = {});
+    SOMNIUM_ENGINE_API ~Engine();
     Engine(const Engine&) = delete;
     Engine& operator=(const Engine&) = delete;
-    [[nodiscard]] Result<RunStats> run(Gameplay& game, const scene::CodecRegistry& codecs,
-                                       RunOptions options = {});
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<RunStats>
+    run(Gameplay& game, const scene::CodecRegistry& codecs, RunOptions options = {});
+#if defined(SOMNIUM_ENABLE_ITERATION)
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<RunStats> run(ReloadableGame& game,
+                                                          RunOptions options = {});
+#endif
 
   private:
     struct Impl;
-    explicit Engine(std::unique_ptr<Impl> impl);
+    SOMNIUM_ENGINE_API explicit Engine(std::unique_ptr<Impl> impl);
     std::unique_ptr<Impl> m_impl;
 };
 } // namespace somnium::runtime

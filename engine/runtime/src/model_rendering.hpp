@@ -2,14 +2,15 @@
 // This private assembly layer is the only place that knows both assets and renderer.
 #pragma once
 #include <somnium/assets/model.hpp>
+#include <somnium/core/export.hpp>
 #include <somnium/renderer/renderer.hpp>
 
 namespace somnium::runtime {
 class ModelRendering final {
   public:
-    [[nodiscard]] static Result<std::unique_ptr<ModelRendering>>
+    [[nodiscard]] SOMNIUM_ENGINE_API static Result<std::unique_ptr<ModelRendering>>
     create(renderer::Renderer& renderer, const assets::Model& model);
-    ~ModelRendering();
+    SOMNIUM_ENGINE_API ~ModelRendering();
     ModelRendering(const ModelRendering&) = delete;
     ModelRendering& operator=(const ModelRendering&) = delete;
     [[nodiscard]] const renderer::DrawList& draws() const {

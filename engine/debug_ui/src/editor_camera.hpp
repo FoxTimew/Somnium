@@ -6,10 +6,10 @@
 namespace somnium::debug_ui::detail {
 class EditorCamera final {
   public:
-    [[nodiscard]] static Result<input::Configuration> configuration();
-    [[nodiscard]] Result<void> initialize(const scene::World& world,
-                                          const input::Configuration& mapping);
-    void update(const input::State& state, double seconds);
+    [[nodiscard]] SOMNIUM_ENGINE_API static Result<input::Configuration> configuration();
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> initialize(const scene::World& world,
+                                                             const input::Configuration& mapping);
+    SOMNIUM_ENGINE_API void update(const input::State& state, double seconds);
     [[nodiscard]] const Trs& pose() const {
         return m_pose;
     }

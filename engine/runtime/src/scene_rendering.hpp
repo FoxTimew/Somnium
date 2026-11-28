@@ -3,6 +3,7 @@
 #pragma once
 #include "model_rendering.hpp"
 #include <memory_resource>
+#include <somnium/core/export.hpp>
 #include <somnium/scene/world.hpp>
 
 namespace somnium::runtime {
@@ -22,16 +23,18 @@ struct SceneFrame {
     std::pmr::vector<renderer::Draw> draws;
     std::pmr::vector<glm::mat4> worlds;
     std::array<float, 4> clearColor{};
-    void reserve(SceneCapacity capacity);
+    SOMNIUM_ENGINE_API void reserve(SceneCapacity capacity);
 };
-[[nodiscard]] Result<void> extractScene(const scene::World& world, float alpha,
-                                        gpu::FrameSize extent, std::span<const ModelDraws> models,
-                                        SceneFrame& frame, const SceneView* view = nullptr);
+[[nodiscard]] SOMNIUM_ENGINE_API Result<void> extractScene(const scene::World& world, float alpha,
+                                                           gpu::FrameSize extent,
+                                                           std::span<const ModelDraws> models,
+                                                           SceneFrame& frame,
+                                                           const SceneView* view = nullptr);
 class SceneRendering final {
   public:
     SceneRendering(renderer::Renderer& renderer, assets::AssetManager<assets::Model>& models)
         : m_renderer(renderer), m_models(models) {}
-    [[nodiscard]] Result<void> prepare(const scene::World& world);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> prepare(const scene::World& world);
     [[nodiscard]] Result<void> extract(const scene::World& world, float alpha, gpu::FrameSize size,
                                        const SceneView* view = nullptr) {
         return extractScene(world, alpha, size, m_bindings, m_frame, view);

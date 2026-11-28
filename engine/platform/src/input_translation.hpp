@@ -3,9 +3,10 @@
 #pragma once
 #include <SDL3/SDL_events.h>
 #include <optional>
+#include <somnium/core/export.hpp>
 #include <somnium/core/input_event.hpp>
 
 namespace somnium::platform::detail {
-[[nodiscard]] std::optional<core::InputEvent> translateInput(const SDL_Event& event,
-                                                             std::uint64_t step);
+[[nodiscard]] SOMNIUM_ENGINE_API std::optional<core::InputEvent>
+translateInput(const SDL_Event& event, std::uint64_t step);
 }

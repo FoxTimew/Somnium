@@ -1,13 +1,24 @@
 # Locks all MVP library sources before their APIs enter project code.
 # Header-only libraries and implementation libraries retain separate targets.
 include("${CMAKE_CURRENT_LIST_DIR}/CPM.cmake")
+if(SOMNIUM_ENABLE_ITERATION)
+    set(somnium_sdl_shared ON)
+    set(somnium_dependency_static OFF)
+else()
+    set(somnium_sdl_shared OFF)
+    set(somnium_dependency_static ON)
+endif()
 CPMAddPackage(NAME SDL GITHUB_REPOSITORY libsdl-org/SDL GIT_TAG release-3.4.18
-    SYSTEM YES OPTIONS "SDL_SHARED OFF" "SDL_STATIC ON" "SDL_TEST_LIBRARY OFF"
+    SYSTEM YES OPTIONS "SDL_SHARED ${somnium_sdl_shared}" "SDL_STATIC ${somnium_dependency_static}" "SDL_TEST_LIBRARY OFF"
     "SDL_TESTS OFF" "SDL_EXAMPLES OFF" "SDL_INSTALL OFF")
 if(CMAKE_C_COMPILER_ID STREQUAL "Clang" AND CMAKE_C_COMPILER_VERSION VERSION_GREATER_EQUAL 23)
     # SDL's release-only diagnostic globals trigger this newly introduced warning.
     # Scope the exception to upstream SDL; Somnium retains its complete warning set.
-    target_compile_options(SDL3-static PRIVATE -Wno-unused-but-set-global)
+    if(TARGET SDL3-static)
+        target_compile_options(SDL3-static PRIVATE -Wno-unused-but-set-global)
+    else()
+        target_compile_options(SDL3-shared PRIVATE -Wno-unused-but-set-global)
+    endif()
 endif()
 CPMAddPackage(NAME glm GITHUB_REPOSITORY g-truc/glm GIT_TAG 1.0.3
     SYSTEM YES OPTIONS "GLM_BUILD_TESTS OFF" "GLM_BUILD_LIBRARY OFF")
@@ -27,7 +38,7 @@ CPMAddPackage(NAME spdlog GITHUB_REPOSITORY gabime/spdlog GIT_TAG v1.17.0
 set(CMAKE_CXX_FLAGS "${somnium_dependency_cxx_flags}")
 unset(somnium_dependency_cxx_flags)
 CPMAddPackage(NAME tracy GITHUB_REPOSITORY wolfpld/tracy GIT_TAG v0.14.1
-    SYSTEM YES OPTIONS "TRACY_ENABLE ${SOMNIUM_ENABLE_PROFILING}" "TRACY_STATIC ON"
+    SYSTEM YES OPTIONS "TRACY_ENABLE ${SOMNIUM_ENABLE_PROFILING}" "TRACY_STATIC ${somnium_dependency_static}"
     "TRACY_ONLY_LOCALHOST ON" "TRACY_NO_BROADCAST ON" "TRACY_NO_SYSTEM_TRACING ON"
     "TRACY_NO_SAMPLING ON" "TRACY_NO_CALLSTACK ON" "TRACY_DEBUGINFOD OFF"
     "TRACY_LIBUNWIND_BACKTRACE OFF")

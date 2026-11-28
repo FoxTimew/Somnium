@@ -16,7 +16,8 @@ class ShippingTests(unittest.TestCase):
         for target in ["somnium_imgui", "somnium_platform_imgui", "somnium_gpu_imgui",
                        "somnium_debug_ui", "somnium_iteration", "somnium_editor_camera",
                        "somnium_file_watch", "somnium_shader_reload", "somnium_game_module",
-                       "somnium_module_loader", "somnium_engine_shared", "spike_v1"]:
+                       "somnium_module_loader", "somnium_engine_shared", "somnium_game_v2",
+                       "somnium_game_bad_abi", "somnium_game_missing_symbol", "spike_v1"]:
             with self.subTest(target=target), self.assertRaisesRegex(ValueError, "target"):
                 validate(target + ": phony", [], self.cache)
 
@@ -26,7 +27,9 @@ class ShippingTests(unittest.TestCase):
                        "engine/runtime/tests/shader_reload_offscreen.cpp", "engine/runtime/src/edit_session.cpp",
                        "engine/runtime/src/iteration_session.cpp", "engine/platform/src/source_files.cpp",
                        "engine/platform/src/source_files_atomic.cpp", "engine/runtime/src/scene_editor.cpp",
-                       "game/tests/iteration_benchmark.cpp",
+                       "game/tests/iteration_benchmark.cpp", "game/src/module_entry.cpp",
+                       "game/tests/module_reload.cpp", "engine/runtime/src/module_abi.cpp",
+                       "engine/runtime/src/gameplay_reload.cpp",
                        "engine/debug_ui/src/editor_camera.cpp", "tools/hot_reload_spike/module.cpp"]:
             for path in ["/repo/" + source, "C:\\repo\\" + source.replace("/", "\\")]:
                 with self.subTest(path=path), self.assertRaisesRegex(ValueError, "source"):

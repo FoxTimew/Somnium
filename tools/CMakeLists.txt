@@ -9,6 +9,10 @@ endif()
 # Phase 0 compiles the full library; the DXC-linked offline CLI is a phase 1 tool.
 # No HLSL compiler is linked into any engine module or sandbox.
 if(BUILD_TESTING)
+    add_test(NAME somnium_game_module_guard_rules COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/test_game_module.py")
+    add_test(NAME somnium_game_publication_tests COMMAND "${Python3_EXECUTABLE}"
+        "${CMAKE_CURRENT_SOURCE_DIR}/gameplay/test_publish.py")
     add_test(NAME somnium_shader_reload_tool_tests
         COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/shaders/test_reload.py")
     add_test(NAME somnium_shader_reload_reference_tests

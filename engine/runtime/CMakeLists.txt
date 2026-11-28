@@ -7,7 +7,7 @@ target_link_libraries(somnium_runtime PUBLIC somnium::core somnium::input somniu
 target_compile_definitions(somnium_runtime PRIVATE SOMNIUM_GPU_DEBUG=$<IF:$<CONFIG:Debug>,1,0>)
 somnium_configure_target(somnium_runtime)
 if(SOMNIUM_ENABLE_ITERATION)
-    target_sources(somnium_runtime PRIVATE src/iteration_session.cpp src/scene_editor.cpp src/edit_session.cpp src/shader_reload.cpp)
+    target_sources(somnium_runtime PRIVATE src/iteration_session.cpp src/scene_editor.cpp src/edit_session.cpp src/shader_reload.cpp src/gameplay_reload.cpp)
 endif()
 if(SOMNIUM_ENABLE_DEBUG_UI)
     target_link_libraries(somnium_runtime PRIVATE somnium::debug_ui)

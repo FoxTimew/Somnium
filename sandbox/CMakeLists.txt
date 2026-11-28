@@ -1,7 +1,12 @@
 # Configures the sandbox consumer and its actual sources.
 # No empty executable or dummy implementation is introduced.
 add_executable(sandbox src/main.cpp)
-target_link_libraries(sandbox PRIVATE somnium_game somnium::runtime)
+target_link_libraries(sandbox PRIVATE somnium::runtime)
+if(SOMNIUM_ENABLE_ITERATION)
+    add_dependencies(sandbox somnium_game_module_publication)
+else()
+    target_link_libraries(sandbox PRIVATE somnium_game)
+endif()
 somnium_configure_target(sandbox)
 install(TARGETS sandbox RUNTIME DESTINATION bin)
 if(BUILD_TESTING)

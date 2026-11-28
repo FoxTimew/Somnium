@@ -4,6 +4,7 @@
 #include <array>
 #include <glm/mat4x4.hpp>
 #include <somnium/assets/manager.hpp>
+#include <somnium/core/export.hpp>
 #include <span>
 #include <variant>
 
@@ -53,15 +54,15 @@ struct Model {
     std::vector<Instance> instances;
     std::string warning;
 };
-class ImageLoader final : public Loader<Image> {
+class SOMNIUM_ENGINE_TYPE ImageLoader final : public Loader<Image> {
   public:
-    [[nodiscard]] Result<Image> load(const core::ByteReader& reader,
-                                     std::string_view path) const override;
-    [[nodiscard]] Result<Image> decode(std::span<const std::byte> bytes) const;
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<Image> load(const core::ByteReader& reader,
+                                                        std::string_view path) const override;
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<Image> decode(std::span<const std::byte> bytes) const;
 };
-class ModelLoader final : public Loader<Model> {
+class SOMNIUM_ENGINE_TYPE ModelLoader final : public Loader<Model> {
   public:
-    [[nodiscard]] Result<Model> load(const core::ByteReader& reader,
-                                     std::string_view path) const override;
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<Model> load(const core::ByteReader& reader,
+                                                        std::string_view path) const override;
 };
 } // namespace somnium::assets

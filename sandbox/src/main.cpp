@@ -1,8 +1,12 @@
 // Assembles the concrete game and engine without exposing SDL to the launcher.
 // Bounded runs exercise the ordinary event-driven shutdown path for CI.
 #include <somnium/core/log.hpp>
+#if defined(SOMNIUM_ENABLE_ITERATION)
+#include <somnium/runtime/reloadable_game.hpp>
+#else
 #include <somnium/game/codecs.hpp>
 #include <somnium/game/sandbox_game.hpp>
+#endif
 #include <somnium/runtime/engine.hpp>
 
 #include <charconv>
@@ -16,6 +20,7 @@ int main(int argc, char** argv) {
     std::string captureOutput;
 #if defined(SOMNIUM_ENABLE_ITERATION)
     std::string iterationOutput;
+    std::string moduleRoot;
 #endif
     somnium::runtime::EngineConfig config;
     config.scenePath = "scenes/courtyard.json";
@@ -39,6 +44,12 @@ int main(int argc, char** argv) {
             if (value != "on" && value != "off")
                 return 2;
             options.watchShaders = value == "on";
+        } else if (key == "--watch-gameplay") {
+            if (value != "on" && value != "off")
+                return 2;
+            options.watchGameplay = value == "on";
+        } else if (key == "--module-root") {
+            moduleRoot = value;
         } else if (key == "--source-root")
             config.sourceRoot = value;
         else if (key == "--editor-replay")
@@ -63,12 +74,23 @@ int main(int argc, char** argv) {
         } else
             return 2;
     }
+#if defined(SOMNIUM_ENABLE_ITERATION)
+    auto game = somnium::runtime::ReloadableGame::create({moduleRoot});
+    if (!game) {
+        somnium::Log::write("sandbox", somnium::Log::Level::Error, game.error().message);
+        return 1;
+    }
+#else
     somnium::game::SandboxGame game;
+#endif
     auto engine = somnium::runtime::Engine::create(config);
     if (!engine) {
         somnium::Log::write("sandbox", somnium::Log::Level::Error, engine.error().message);
         return 1;
     }
+#if defined(SOMNIUM_ENABLE_ITERATION)
+    auto result = (*engine)->run(**game, options);
+#else
     somnium::scene::CodecRegistry codecs;
     auto registered = somnium::scene::registerBuiltinCodecs(codecs);
     if (!registered) {
@@ -81,6 +103,7 @@ int main(int argc, char** argv) {
         return 1;
     }
     auto result = (*engine)->run(game, codecs, options);
+#endif
     if (!result) {
         somnium::Log::write("sandbox", somnium::Log::Level::Error, result.error().message);
         return 1;

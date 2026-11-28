@@ -3,6 +3,7 @@
 #pragma once
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
+#include <somnium/core/export.hpp>
 #include <somnium/gpu/device.hpp>
 #include <somnium/renderer/camera.hpp>
 
@@ -32,38 +33,39 @@ struct Draw {
     glm::mat4 world{1};
 };
 using DrawList = std::vector<Draw>;
-[[nodiscard]] Result<FrameData> cameraFrame(const Camera& camera, gpu::FrameSize extent);
+[[nodiscard]] SOMNIUM_ENGINE_API Result<FrameData> cameraFrame(const Camera& camera,
+                                                               gpu::FrameSize extent);
 class Renderer final {
   public:
     // Device and reader access stay on the creating thread; device must outlive this owner.
-    [[nodiscard]] static Result<std::unique_ptr<Renderer>>
+    [[nodiscard]] SOMNIUM_ENGINE_API static Result<std::unique_ptr<Renderer>>
     create(gpu::Device& device, const core::ByteReader& reader,
            gpu::ColorFormat color = gpu::ColorFormat::Rgba8);
-    ~Renderer();
+    SOMNIUM_ENGINE_API ~Renderer();
     Renderer(const Renderer&) = delete;
     Renderer& operator=(const Renderer&) = delete;
-    [[nodiscard]] Result<Mesh> createMesh(const MeshData& data);
-    [[nodiscard]] Result<Texture> createTexture(gpu::FrameSize size,
-                                                std::span<const std::byte> rgba);
-    [[nodiscard]] Result<Material> createMaterial(const MaterialData& data);
-    [[nodiscard]] Result<void> destroy(Mesh handle);
-    [[nodiscard]] Result<void> destroy(Material handle);
-    [[nodiscard]] Result<void> destroy(Texture handle);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<Mesh> createMesh(const MeshData& data);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<Texture> createTexture(gpu::FrameSize size,
+                                                                   std::span<const std::byte> rgba);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<Material> createMaterial(const MaterialData& data);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> destroy(Mesh handle);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> destroy(Material handle);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> destroy(Texture handle);
     // Allocate scratch capacity while loading, never implicitly during record().
-    void reserveDraws(std::size_t count);
+    SOMNIUM_ENGINE_API void reserveDraws(std::size_t count);
 #if defined(SOMNIUM_ENABLE_ITERATION)
     // Called at a fixed-step boundary, before recording. False means already active.
-    [[nodiscard]] Result<bool> reloadShaders(const core::ByteReader& reader,
-                                             std::string_view manifest,
-                                             std::span<const std::byte> document);
-    [[nodiscard]] std::string_view shaderGeneration() const;
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<bool>
+    reloadShaders(const core::ByteReader& reader, std::string_view manifest,
+                  std::span<const std::byte> document);
+    [[nodiscard]] SOMNIUM_ENGINE_API std::string_view shaderGeneration() const;
 #endif
-    [[nodiscard]] Result<void> record(const gpu::RenderPass& pass, const FrameData& frame,
-                                      std::span<const Draw> draws);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void>
+    record(const gpu::RenderPass& pass, const FrameData& frame, std::span<const Draw> draws);
 
   private:
     struct Impl;
-    explicit Renderer(std::unique_ptr<Impl> impl);
+    SOMNIUM_ENGINE_API explicit Renderer(std::unique_ptr<Impl> impl);
     std::unique_ptr<Impl> m_impl;
 };
 } // namespace somnium::renderer

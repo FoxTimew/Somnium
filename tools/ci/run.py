@@ -259,6 +259,8 @@ class Runner:
     def build(self, preset):
         self.check_space(self.build_dir(preset))
         self.call("build-" + preset, [self.cmake, "--build", self.build_dir(preset), "--parallel", self.args.jobs])
+        if preset == "shipping":
+            self.py("shipping-binary", "tools/check_shipping.py", self.build_dir(preset), "--verify-binary")
         if SYSTEM == "Windows":
             dependencies = subprocess.check_output(["ninja", "-C", self.build_dir(preset), "-t", "deps"],
                 env=self.env, text=True, encoding="utf-8", errors="replace")
@@ -398,8 +400,8 @@ class Runner:
         self.format()
         self.cache_server()
         self.compiler_cache()
-        if SYSTEM in ["Windows", "Linux"]:
-            self.hot_reload_spike()
+        # The actual game-module CPU proof now replaces the isolated spike here.
+        # hot-reload-spike remains an independently callable investigation command.
         self.shader_toolchain()
         self.configure("debug")
         self.build("debug")
@@ -419,6 +421,8 @@ class Runner:
         for backend in backends:
             self.shader_reload_proof(backend)
             self.iteration_proof(backend)
+            if SYSTEM in ["Windows", "Linux"]:
+                self.gameplay_proof(backend)
         if SYSTEM == "Linux":
             self.tidy()
         for preset in ["release", "shipping", "profiling"]:
@@ -437,12 +441,50 @@ class Runner:
         self.configure("iteration-profiling")
         self.build("iteration-profiling")
         self.test("iteration-profiling")
-        self.summary("Iteration + Tracy: CPU contracts and Play/Edit window tests; GPU validation remains in the required Debug jobs")
+        self.tracy_module_proof()
+        self.summary("Iteration + Tracy: CPU contracts, Play/Edit windows and connected real module exchange; GPU validation remains in the required Debug jobs")
+
+    def gameplay_proof(self, backend):
+        if SYSTEM == "Windows" and self.args.window_mode == "service":
+            self.summary("Gameplay presentation: **non validé** in session 0; interactive proof required")
+            return
+        output = self.run / ("gameplay-" + backend)
+        self.py("gameplay-" + backend, "tools/gameplay/prove_sandbox.py",
+                "--executable", self.build_dir("iteration") / "bin" / ("sandbox" + self.suffix),
+                "--backend", backend, "--output", output, env=self.gpu_environment(backend), window=True)
+        self.summary(f"Gameplay exchange in one sandbox process: **validated** {backend} — `{output}`")
+
+    def tracy_module_proof(self):
+        build = self.build_dir("iteration-profiling")
+        cache = (build / "CMakeCache.txt").read_text(encoding="utf-8")
+        source = re.search(r"^Tracy_SOURCE_DIR:[^=]+=(.+)$", cache, re.MULTILINE)
+        if not source:
+            raise RuntimeError("Pinned Tracy source missing from configured build")
+        install = self.root / "cache/tracy-tools" / key("cmake/Dependencies.cmake",
+            "tools/tracy/CMakeLists.txt", "tools/ci/toolchain.json")
+        capture = install / "bin" / ("tracy-capture" + self.suffix)
+        exporter = install / "bin" / ("tracy-csvexport" + self.suffix)
+        if not capture.is_file() or not exporter.is_file():
+            tools_build = self.run / "build/tracy-tools"
+            self.check_space(tools_build)
+            command = [self.cmake, "-S", ROOT / "tools/tracy", "-B", tools_build, "-G", "Ninja",
+                f"-DSOMNIUM_TRACY_SOURCE={source.group(1).strip()}", f"-DCMAKE_INSTALL_PREFIX={install}",
+                "-DCMAKE_C_COMPILER_LAUNCHER=sccache", "-DCMAKE_CXX_COMPILER_LAUNCHER=sccache"]
+            if SYSTEM == "Linux":
+                command += ["-DCMAKE_C_COMPILER=clang-18", "-DCMAKE_CXX_COMPILER=clang++-18"]
+            self.call("tracy-tools-configure", command)
+            self.call("tracy-tools-build", [self.cmake, "--build", tools_build, "--parallel", self.args.jobs])
+            self.call("tracy-tools-install", [self.cmake, "--install", tools_build])
+        output = self.run / "gameplay-tracy"
+        self.py("gameplay-tracy", "tools/gameplay/tracy_proof.py", "--capture", capture,
+                "--exporter", exporter, "--host", build / "bin" / ("somnium_game_module_tests" + self.suffix),
+                "--modules", build / "bin/modules", "--assets", ROOT / "assets", "--output", output)
+        self.summary(f"Tracy connected: both game generations and 64 retained images validated — `{output}`")
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("operation", choices=["doctor", "format", "compiler-cache", "shader-toolchain", "hot-reload-spike", "configure", "build", "test", "tidy", "sanitizers", "gpu", "captures", "iteration-proof", "shader-reload-proof", "pipeline", "iteration-profiling", "cleanup"])
+    parser.add_argument("operation", choices=["doctor", "format", "compiler-cache", "shader-toolchain", "hot-reload-spike", "configure", "build", "test", "tidy", "sanitizers", "gpu", "captures", "iteration-proof", "shader-reload-proof", "gameplay-proof", "pipeline", "iteration-profiling", "cleanup"])
     parser.add_argument("--root", type=Path, default=Path(os.environ.get("SOMNIUM_CI_ROOT", "C:/SomniumCI" if SYSTEM == "Windows" else str(Path.home() / "somnium-ci"))))
     parser.add_argument("--run-id", default=os.getenv("GITHUB_RUN_ID", "local-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S") + "-" + uuid.uuid4().hex[:6]) + "-" + os.getenv("GITHUB_RUN_ATTEMPT", "1"))
     parser.add_argument("--preset", choices=PRESETS, default="debug")
@@ -466,8 +508,8 @@ def main():
                 runner.cache_server()
             if args.operation in ["configure", "build", "test"]:
                 getattr(runner, args.operation)(args.preset)
-            elif args.operation in ["gpu", "captures"]:
-                getattr(runner, args.operation)(args.backend)
+            elif args.operation in ["gpu", "captures", "gameplay-proof"]:
+                getattr(runner, args.operation.replace("-", "_"))(args.backend)
             elif args.operation != "cleanup":
                 getattr(runner, args.operation.replace("-", "_"))()
             status = "success"

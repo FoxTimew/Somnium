@@ -15,6 +15,6 @@ struct ShaderData {
                 samplers, storageTextures, storageBuffers, uniforms};
     }
 };
-[[nodiscard]] Result<ShaderData> readShader(const core::ByteReader& reader,
-                                            std::string_view manifest, ShaderFormat format);
+[[nodiscard]] SOMNIUM_ENGINE_API Result<ShaderData>
+readShader(const core::ByteReader& reader, std::string_view manifest, ShaderFormat format);
 } // namespace somnium::gpu::detail

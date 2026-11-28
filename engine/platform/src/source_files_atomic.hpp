@@ -4,11 +4,12 @@
 #include <cstdint>
 #include <filesystem>
 #include <functional>
+#include <somnium/core/export.hpp>
 #include <somnium/core/result.hpp>
 #include <string_view>
 
 namespace somnium::platform::detail {
-[[nodiscard]] Result<void> atomicReplace(const std::filesystem::path& target,
-                                         std::string_view contents, std::uint64_t sequence,
-                                         const std::function<Result<void>()>& validate);
+[[nodiscard]] SOMNIUM_ENGINE_API Result<void>
+atomicReplace(const std::filesystem::path& target, std::string_view contents,
+              std::uint64_t sequence, const std::function<Result<void>()>& validate);
 }

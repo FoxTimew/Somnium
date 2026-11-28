@@ -31,7 +31,7 @@ endfunction()
 
 set(somnium_module_targets somnium_core somnium_platform somnium_gpu somnium_renderer
     somnium_assets somnium_scene somnium_input somnium_debug_ui somnium_platform_imgui
-    somnium_gpu_imgui somnium_runtime somnium_game sandbox)
+    somnium_gpu_imgui somnium_runtime somnium_game somnium_game_module sandbox)
 somnium_check_links(somnium_core "" "")
 somnium_check_links(somnium_platform "somnium_core" "")
 somnium_check_links(somnium_gpu "somnium_core;somnium_platform" "")
@@ -46,6 +46,7 @@ somnium_check_links(somnium_debug_ui "somnium_core"
 somnium_check_links(somnium_runtime "somnium_core;somnium_scene;somnium_input"
     "somnium_platform;somnium_gpu;somnium_assets;somnium_renderer;somnium_debug_ui")
 somnium_check_links(somnium_game "somnium_runtime" "")
+somnium_check_links(somnium_game_module "" "somnium_runtime")
 somnium_check_links(sandbox "" "somnium_game;somnium_runtime")
 
 # Source ownership is checked too: linking the integrations correctly is insufficient

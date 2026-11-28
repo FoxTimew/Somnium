@@ -1,6 +1,7 @@
 // Converts measured frame time into bounded fixed simulation work.
 // Discarded time is explicit so overload cannot silently cause unbounded catch-up.
 #pragma once
+#include <somnium/core/export.hpp>
 
 #include <somnium/core/result.hpp>
 
@@ -15,8 +16,8 @@ struct StepBatch {
 
 class FixedStep final {
   public:
-    [[nodiscard]] Result<StepBatch> advance(double elapsedSeconds);
-    void reset();
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<StepBatch> advance(double elapsedSeconds);
+    SOMNIUM_ENGINE_API void reset();
 
   private:
     double m_remainder = 0.0;

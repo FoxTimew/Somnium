@@ -3,6 +3,7 @@
 #pragma once
 #include <array>
 #include <memory_resource>
+#include <somnium/core/export.hpp>
 #include <somnium/core/input_names.hpp>
 #include <somnium/input/configuration.hpp>
 namespace somnium::input {
@@ -18,8 +19,8 @@ struct State {
     std::span<const ButtonState> actions;
     std::span<const float> axes;
     std::span<const Transition> transitions;
-    [[nodiscard]] const ButtonState& action(ActionId id) const;
-    [[nodiscard]] float axis(AxisId id) const;
+    [[nodiscard]] SOMNIUM_ENGINE_API const ButtonState& action(ActionId id) const;
+    [[nodiscard]] SOMNIUM_ENGINE_API float axis(AxisId id) const;
 };
 struct Capture {
     bool keyboard = false, mouse = false;
@@ -27,17 +28,18 @@ struct Capture {
 };
 class Input final {
   public:
-    explicit Input(Configuration configuration,
-                   std::pmr::memory_resource* memory = std::pmr::get_default_resource(),
-                   std::uint64_t firstStep = 0);
+    SOMNIUM_ENGINE_API explicit Input(
+        Configuration configuration,
+        std::pmr::memory_resource* memory = std::pmr::get_default_resource(),
+        std::uint64_t firstStep = 0);
     [[nodiscard]] const Configuration& configuration() const {
         return m_configuration;
     }
-    [[nodiscard]] Result<void> enqueue(std::span<const core::InputEvent> events);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<void> enqueue(std::span<const core::InputEvent> events);
     // Ordered at the next tick, after already collected events for that tick.
-    void setCapture(Capture capture);
-    [[nodiscard]] Result<State> advance(std::uint64_t step);
-    [[nodiscard]] State state() const;
+    SOMNIUM_ENGINE_API void setCapture(Capture capture);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<State> advance(std::uint64_t step);
+    [[nodiscard]] SOMNIUM_ENGINE_API State state() const;
 
   private:
     struct Button {
@@ -53,10 +55,10 @@ class Input final {
         core::InputEvent event;
         std::optional<Capture> capture;
     };
-    void apply(const core::InputEvent& event);
-    void capture(Capture capture);
-    void updateActions();
-    [[nodiscard]] float physical(const Binding& binding) const;
+    SOMNIUM_ENGINE_API void apply(const core::InputEvent& event);
+    SOMNIUM_ENGINE_API void capture(Capture capture);
+    SOMNIUM_ENGINE_API void updateActions();
+    [[nodiscard]] SOMNIUM_ENGINE_API float physical(const Binding& binding) const;
     Configuration m_configuration;
     std::pmr::vector<ButtonState> m_actions;
     std::pmr::vector<float> m_axes;

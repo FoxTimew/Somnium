@@ -14,7 +14,8 @@ EnTT 4.0.0, codecs, Gameplay et rejeu existants.
 - **Découpage** : au lot 4 seulement, `iteration` construit une image moteur
   partagée et game en module. Lots 1 à 3 statiques ; autres presets toujours
   statiques, mêmes sources/contrat. Log/registres ont un propriétaire ; Tracy
-  est un client partagé unique quand activé.
+  est un client partagé unique quand activé. SDL est aussi partagé dans iteration,
+  pour que moteur et hôtes de tests utilisant ses hooks partagent la même instance.
 - **Exports explicites** : macro `SOMNIUM_ENGINE_API`, dllexport/dllimport sous
   Windows, visibilité default sous Linux (cachée par défaut), vide en statique.
   Fonctions et classes d'API annotées ; aucun export automatique. Données mutables
@@ -25,10 +26,13 @@ EnTT 4.0.0, codecs, Gameplay et rejeu existants.
   et évite les duplications invisibles du spike à exports automatiques.
 - **ABI locale** : entrée C versionnée, taille/empreinte du build moteur,
   compilateur, bibliothèque standard, options ABI, dépendances/headers vérifiées
-  avant factory. Sans exceptions/RTTI ; CRT `/MD[d]` Windows, même libstdc++ Linux.
+  avant factory. `ComponentCodec.editor` reste conditionnel : option iteration et
+  taille/alignement du codec font partie de l'empreinte. Sans exceptions/RTTI ;
+  CRT `/MD[d]` Windows, même libstdc++ Linux.
   Factory/destruction dans leur module d'origine. Ni ABI tierce ni isolation de crash.
 - **Types/enregistrements** : hash/noms EnTT partagés, jamais les type_index
-  séquentiels. Types privés dans un namespace de génération ; codecs persistants
+  séquentiels. Types privés dans un namespace de génération **non inline**, car
+  Clang omet les namespaces inline dans le nom haché ; codecs persistants
   stables. Runtime possède le manifeste codecs/stockages/abonnements ; retrait des
   fonctions et pools via `registry.reset(id)`, pas seulement clear.
 - **Transaction au pas** : stop → instantané → destruction du Gameplay/retrait
@@ -37,6 +41,8 @@ EnTT 4.0.0, codecs, Gameplay et rejeu existants.
   d'assets jusqu'au succès puis disparaît. Aucun emprunt/vtable/callback ancien
   actif. Échec : candidat détruit, ancien module reconstruit depuis l'instantané ;
   erreur affichée, input conservé, aucun événement rejoué.
+  Les instantanés Play/Stop et Undo/Redo sont validés avec les nouveaux codecs.
+  En Édition, start/stop valide un candidat puis l'instantané intact est restauré.
 - **État/références** : World seul persiste. Hors World, toute entité est adressée
   par PersistentId, jamais par entt::entity durable. Start reconstruit l'état dérivé
   avec mapping/tick ; orbite de reset, portes, positions/historique restent dans World.
@@ -57,4 +63,4 @@ Copie d'octets : migration de disposition impossible.
 ABI incompatible = redémarrage ; octets retenus affichés. Services exclus de
 shipping ; profilage iteration manuel exigé aux jalons, macOS non bloquant.
 
-Preuves : exports/objets et en-têtes, jeu réel/assets, empreinte ABI, retrait des abonnements/groupes/contextes, reprise au tick courant, Tracy connecté et exclusion shipping après intégration.
+Preuves : passage CI requis et Tracy manuel après intégration, contrôle final shipping installé.

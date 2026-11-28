@@ -1,9 +1,10 @@
 // Owns the sandbox's orbit behavior in gameplay, independently of the render loop.
 // A bounded polar angle keeps the view direction away from the world-up singularity.
 #pragma once
+#include <somnium/game/generation.hpp>
 #include <somnium/runtime/gameplay.hpp>
 
-namespace somnium::game {
+namespace somnium::game::SOMNIUM_GAME_GENERATION {
 struct OrbitControls {
     input::ActionId reset;
     input::AxisId mouseYaw, mousePitch, wheelZoom, stickYaw, stickPitch, triggerZoom;
@@ -25,4 +26,4 @@ class OrbitCamera final {
   private:
     OrbitState m_state;
 };
-} // namespace somnium::game
+} // namespace somnium::game::SOMNIUM_GAME_GENERATION

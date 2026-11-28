@@ -1,0 +1,27 @@
+# Builds the pinned headless collector and CSV reader with one shared server compilation.
+# No GUI dependency or profiler implementation enters the game or engine binary.
+cmake_minimum_required(VERSION 3.28)
+project(somnium_tracy_tools LANGUAGES C CXX)
+if(NOT EXISTS "${SOMNIUM_TRACY_SOURCE}/cmake/server.cmake")
+    message(FATAL_ERROR "SOMNIUM_TRACY_SOURCE must identify the pinned CPM Tracy checkout")
+endif()
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_BUILD_TYPE Release CACHE STRING "" FORCE)
+set(NO_STATISTICS OFF)
+set(NO_LTO ON)
+set(NO_ISA_EXTENSIONS ON)
+set(NO_CCACHE ON)
+set(VENDOR_GUI OFF)
+include("${SOMNIUM_TRACY_SOURCE}/cmake/config.cmake")
+include("${SOMNIUM_TRACY_SOURCE}/cmake/vendor.cmake")
+include("${SOMNIUM_TRACY_SOURCE}/cmake/server.cmake")
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/GitRef.hpp"
+    "#pragma once\nnamespace tracy { inline constexpr const char* GitRef = \"Somnium pinned v0.14.1\"; }\n")
+add_executable(tracy-capture "${SOMNIUM_TRACY_SOURCE}/capture/src/capture.cpp"
+    "${SOMNIUM_TRACY_SOURCE}/capture/src/CaptureOutput.cpp")
+add_executable(tracy-csvexport "${SOMNIUM_TRACY_SOURCE}/csvexport/src/csvexport.cpp")
+foreach(target tracy-capture tracy-csvexport)
+    target_include_directories(${target} PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
+    target_link_libraries(${target} PRIVATE TracyServer TracyGetOpt)
+endforeach()
+install(TARGETS tracy-capture tracy-csvexport RUNTIME DESTINATION bin)

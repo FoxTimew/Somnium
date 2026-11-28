@@ -6,7 +6,7 @@
 #include <numbers>
 #include <somnium/game/orbit_camera.hpp>
 
-namespace somnium::game {
+namespace somnium::game::SOMNIUM_GAME_GENERATION {
 Result<OrbitControls> OrbitControls::resolve(const input::Configuration& mapping) {
     OrbitControls result;
     auto reset = mapping.action("Reset");
@@ -68,4 +68,4 @@ Trs OrbitCamera::pose(glm::vec3 target) const {
     return {target + eye, glm::quatLookAtRH(glm::normalize(-eye), glm::vec3(0, 1, 0)),
             glm::vec3(1)};
 }
-} // namespace somnium::game
+} // namespace somnium::game::SOMNIUM_GAME_GENERATION

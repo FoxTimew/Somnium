@@ -57,7 +57,7 @@ void Inspector::transform(const scene::World& world) {
     ImGui::Text("Position %.3f %.3f %.3f", local.position.x, local.position.y, local.position.z);
     ImGui::Text("Rotation %.2f %.2f %.2f", degrees.x, degrees.y, degrees.z);
     ImGui::Text("Scale %.3f %.3f %.3f", local.scale.x, local.scale.y, local.scale.z);
-    ImGui::TextUnformatted("Read only / use the iteration preset to edit");
+    ImGui::TextUnformatted("Read only");
 }
 void Inspector::draw(const scene::World& world, const input::Configuration& mapping,
                      const input::State& inputs, bool replay, bool editing) {

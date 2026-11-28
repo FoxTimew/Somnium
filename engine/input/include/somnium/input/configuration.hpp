@@ -4,6 +4,7 @@
 #include <limits>
 #include <optional>
 #include <somnium/core/byte_reader.hpp>
+#include <somnium/core/export.hpp>
 #include <somnium/core/input_event.hpp>
 #include <span>
 #include <string>
@@ -49,11 +50,11 @@ struct AxisDefinition {
 };
 class Configuration final {
   public:
-    [[nodiscard]] static Result<Configuration> parse(std::string_view text);
-    [[nodiscard]] static Result<Configuration> load(const core::ByteReader& reader,
-                                                    std::string_view path);
-    [[nodiscard]] Result<ActionId> action(std::string_view name) const;
-    [[nodiscard]] Result<AxisId> axis(std::string_view name) const;
+    [[nodiscard]] SOMNIUM_ENGINE_API static Result<Configuration> parse(std::string_view text);
+    [[nodiscard]] SOMNIUM_ENGINE_API static Result<Configuration>
+    load(const core::ByteReader& reader, std::string_view path);
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<ActionId> action(std::string_view name) const;
+    [[nodiscard]] SOMNIUM_ENGINE_API Result<AxisId> axis(std::string_view name) const;
     [[nodiscard]] std::span<const ActionDefinition> actions() const {
         return m_actions;
     }
